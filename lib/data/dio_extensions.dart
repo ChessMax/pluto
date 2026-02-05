@@ -15,16 +15,21 @@ extension DioExtensions on Dio {
     Object? data,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? queryParameters,
+    String? contentType,
   }) async {
     // try {
-      final response = await request<dynamic>(
-        '${url ?? options.baseUrl}$path',
-        data: data,
-        queryParameters: queryParameters,
-        options: Options(method: method.name, headers: headers),
-      );
-      final parsedResponse = parser(response.data as Map<String, dynamic>);
-      return right(parsedResponse);
+    final response = await request<dynamic>(
+      '${url ?? options.baseUrl}$path',
+      data: data,
+      queryParameters: queryParameters,
+      options: Options(
+        method: method.name,
+        headers: headers,
+        contentType: contentType,
+      ),
+    );
+    final parsedResponse = parser(response.data as Map<String, dynamic>);
+    return right(parsedResponse);
     // } on DioException catch (e) {
     //   return left(e);
     // } catch (e) {
@@ -39,8 +44,15 @@ extension DioExtensions on Dio {
     Object? data,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? queryParameters,
+    String? contentType,
   }) async {
-    return safeRequest(HttpMethod.get, path, parser, headers: headers);
+    return safeRequest(
+      HttpMethod.get,
+      path,
+      parser,
+      headers: headers,
+      contentType: contentType,
+    );
   }
 
   Result<T> postRequest<T>(
@@ -50,6 +62,7 @@ extension DioExtensions on Dio {
     Object? data,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? queryParameters,
+        String? contentType,
   }) async {
     return safeRequest(
       HttpMethod.post,
@@ -58,6 +71,7 @@ extension DioExtensions on Dio {
       data: data,
       headers: headers,
       queryParameters: queryParameters,
+      contentType: contentType,
     );
   }
 
@@ -68,6 +82,7 @@ extension DioExtensions on Dio {
     Object? data,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? queryParameters,
+        String? contentType,
   }) async {
     return safeRequest(
       HttpMethod.put,
@@ -76,6 +91,7 @@ extension DioExtensions on Dio {
       data: data,
       headers: headers,
       queryParameters: queryParameters,
+      contentType: contentType,
     );
   }
 }
