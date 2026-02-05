@@ -13,24 +13,23 @@ extension DioExtensions on Dio {
     ResponseParser<T> parser, {
     String? url,
     Object? data,
+    Map<String, dynamic>? headers,
     Map<String, dynamic>? queryParameters,
-    CancelToken? cancelToken,
   }) async {
-    try {
-      final response = await request<T>(
-        '${url ?? options.baseUrl}/$path',
+    // try {
+      final response = await request<dynamic>(
+        '${url ?? options.baseUrl}$path',
         data: data,
         queryParameters: queryParameters,
-        cancelToken: cancelToken,
-        options: Options(method: method.name),
+        options: Options(method: method.name, headers: headers),
       );
       final parsedResponse = parser(response.data as Map<String, dynamic>);
       return right(parsedResponse);
-    } on DioException catch (e) {
-      return left(e);
-    } catch (e) {
-      return left(Exception('Request failed'));
-    }
+    // } on DioException catch (e) {
+    //   return left(e);
+    // } catch (e) {
+    //   return left(Exception('Request failed'));
+    // }
   }
 
   Result<T> getRequest<T>(
@@ -38,10 +37,10 @@ extension DioExtensions on Dio {
     ResponseParser<T> parser, {
     String? url,
     Object? data,
+    Map<String, dynamic>? headers,
     Map<String, dynamic>? queryParameters,
-    CancelToken? cancelToken,
   }) async {
-    return safeRequest(HttpMethod.get, path, parser);
+    return safeRequest(HttpMethod.get, path, parser, headers: headers);
   }
 
   Result<T> postRequest<T>(
@@ -49,10 +48,17 @@ extension DioExtensions on Dio {
     ResponseParser<T> parser, {
     String? url,
     Object? data,
+    Map<String, dynamic>? headers,
     Map<String, dynamic>? queryParameters,
-    CancelToken? cancelToken,
   }) async {
-    return safeRequest(HttpMethod.post, path, parser);
+    return safeRequest(
+      HttpMethod.post,
+      path,
+      parser,
+      data: data,
+      headers: headers,
+      queryParameters: queryParameters,
+    );
   }
 
   Result<T> putRequest<T>(
@@ -60,9 +66,16 @@ extension DioExtensions on Dio {
     ResponseParser<T> parser, {
     String? url,
     Object? data,
+    Map<String, dynamic>? headers,
     Map<String, dynamic>? queryParameters,
-    CancelToken? cancelToken,
   }) async {
-    return safeRequest(HttpMethod.put, path, parser);
+    return safeRequest(
+      HttpMethod.put,
+      path,
+      parser,
+      data: data,
+      headers: headers,
+      queryParameters: queryParameters,
+    );
   }
 }
