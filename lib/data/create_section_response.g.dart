@@ -9,15 +9,15 @@ part of 'create_section_response.dart';
 CreateSectionResponse _$CreateSectionResponseFromJson(
   Map<String, dynamic> json,
 ) => CreateSectionResponse(
-  courses:
-      (json['courses'] as List<dynamic>)
+  sections:
+      (json['sections'] as List<dynamic>)
           .map((e) => SectionDto.fromJson(e as Map<String, dynamic>))
           .toList(),
 );
 
 Map<String, dynamic> _$CreateSectionResponseToJson(
   CreateSectionResponse instance,
-) => <String, dynamic>{'courses': instance.courses};
+) => <String, dynamic>{'sections': instance.sections};
 
 SectionDto _$SectionDtoFromJson(Map<String, dynamic> json) =>
     SectionDto(id: json['id'] as String);

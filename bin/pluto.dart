@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:pluto/data/client.dart';
 import 'package:pluto/data/interceptors/bearer_interceptor.dart';
@@ -101,21 +99,22 @@ void main(List<String> arguments) async {
 
   final courseResult = await client.createCourse({
     'course': {
-      'title': 'My Course'
+      'title': 'My Course',
+      'is_public': false,
     }
   });
   final courseId = courseResult.toNullable()!.courses[0].id;
   print('Course ID: $courseId');
   print('');
 
-  final createSectionResult = await client.createStep({
+  final createSectionResult = await client.createSection({
     'section': {
       'title': 'My Section',
       'course': courseId,
       'position': 1
     }
   });
-  final sectionId = createSectionResult.toNullable()!.stepSources[0].id;
+  final sectionId = createSectionResult.toNullable()!.sections[0].id;
   print('Section ID: $sectionId');
 
 

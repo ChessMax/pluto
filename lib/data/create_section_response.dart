@@ -5,10 +5,10 @@ part 'create_section_response.g.dart';
 
 @JsonSerializable(fieldRename: FieldRename.snake)
 class CreateSectionResponse {
-  final List<SectionDto> courses;
+  final List<SectionDto> sections;
 
   CreateSectionResponse({
-    required this.courses,
+    required this.sections,
   });
 
   static CreateSectionResponse fromJson(JsonObject value) =>

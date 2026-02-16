@@ -14,11 +14,19 @@ CreateCourseResponse _$CreateCourseResponseFromJson(
       (json['courses'] as List<dynamic>)
           .map((e) => CourseDto.fromJson(e as Map<String, dynamic>))
           .toList(),
+  enrollments:
+      (json['enrollments'] as List<dynamic>)
+          .map((e) => EnrollmentDto.fromJson(e as Map<String, dynamic>))
+          .toList(),
 );
 
 Map<String, dynamic> _$CreateCourseResponseToJson(
   CreateCourseResponse instance,
-) => <String, dynamic>{'meta': instance.meta, 'courses': instance.courses};
+) => <String, dynamic>{
+  'meta': instance.meta,
+  'courses': instance.courses,
+  'enrollments': instance.enrollments,
+};
 
 CourseDto _$CourseDtoFromJson(Map<String, dynamic> json) => CourseDto(
   id: (json['id'] as num).toInt(),

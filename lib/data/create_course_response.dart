@@ -1,6 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pluto/data/create_section_response.dart';
 import 'package:pluto/data/json.dart';
+import 'package:pluto/data/meta_dto.dart';
 import 'package:pluto/data/stepik_list_response.dart';
 
 part 'create_course_response.g.dart';
