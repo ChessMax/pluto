@@ -35,6 +35,12 @@ void main(List<String> arguments) async {
   }
 
   stepikDio.interceptors.add(BearerInterceptor(token.accessToken));
+  
+  final result = await client.getCourse('283025');
+  final course = result.toNullable()!.courses.first;
+  print(course);
+
+  return;
 
   final lessonResult = await client.createLesson({
     'lesson': {'title': 'My Lesson'},
@@ -99,17 +105,9 @@ void main(List<String> arguments) async {
 
   final courseResult = await client.createCourse({
     'course': {
-      'title': 'My Course',
-      // 'is_public': false,
-      // 'is_enabled': false,
-      'actions': {
-        // 'is_enabled': false,
-        "edit_advanced_settings": {
-          "enabled": true,
-          "is_draft": true,
-          // "needs_plan": "enterprise"
-        },
-      }
+      'title': 'Test course. Please, ignore it',
+      'is_public': false,
+      'is_enabled': false,
     }
   });
   final courseId = courseResult.toNullable()!.courses[0].id;

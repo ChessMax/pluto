@@ -50,6 +50,13 @@ class StepikClient {
     );
   }
 
+  Result<CreateCourseResponse> getCourse(String courseId) {
+    return _dio.getRequest(
+      '/api/courses/$courseId',
+      CreateCourseResponse.fromJson,
+    );
+  }
+
   Result<CreateCourseResponse> createCourse(Map<String, dynamic> data) {
     return _dio.postRequest(
       data: data,

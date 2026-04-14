@@ -191,7 +191,7 @@ class CourseDto {
   final dynamic? previewLesson;
   final dynamic? previewUnit;
   final List<String> possibleCurrencies;
-  final int commissionBasic;
+  final int? commissionBasic;
   final int commissionPromo;
   final bool withCertificate;
   final List<CourseDto> childCourses;
@@ -199,7 +199,7 @@ class CourseDto {
   final List<CourseDto> parentCourses;
 
   // "2026-02-05T18:42:06.803Z"
-  final String becamePublishedAt;
+  final String? becamePublishedAt;
   final String? becamePaidAt;
   final String titleEn;
   final String? lastUpdatePriceDate;
