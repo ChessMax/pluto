@@ -100,7 +100,16 @@ void main(List<String> arguments) async {
   final courseResult = await client.createCourse({
     'course': {
       'title': 'My Course',
-      'is_public': false,
+      // 'is_public': false,
+      // 'is_enabled': false,
+      'actions': {
+        // 'is_enabled': false,
+        "edit_advanced_settings": {
+          "enabled": true,
+          "is_draft": true,
+          // "needs_plan": "enterprise"
+        },
+      }
     }
   });
   final courseId = courseResult.toNullable()!.courses[0].id;

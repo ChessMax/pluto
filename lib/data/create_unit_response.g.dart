@@ -18,7 +18,7 @@ Map<String, dynamic> _$CreateUnitResponseToJson(CreateUnitResponse instance) =>
     <String, dynamic>{'units': instance.units};
 
 UnitDto _$UnitDtoFromJson(Map<String, dynamic> json) =>
-    UnitDto(id: json['id'] as String);
+    UnitDto(id: (json['id'] as num).toInt());
 
 Map<String, dynamic> _$UnitDtoToJson(UnitDto instance) => <String, dynamic>{
   'id': instance.id,

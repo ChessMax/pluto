@@ -20,7 +20,7 @@ Map<String, dynamic> _$CreateSectionResponseToJson(
 ) => <String, dynamic>{'sections': instance.sections};
 
 SectionDto _$SectionDtoFromJson(Map<String, dynamic> json) =>
-    SectionDto(id: json['id'] as String);
+    SectionDto(id: (json['id'] as num).toInt());
 
 Map<String, dynamic> _$SectionDtoToJson(SectionDto instance) =>
     <String, dynamic>{'id': instance.id};

@@ -19,7 +19,7 @@ class CreateUnitResponse {
 
 @JsonSerializable(fieldRename: FieldRename.snake)
 class UnitDto {
-  final String id;
+  final int id;
 
   UnitDto({
     required this.id,

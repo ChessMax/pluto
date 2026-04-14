@@ -19,7 +19,7 @@ class CreateSectionResponse {
 
 @JsonSerializable(fieldRename: FieldRename.snake)
 class SectionDto {
-  final String id;
+  final int id;
 
   SectionDto({
     required this.id,
