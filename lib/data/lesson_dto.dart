@@ -10,12 +10,13 @@ part 'lesson_dto.g.dart';
 @JsonSerializable(fieldRename: FieldRename.snake)
 class LessonDto {
   final int id;
-  final List<StepDto> steps;
+  final List<int> steps;
+  // final List<StepDto> steps;
   final ActionsDto actions;
 
   // "actions": {
   // "76-2217819",
-  final String progress;
+  final String? progress;
 
   // [
   //   "31-76-2217819",
@@ -31,8 +32,10 @@ class LessonDto {
   final bool isBlank;
   final bool isDraft;
   final bool isOrphaned;
-  final List<CourseDto> courses;
-  final List<UnitDto> units;
+  // final List<CourseDto> courses;
+  final List<int> courses;
+  // final List<UnitDto> units;
+  final List<int> units;
   final int owner;
   final String language;
   final bool isFeatured;
@@ -44,28 +47,28 @@ class LessonDto {
   // "2026-02-05T13:42:10.378Z"
   final String createDate;
   final String updateDate;
-  final int learnersGroup;
-  final int testersGroup;
-  final int moderatorsGroup;
-  final int assistantsGroup;
-  final int teachersGroup;
-  final int adminsGroup;
-  final int discussionsCount;
+  // final int learnersGroup;
+  // final int testersGroup;
+  // final int moderatorsGroup;
+  // final int assistantsGroup;
+  // final int teachersGroup;
+  // final int adminsGroup;
+  // final int discussionsCount;
 
   // "76-2217819-1",
-  final String discussionProxy;
+  // final String discussionProxy;
 
   // [
   //  "76-2217819-1"
   // ]
-  final List<String> discussionThreads;
-  final int epicCount;
-  final int abuseCount;
-  final int voteDelta;
-  final dynamic? vote;
-  final String ltiConsumerKey;
-  final String ltiSecretKey;
-  final bool ltiPrivateProfile;
+  // final List<String> discussionThreads;
+  // final int epicCount;
+  // final int abuseCount;
+  // final int voteDelta;
+  // final dynamic? vote;
+  // final String ltiConsumerKey;
+  // final String ltiSecretKey;
+  // final bool ltiPrivateProfile;
 
   LessonDto({
     required this.id,
@@ -93,22 +96,22 @@ class LessonDto {
     required this.slug,
     required this.createDate,
     required this.updateDate,
-    required this.learnersGroup,
-    required this.testersGroup,
-    required this.moderatorsGroup,
-    required this.assistantsGroup,
-    required this.teachersGroup,
-    required this.adminsGroup,
-    required this.discussionsCount,
-    required this.discussionProxy,
-    required this.discussionThreads,
-    required this.epicCount,
-    required this.abuseCount,
-    required this.voteDelta,
-    this.vote,
-    required this.ltiConsumerKey,
-    required this.ltiSecretKey,
-    required this.ltiPrivateProfile,
+    // required this.learnersGroup,
+    // required this.testersGroup,
+    // required this.moderatorsGroup,
+    // required this.assistantsGroup,
+    // required this.teachersGroup,
+    // required this.adminsGroup,
+    // required this.discussionsCount,
+    // required this.discussionProxy,
+    // required this.discussionThreads,
+    // required this.epicCount,
+    // required this.abuseCount,
+    // required this.voteDelta,
+    // this.vote,
+    // required this.ltiConsumerKey,
+    // required this.ltiSecretKey,
+    // required this.ltiPrivateProfile,
   });
 
   static LessonDto fromJson(JsonObject value) => _$LessonDtoFromJson(value);
@@ -119,34 +122,34 @@ class LessonDto {
 @JsonSerializable(fieldRename: FieldRename.snake)
 class ActionsDto {
   // #
-  final String learnLesson;
+  final String? learnLesson;
 
   // #
-  final String assistLesson;
+  final String? assistLesson;
 
   // #
-  final String viewAllSubmissions;
+  final String? viewAllSubmissions;
 
   // #
-  final String editLesson;
+  final String? editLesson;
 
   // #
-  final String viewStatistics;
+  final String? viewStatistics;
 
   // "/lesson/2217819/attachments/"
-  final String attachments;
+  final String? attachments;
 
   // "/lesson/2217819/clone/"
-  final String cloneLesson;
+  final String? cloneLesson;
 
   // #
-  final String adminLesson;
+  final String? adminLesson;
 
   // "/lesson/2217819/permissions/"
-  final String editPermissions;
+  final String? editPermissions;
 
   // #
-  final String deleteLesson;
+  final String? deleteLesson;
 
   const ActionsDto({
     required this.learnLesson,

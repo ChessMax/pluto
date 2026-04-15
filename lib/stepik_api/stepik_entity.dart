@@ -19,6 +19,24 @@ class StepikEntity<T> {
     return result.toNullable();
   }
 
+  Future<List<T>?> fetch({int? page}) async {
+    final result = await _api.client.getRequest(
+      '/api/$_name',
+      (value) => _parseListResponse(value, _name, _parse).items,
+      queryParameters: page != null ? {'page': page} : null,
+    );
+    return result.toNullable();
+  }
+
+  Future<List<T>?> fetchByIds(List<int> entityIds) async {
+    final result = await _api.client.getRequest(
+      '/api/$_name',
+          (value) => _parseListResponse(value, _name, _parse).items,
+      queryParameters: { 'ids[]': entityIds },
+    );
+    return result.toNullable();
+  }
+
   Future<T?> fetchById(int entityId) async {
     final result = await _api.client.getRequest(
       '/api/$_name/$entityId',
@@ -27,10 +45,20 @@ class StepikEntity<T> {
     return result.toNullable();
   }
 
-  Future<void> update() async {}
+  Future<T?> update(int entityId, JsonObject entity) async {
+    final result = await _api.client.putRequest(
+      data: entity,
+      '/api/$_name/$entityId',
+      (value) => _parseListResponse(value, _name, _parse).items.first,
+    );
+    return result.toNullable();
+  }
 
   Future<void> delete(int entityId) async {
-    final result = await _api.client.deleteRequest<void>('/api/$_name/$entityId', (value) => value);
+    final result = await _api.client.deleteRequest<void>(
+      '/api/$_name/$entityId',
+      (value) => value,
+    );
     return result.toNullable();
   }
 

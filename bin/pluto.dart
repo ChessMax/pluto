@@ -50,12 +50,25 @@ void main(List<String> arguments) async {
   //   'lesson': {'title': 'My Api Lesson'},
   // });
   // print(lr);
+  //
+  // final ulr = await api.lessons.update(lr!.id, {
+  //   'lesson': {
+  //     'title':'My updated api lesson',
+  //   }
+  // });
+  // print(ulr);
 
-  // final dr = await api.lessons.delete(lr!.id);
+  // final dr = await api.lessons.delete(2330884);
   // print(dr as dynamic);
+  //
+  // final lr2 = await api.lessons.fetchById(2330884);
+  // print(lr2);
 
-  final lr2 = await api.lessons.fetchById(2330879);
-  print(lr2);
+  // final lessons = await api.lessons.fetch();
+  // print(lessons);
+
+  final lessons = await api.lessons.fetchByIds([1, 2]);
+  print(lessons);
 
   return;
 

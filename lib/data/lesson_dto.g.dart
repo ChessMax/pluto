@@ -10,11 +10,11 @@ LessonDto _$LessonDtoFromJson(Map<String, dynamic> json) => LessonDto(
   id: (json['id'] as num).toInt(),
   steps:
       (json['steps'] as List<dynamic>?)
-          ?.map((e) => StepDto.fromJson(e as Map<String, dynamic>))
+          ?.map((e) => (e as num).toInt())
           .toList() ??
       const [],
   actions: ActionsDto.fromJson(json['actions'] as Map<String, dynamic>),
-  progress: json['progress'] as String,
+  progress: json['progress'] as String?,
   subscriptions: (json['subscriptions'] as List<dynamic>)
       .map((e) => e as String)
       .toList(),
@@ -29,12 +29,12 @@ LessonDto _$LessonDtoFromJson(Map<String, dynamic> json) => LessonDto(
   isOrphaned: json['is_orphaned'] as bool,
   courses:
       (json['courses'] as List<dynamic>?)
-          ?.map((e) => CourseDto.fromJson(e as Map<String, dynamic>))
+          ?.map((e) => (e as num).toInt())
           .toList() ??
       const [],
   units:
       (json['units'] as List<dynamic>?)
-          ?.map((e) => UnitDto.fromJson(e as Map<String, dynamic>))
+          ?.map((e) => (e as num).toInt())
           .toList() ??
       const [],
   owner: (json['owner'] as num).toInt(),
@@ -46,24 +46,6 @@ LessonDto _$LessonDtoFromJson(Map<String, dynamic> json) => LessonDto(
   slug: json['slug'] as String,
   createDate: json['create_date'] as String,
   updateDate: json['update_date'] as String,
-  learnersGroup: (json['learners_group'] as num).toInt(),
-  testersGroup: (json['testers_group'] as num).toInt(),
-  moderatorsGroup: (json['moderators_group'] as num).toInt(),
-  assistantsGroup: (json['assistants_group'] as num).toInt(),
-  teachersGroup: (json['teachers_group'] as num).toInt(),
-  adminsGroup: (json['admins_group'] as num).toInt(),
-  discussionsCount: (json['discussions_count'] as num).toInt(),
-  discussionProxy: json['discussion_proxy'] as String,
-  discussionThreads: (json['discussion_threads'] as List<dynamic>)
-      .map((e) => e as String)
-      .toList(),
-  epicCount: (json['epic_count'] as num).toInt(),
-  abuseCount: (json['abuse_count'] as num).toInt(),
-  voteDelta: (json['vote_delta'] as num).toInt(),
-  vote: json['vote'],
-  ltiConsumerKey: json['lti_consumer_key'] as String,
-  ltiSecretKey: json['lti_secret_key'] as String,
-  ltiPrivateProfile: json['lti_private_profile'] as bool,
 );
 
 Map<String, dynamic> _$LessonDtoToJson(LessonDto instance) => <String, dynamic>{
@@ -92,35 +74,19 @@ Map<String, dynamic> _$LessonDtoToJson(LessonDto instance) => <String, dynamic>{
   'slug': instance.slug,
   'create_date': instance.createDate,
   'update_date': instance.updateDate,
-  'learners_group': instance.learnersGroup,
-  'testers_group': instance.testersGroup,
-  'moderators_group': instance.moderatorsGroup,
-  'assistants_group': instance.assistantsGroup,
-  'teachers_group': instance.teachersGroup,
-  'admins_group': instance.adminsGroup,
-  'discussions_count': instance.discussionsCount,
-  'discussion_proxy': instance.discussionProxy,
-  'discussion_threads': instance.discussionThreads,
-  'epic_count': instance.epicCount,
-  'abuse_count': instance.abuseCount,
-  'vote_delta': instance.voteDelta,
-  'vote': instance.vote,
-  'lti_consumer_key': instance.ltiConsumerKey,
-  'lti_secret_key': instance.ltiSecretKey,
-  'lti_private_profile': instance.ltiPrivateProfile,
 };
 
 ActionsDto _$ActionsDtoFromJson(Map<String, dynamic> json) => ActionsDto(
-  learnLesson: json['learn_lesson'] as String,
-  assistLesson: json['assist_lesson'] as String,
-  viewAllSubmissions: json['view_all_submissions'] as String,
-  editLesson: json['edit_lesson'] as String,
-  viewStatistics: json['view_statistics'] as String,
-  attachments: json['attachments'] as String,
-  cloneLesson: json['clone_lesson'] as String,
-  adminLesson: json['admin_lesson'] as String,
-  editPermissions: json['edit_permissions'] as String,
-  deleteLesson: json['delete_lesson'] as String,
+  learnLesson: json['learn_lesson'] as String?,
+  assistLesson: json['assist_lesson'] as String?,
+  viewAllSubmissions: json['view_all_submissions'] as String?,
+  editLesson: json['edit_lesson'] as String?,
+  viewStatistics: json['view_statistics'] as String?,
+  attachments: json['attachments'] as String?,
+  cloneLesson: json['clone_lesson'] as String?,
+  adminLesson: json['admin_lesson'] as String?,
+  editPermissions: json['edit_permissions'] as String?,
+  deleteLesson: json['delete_lesson'] as String?,
 );
 
 Map<String, dynamic> _$ActionsDtoToJson(ActionsDto instance) =>
