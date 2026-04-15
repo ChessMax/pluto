@@ -8,10 +8,9 @@ part of 'create_step_response.dart';
 
 StepResponse _$StepResponseFromJson(Map<String, dynamic> json) => StepResponse(
   meta: MetaDto.fromJson(json['meta'] as Map<String, dynamic>),
-  stepSources:
-      (json['step-sources'] as List<dynamic>)
-          .map((e) => StepDto.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  stepSources: (json['step-sources'] as List<dynamic>)
+      .map((e) => StepDto.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$StepResponseToJson(StepResponse instance) =>

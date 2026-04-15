@@ -8,10 +8,9 @@ part of 'create_unit_response.dart';
 
 CreateUnitResponse _$CreateUnitResponseFromJson(Map<String, dynamic> json) =>
     CreateUnitResponse(
-      units:
-          (json['units'] as List<dynamic>)
-              .map((e) => UnitDto.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      units: (json['units'] as List<dynamic>)
+          .map((e) => UnitDto.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$CreateUnitResponseToJson(CreateUnitResponse instance) =>

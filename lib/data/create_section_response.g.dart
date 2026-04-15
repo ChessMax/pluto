@@ -9,10 +9,9 @@ part of 'create_section_response.dart';
 CreateSectionResponse _$CreateSectionResponseFromJson(
   Map<String, dynamic> json,
 ) => CreateSectionResponse(
-  sections:
-      (json['sections'] as List<dynamic>)
-          .map((e) => SectionDto.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  sections: (json['sections'] as List<dynamic>)
+      .map((e) => SectionDto.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$CreateSectionResponseToJson(

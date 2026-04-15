@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:pluto/data/client.dart';
 import 'package:pluto/data/interceptors/bearer_interceptor.dart';
 import 'package:pluto/env.dart';
+import 'package:pluto/stepik_api/stepik_api.dart';
 import 'package:talker_dio_logger/talker_dio_logger.dart';
 
 const _stepikApiUrl = 'https://stepik.org';
@@ -35,10 +36,26 @@ void main(List<String> arguments) async {
   }
 
   stepikDio.interceptors.add(BearerInterceptor(token.accessToken));
+
+  final api = StepikApi(stepikDio);
+  // final course = await api.courses.fetchById(283025);
+
+  // await StepikApi.courses.fetch('283025');
   
-  final result = await client.getCourse('283025');
-  final course = result.toNullable()!.courses.first;
-  print(course);
+  // final result = await client.getCourse('283025');
+  // final course = result.toNullable()!.courses.first;
+  // print(course);
+
+  // final lr = await api.lessons.create({
+  //   'lesson': {'title': 'My Api Lesson'},
+  // });
+  // print(lr);
+
+  // final dr = await api.lessons.delete(lr!.id);
+  // print(dr as dynamic);
+
+  final lr2 = await api.lessons.fetchById(2330879);
+  print(lr2);
 
   return;
 

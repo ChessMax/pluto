@@ -13,8 +13,9 @@ StepDto _$StepDtoFromJson(Map<String, dynamic> json) => StepDto(
   status: json['status'] as String,
   block: BlockDto.fromJson(json['block'] as Map<String, dynamic>),
   progress: json['progress'] as String,
-  subscriptions:
-      (json['subscriptions'] as List<dynamic>).map((e) => e as String).toList(),
+  subscriptions: (json['subscriptions'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
   instruction: json['instruction'],
   session: json['session'],
   instructionType: json['instruction_type'],
@@ -23,28 +24,26 @@ StepDto _$StepDtoFromJson(Map<String, dynamic> json) => StepDto(
   correctRatio: json['correct_ratio'],
   worth: (json['worth'] as num?)?.toInt() ?? 0,
   isSolutionsUnlocked: json['is_solutions_unlocked'] as bool,
-  solutionsUnlockedAttempts:
-      (json['solutions_unlocked_attempts'] as num).toInt(),
+  solutionsUnlockedAttempts: (json['solutions_unlocked_attempts'] as num)
+      .toInt(),
   hasSubmissionsRestrictions: json['has_submissions_restrictions'] as bool,
   maxSubmissionsCount: (json['max_submissions_count'] as num).toInt(),
   variation: (json['variation'] as num).toInt(),
   variationsCount: (json['variations_count'] as num).toInt(),
   isEnabled: json['is_enabled'] as bool,
   needsPlan: json['needs_plan'],
-  numGrades:
-      (json['num_grades'] as List<dynamic>)
-          .map((e) => (e as num).toInt())
-          .toList(),
+  numGrades: (json['num_grades'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
   userStepGrade: json['user_step_grade'],
   userStepVote: json['user_step_vote'],
   createDate: json['create_date'] as String,
   updateDate: json['update_date'] as String,
   discussionsCount: (json['discussions_count'] as num).toInt(),
   discussionProxy: json['discussion_proxy'] as String,
-  discussionThreads:
-      (json['discussion_threads'] as List<dynamic>)
-          .map((e) => e as String)
-          .toList(),
+  discussionThreads: (json['discussion_threads'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
   reasonOfFailure: json['reason_of_failure'] as String,
   error: ErrorDto.fromJson(json['error'] as Map<String, dynamic>),
   warnings: json['warnings'] as List<dynamic>,

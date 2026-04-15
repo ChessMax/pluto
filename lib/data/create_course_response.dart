@@ -191,8 +191,8 @@ class CourseDto {
   final dynamic? previewLesson;
   final dynamic? previewUnit;
   final List<String> possibleCurrencies;
-  final int? commissionBasic;
-  final int commissionPromo;
+  final String? commissionBasic;
+  final String commissionPromo;
   final bool withCertificate;
   final List<CourseDto> childCourses;
   final int childCoursesCount;

@@ -15,8 +15,9 @@ LessonDto _$LessonDtoFromJson(Map<String, dynamic> json) => LessonDto(
       const [],
   actions: ActionsDto.fromJson(json['actions'] as Map<String, dynamic>),
   progress: json['progress'] as String,
-  subscriptions:
-      (json['subscriptions'] as List<dynamic>).map((e) => e as String).toList(),
+  subscriptions: (json['subscriptions'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
   viewedBy: (json['viewed_by'] as num).toInt(),
   passedBy: (json['passed_by'] as num).toInt(),
   timeToComplete: json['time_to_complete'],
@@ -53,10 +54,9 @@ LessonDto _$LessonDtoFromJson(Map<String, dynamic> json) => LessonDto(
   adminsGroup: (json['admins_group'] as num).toInt(),
   discussionsCount: (json['discussions_count'] as num).toInt(),
   discussionProxy: json['discussion_proxy'] as String,
-  discussionThreads:
-      (json['discussion_threads'] as List<dynamic>)
-          .map((e) => e as String)
-          .toList(),
+  discussionThreads: (json['discussion_threads'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
   epicCount: (json['epic_count'] as num).toInt(),
   abuseCount: (json['abuse_count'] as num).toInt(),
   voteDelta: (json['vote_delta'] as num).toInt(),

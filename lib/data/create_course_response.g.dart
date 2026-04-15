@@ -10,14 +10,12 @@ CreateCourseResponse _$CreateCourseResponseFromJson(
   Map<String, dynamic> json,
 ) => CreateCourseResponse(
   meta: MetaDto.fromJson(json['meta'] as Map<String, dynamic>),
-  courses:
-      (json['courses'] as List<dynamic>)
-          .map((e) => CourseDto.fromJson(e as Map<String, dynamic>))
-          .toList(),
-  enrollments:
-      (json['enrollments'] as List<dynamic>)
-          .map((e) => EnrollmentDto.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  courses: (json['courses'] as List<dynamic>)
+      .map((e) => CourseDto.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  enrollments: (json['enrollments'] as List<dynamic>)
+      .map((e) => EnrollmentDto.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$CreateCourseResponseToJson(
@@ -40,21 +38,19 @@ CourseDto _$CourseDtoFromJson(Map<String, dynamic> json) => CourseDto(
   certificateCoverOrg: json['certificate_cover_org'],
   isCertificateIssued: json['is_certificate_issued'] as bool,
   isCertificateAutoIssued: json['is_certificate_auto_issued'] as bool,
-  certificateRegularThreshold:
-      (json['certificate_regular_threshold'] as num).toInt(),
+  certificateRegularThreshold: (json['certificate_regular_threshold'] as num)
+      .toInt(),
   certificateDistinctionThreshold:
       (json['certificate_distinction_threshold'] as num).toInt(),
-  instructors:
-      (json['instructors'] as List<dynamic>)
-          .map((e) => (e as num).toInt())
-          .toList(),
+  instructors: (json['instructors'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
   certificate: json['certificate'] as String,
   requirements: json['requirements'] as String,
   description: json['description'] as String,
-  sections:
-      (json['sections'] as List<dynamic>)
-          .map((e) => SectionDto.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  sections: (json['sections'] as List<dynamic>)
+      .map((e) => SectionDto.fromJson(e as Map<String, dynamic>))
+      .toList(),
   totalUnits: (json['total_units'] as num).toInt(),
   enrollment: (json['enrollment'] as num).toInt(),
   isFavorite: json['is_favorite'] as bool,
@@ -70,8 +66,9 @@ CourseDto _$CourseDtoFromJson(Map<String, dynamic> json) => CourseDto(
   scheduleLongLink: json['schedule_long_link'] as String,
   firstDeadline: json['first_deadline'],
   lastDeadline: json['last_deadline'],
-  subscriptions:
-      (json['subscriptions'] as List<dynamic>).map((e) => e as String).toList(),
+  subscriptions: (json['subscriptions'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
   announcements: json['announcements'] as List<dynamic>,
   isContest: json['is_contest'] as bool,
   isSelfPaced: json['is_self_paced'] as bool,
@@ -81,10 +78,9 @@ CourseDto _$CourseDtoFromJson(Map<String, dynamic> json) => CourseDto(
   lastStep: json['last_step'] as String,
   introVideo: json['intro_video'] as String?,
   socialProviders: json['social_providers'] as List<dynamic>,
-  authors:
-      (json['authors'] as List<dynamic>)
-          .map((e) => (e as num).toInt())
-          .toList(),
+  authors: (json['authors'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
   tags: (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
   hasTutors: json['has_tutors'] as bool,
   isEnabled: json['is_enabled'] as bool,
@@ -132,23 +128,20 @@ CourseDto _$CourseDtoFromJson(Map<String, dynamic> json) => CourseDto(
   isCertificateWithScore: json['is_certificate_with_score'] as bool,
   previewLesson: json['preview_lesson'],
   previewUnit: json['preview_unit'],
-  possibleCurrencies:
-      (json['possible_currencies'] as List<dynamic>)
-          .map((e) => e as String)
-          .toList(),
-  commissionBasic: (json['commission_basic'] as num).toInt(),
-  commissionPromo: (json['commission_promo'] as num).toInt(),
+  possibleCurrencies: (json['possible_currencies'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
+  commissionBasic: json['commission_basic'] as String?,
+  commissionPromo: json['commission_promo'] as String,
   withCertificate: json['with_certificate'] as bool,
-  childCourses:
-      (json['child_courses'] as List<dynamic>)
-          .map((e) => CourseDto.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  childCourses: (json['child_courses'] as List<dynamic>)
+      .map((e) => CourseDto.fromJson(e as Map<String, dynamic>))
+      .toList(),
   childCoursesCount: (json['child_courses_count'] as num).toInt(),
-  parentCourses:
-      (json['parent_courses'] as List<dynamic>)
-          .map((e) => CourseDto.fromJson(e as Map<String, dynamic>))
-          .toList(),
-  becamePublishedAt: json['became_published_at'] as String,
+  parentCourses: (json['parent_courses'] as List<dynamic>)
+      .map((e) => CourseDto.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  becamePublishedAt: json['became_published_at'] as String?,
   becamePaidAt: json['became_paid_at'] as String?,
   titleEn: json['title_en'] as String,
   lastUpdatePriceDate: json['last_update_price_date'] as String?,
@@ -180,10 +173,9 @@ CourseDto _$CourseDtoFromJson(Map<String, dynamic> json) => CourseDto(
   adminsGroup: (json['admins_group'] as num).toInt(),
   discussionsCount: (json['discussions_count'] as num).toInt(),
   discussionProxy: json['discussion_proxy'] as String,
-  discussionThreads:
-      (json['discussion_threads'] as List<dynamic>)
-          .map((e) => e as String)
-          .toList(),
+  discussionThreads: (json['discussion_threads'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
   ltiConsumerKey: json['lti_consumer_key'] as String,
   ltiSecretKey: json['lti_secret_key'] as String,
   ltiPrivateProfile: json['lti_private_profile'] as bool,
