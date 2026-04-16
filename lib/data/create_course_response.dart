@@ -32,17 +32,18 @@ class CourseDto {
   final String intro;
   final String courseFormat;
   final String targetAudience;
-  final dynamic? certificateFooter;
-  final dynamic? certificateCoverOrg;
-  final bool isCertificateIssued;
-  final bool isCertificateAutoIssued;
-  final int certificateRegularThreshold;
-  final int certificateDistinctionThreshold;
+  // final dynamic? certificateFooter;
+  // final dynamic? certificateCoverOrg;
+  // final bool isCertificateIssued;
+  // final bool isCertificateAutoIssued;
+  // final int certificateRegularThreshold;
+  // final int certificateDistinctionThreshold;
   final List<int> instructors;
   final String certificate;
   final String requirements;
   final String description;
-  final List<SectionDto> sections;
+  final List<int> sections;
+  // final List<SectionDto> sections;
   final int totalUnits;
   final int enrollment;
   final bool isFavorite;
@@ -115,15 +116,15 @@ class CourseDto {
   final String progress;
   final dynamic? firstLesson;
   final dynamic? firstUnit;
-  final String? certificateLink;
-  final String certificateRegularLink;
-  final String certificateDistinctionLink;
+  // final String? certificateLink;
+  // final String certificateRegularLink;
+  // final String certificateDistinctionLink;
   final String? userCertificate;
   final String referralLink;
-  final String scheduleLink;
-  final String scheduleLongLink;
-  final dynamic? firstDeadline;
-  final dynamic? lastDeadline;
+  // final String scheduleLink;
+  // final String scheduleLongLink;
+  // final dynamic? firstDeadline;
+  // final dynamic? lastDeadline;
   final List<String> subscriptions;
   final List<dynamic> announcements;
   final bool isContest;
@@ -135,7 +136,7 @@ class CourseDto {
   final String? introVideo;
   final List<dynamic> socialProviders;
   final List<int> authors;
-  final List<String> tags;
+  final List<int> tags;
   final bool hasTutors;
   final bool isEnabled;
   final bool isProctored;
@@ -260,12 +261,12 @@ class CourseDto {
     required this.intro,
     required this.courseFormat,
     required this.targetAudience,
-    this.certificateFooter,
-    this.certificateCoverOrg,
-    required this.isCertificateIssued,
-    required this.isCertificateAutoIssued,
-    required this.certificateRegularThreshold,
-    required this.certificateDistinctionThreshold,
+    // this.certificateFooter,
+    // this.certificateCoverOrg,
+    // required this.isCertificateIssued,
+    // required this.isCertificateAutoIssued,
+    // required this.certificateRegularThreshold,
+    // required this.certificateDistinctionThreshold,
     required this.instructors,
     required this.certificate,
     required this.requirements,
@@ -277,15 +278,15 @@ class CourseDto {
     required this.progress,
     this.firstLesson,
     this.firstUnit,
-    this.certificateLink,
-    required this.certificateRegularLink,
-    required this.certificateDistinctionLink,
+    // this.certificateLink,
+    // required this.certificateRegularLink,
+    // required this.certificateDistinctionLink,
     this.userCertificate,
     required this.referralLink,
-    required this.scheduleLink,
-    required this.scheduleLongLink,
-    this.firstDeadline,
-    this.lastDeadline,
+    // required this.scheduleLink,
+    // required this.scheduleLongLink,
+    // this.firstDeadline,
+    // this.lastDeadline,
     required this.subscriptions,
     required this.announcements,
     required this.isContest,

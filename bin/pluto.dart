@@ -39,6 +39,13 @@ void main(List<String> arguments) async {
 
   final api = StepikApi(stepikDio);
 
+  final cid = 134733;
+  final c = (await api.course.fetchById(cid));
+
+  print(c);
+
+  return;
+
   final lesson = await api.lesson.create({
     'lesson': {'title': 'My Lesson'},
   });

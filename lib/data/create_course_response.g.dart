@@ -34,14 +34,6 @@ CourseDto _$CourseDtoFromJson(Map<String, dynamic> json) => CourseDto(
   intro: json['intro'] as String,
   courseFormat: json['course_format'] as String,
   targetAudience: json['target_audience'] as String,
-  certificateFooter: json['certificate_footer'],
-  certificateCoverOrg: json['certificate_cover_org'],
-  isCertificateIssued: json['is_certificate_issued'] as bool,
-  isCertificateAutoIssued: json['is_certificate_auto_issued'] as bool,
-  certificateRegularThreshold: (json['certificate_regular_threshold'] as num)
-      .toInt(),
-  certificateDistinctionThreshold:
-      (json['certificate_distinction_threshold'] as num).toInt(),
   instructors: (json['instructors'] as List<dynamic>)
       .map((e) => (e as num).toInt())
       .toList(),
@@ -49,7 +41,7 @@ CourseDto _$CourseDtoFromJson(Map<String, dynamic> json) => CourseDto(
   requirements: json['requirements'] as String,
   description: json['description'] as String,
   sections: (json['sections'] as List<dynamic>)
-      .map((e) => SectionDto.fromJson(e as Map<String, dynamic>))
+      .map((e) => (e as num).toInt())
       .toList(),
   totalUnits: (json['total_units'] as num).toInt(),
   enrollment: (json['enrollment'] as num).toInt(),
@@ -57,15 +49,8 @@ CourseDto _$CourseDtoFromJson(Map<String, dynamic> json) => CourseDto(
   progress: json['progress'] as String,
   firstLesson: json['first_lesson'],
   firstUnit: json['first_unit'],
-  certificateLink: json['certificate_link'] as String?,
-  certificateRegularLink: json['certificate_regular_link'] as String,
-  certificateDistinctionLink: json['certificate_distinction_link'] as String,
   userCertificate: json['user_certificate'] as String?,
   referralLink: json['referral_link'] as String,
-  scheduleLink: json['schedule_link'] as String,
-  scheduleLongLink: json['schedule_long_link'] as String,
-  firstDeadline: json['first_deadline'],
-  lastDeadline: json['last_deadline'],
   subscriptions: (json['subscriptions'] as List<dynamic>)
       .map((e) => e as String)
       .toList(),
@@ -81,7 +66,7 @@ CourseDto _$CourseDtoFromJson(Map<String, dynamic> json) => CourseDto(
   authors: (json['authors'] as List<dynamic>)
       .map((e) => (e as num).toInt())
       .toList(),
-  tags: (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
+  tags: (json['tags'] as List<dynamic>).map((e) => (e as num).toInt()).toList(),
   hasTutors: json['has_tutors'] as bool,
   isEnabled: json['is_enabled'] as bool,
   isProctored: json['is_proctored'] as bool,
@@ -186,12 +171,6 @@ Map<String, dynamic> _$CourseDtoToJson(CourseDto instance) => <String, dynamic>{
   'intro': instance.intro,
   'course_format': instance.courseFormat,
   'target_audience': instance.targetAudience,
-  'certificate_footer': instance.certificateFooter,
-  'certificate_cover_org': instance.certificateCoverOrg,
-  'is_certificate_issued': instance.isCertificateIssued,
-  'is_certificate_auto_issued': instance.isCertificateAutoIssued,
-  'certificate_regular_threshold': instance.certificateRegularThreshold,
-  'certificate_distinction_threshold': instance.certificateDistinctionThreshold,
   'instructors': instance.instructors,
   'certificate': instance.certificate,
   'requirements': instance.requirements,
@@ -203,15 +182,8 @@ Map<String, dynamic> _$CourseDtoToJson(CourseDto instance) => <String, dynamic>{
   'progress': instance.progress,
   'first_lesson': instance.firstLesson,
   'first_unit': instance.firstUnit,
-  'certificate_link': instance.certificateLink,
-  'certificate_regular_link': instance.certificateRegularLink,
-  'certificate_distinction_link': instance.certificateDistinctionLink,
   'user_certificate': instance.userCertificate,
   'referral_link': instance.referralLink,
-  'schedule_link': instance.scheduleLink,
-  'schedule_long_link': instance.scheduleLongLink,
-  'first_deadline': instance.firstDeadline,
-  'last_deadline': instance.lastDeadline,
   'subscriptions': instance.subscriptions,
   'announcements': instance.announcements,
   'is_contest': instance.isContest,
