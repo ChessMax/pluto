@@ -67,18 +67,18 @@ void main(List<String> arguments) async {
   // final lessons = await api.lessons.fetch();
   // print(lessons);
 
-  final lessons = await api.lessons.fetchByIds([1, 2]);
-  print(lessons);
+  // final lessons = await api.lessons.fetchByIds([1, 2]);
+  // print(lessons);
+  //
+  // return;
 
-  return;
-
-  final lessonResult = await client.createLesson({
+  final lesson = await api.lessons.create({
     'lesson': {'title': 'My Lesson'},
   });
 
-  final lessonId = lessonResult.toNullable()!.lessons[0].id;
+  final lessonId = lesson!.id;
 
-  final stepResult = await client.createStep({
+  final stepResult = await api.steps.create({
     'stepSource': {
       'block': {'name': 'text', 'text': 'Hello World!'},
       'lesson': lessonId,
@@ -86,11 +86,11 @@ void main(List<String> arguments) async {
     },
   });
 
-  final stepId = stepResult.toNullable()!.stepSources[0].id;
+  final stepId = stepResult!.id;
   print('StepId: $stepId');
   // return;
 
-  final updateResult = await client.updateStep(
+  final updatedStep = await api.steps.update(
     stepId,
     {
       'stepSource': {
@@ -104,9 +104,9 @@ void main(List<String> arguments) async {
     },
   );
 
-  print('Step updated: ${updateResult.toNullable()!.stepSources.first.id}');
+  print('Step updated: ${updatedStep!.id}');
 
-  final multiChoiceStepResult = await client.createStep({
+  final multiChoiceStep = await api.steps.create({
     'stepSource': {
       'block': {
         'name': 'choice',
@@ -130,33 +130,32 @@ void main(List<String> arguments) async {
     }
   });
 
-  print(multiChoiceStepResult);
+  print(multiChoiceStep);
   print('--> Check https://stepik.org/lesson/$lessonId');
 
-  final courseResult = await client.createCourse({
+  final course = await api.courses.create({
     'course': {
       'title': 'Test course. Please, ignore it',
       'is_public': false,
       'is_enabled': false,
     }
   });
-  final courseId = courseResult.toNullable()!.courses[0].id;
+  final courseId = course!.id;
   print('Course ID: $courseId');
   print('');
 
-  final createSectionResult = await client.createSection({
+  final section = await api.sections.create({
     'section': {
       'title': 'My Section',
       'course': courseId,
       'position': 1
     }
   });
-  final sectionId = createSectionResult.toNullable()!.sections[0].id;
+  final sectionId = section!.id;
   print('Section ID: $sectionId');
 
-
   // Add your existing lesson to this section (it is called unit)
-  final createUnitResult = await client.createUnit({
+  final createUnitResult = await api.units.create({
     'unit': {
       'section': sectionId,
       'lesson': lessonId,
@@ -164,7 +163,7 @@ void main(List<String> arguments) async {
     }
   });
 
-  final unitId = createUnitResult.toNullable()!.units[0].id;
+  final unitId = createUnitResult!.id;
   print('Unit ID: $unitId');
 
   print('--> Check https://stepik.org/course/$courseId');

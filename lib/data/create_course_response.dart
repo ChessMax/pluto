@@ -191,9 +191,9 @@ class CourseDto {
   final dynamic? previewLesson;
   final dynamic? previewUnit;
   final List<String> possibleCurrencies;
-  final String? commissionBasic;
-  final String commissionPromo;
-  final bool withCertificate;
+  // final String? commissionBasic;
+  // final String commissionPromo;
+  // final bool withCertificate;
   final List<CourseDto> childCourses;
   final int childCoursesCount;
   final List<CourseDto> parentCourses;
@@ -344,9 +344,9 @@ class CourseDto {
     this.previewLesson,
     this.previewUnit,
     required this.possibleCurrencies,
-    required this.commissionBasic,
-    required this.commissionPromo,
-    required this.withCertificate,
+    // required this.commissionBasic,
+    // required this.commissionPromo,
+    // required this.withCertificate,
     required this.childCourses,
     required this.childCoursesCount,
     required this.parentCourses,

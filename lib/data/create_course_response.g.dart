@@ -131,9 +131,6 @@ CourseDto _$CourseDtoFromJson(Map<String, dynamic> json) => CourseDto(
   possibleCurrencies: (json['possible_currencies'] as List<dynamic>)
       .map((e) => e as String)
       .toList(),
-  commissionBasic: json['commission_basic'] as String?,
-  commissionPromo: json['commission_promo'] as String,
-  withCertificate: json['with_certificate'] as bool,
   childCourses: (json['child_courses'] as List<dynamic>)
       .map((e) => CourseDto.fromJson(e as Map<String, dynamic>))
       .toList(),
@@ -274,9 +271,6 @@ Map<String, dynamic> _$CourseDtoToJson(CourseDto instance) => <String, dynamic>{
   'preview_lesson': instance.previewLesson,
   'preview_unit': instance.previewUnit,
   'possible_currencies': instance.possibleCurrencies,
-  'commission_basic': instance.commissionBasic,
-  'commission_promo': instance.commissionPromo,
-  'with_certificate': instance.withCertificate,
   'child_courses': instance.childCourses,
   'child_courses_count': instance.childCoursesCount,
   'parent_courses': instance.parentCourses,
