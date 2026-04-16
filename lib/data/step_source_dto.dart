@@ -1,10 +1,10 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pluto/data/json.dart';
 
-part 'step_dto.g.dart';
+part 'step_source_dto.g.dart';
 
 @JsonSerializable(fieldRename: FieldRename.snake)
-class StepDto {
+class StepSourceDto {
   final int id;
   final int lesson;
   final int position;
@@ -62,7 +62,7 @@ class StepDto {
   final List<dynamic> warnings;
   final int cost;
 
-  const StepDto({
+  const StepSourceDto({
     required this.id,
     required this.lesson,
     required this.position,
@@ -99,9 +99,9 @@ class StepDto {
     required this.cost,
   });
 
-  static StepDto fromJson(JsonObject value) => _$StepDtoFromJson(value);
+  static StepSourceDto fromJson(JsonObject value) => _$StepSourceDtoFromJson(value);
 
-  JsonObject toJson() => _$StepDtoToJson(this);
+  JsonObject toJson() => _$StepSourceDtoToJson(this);
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)

@@ -3,7 +3,7 @@ import 'package:pluto/data/create_course_response.dart';
 import 'package:pluto/data/create_step_response.dart';
 import 'package:pluto/data/create_unit_response.dart';
 import 'package:pluto/data/json.dart';
-import 'package:pluto/data/step_dto.dart';
+import 'package:pluto/data/step_source_dto.dart';
 
 part 'lesson_dto.g.dart';
 

@@ -72,13 +72,13 @@ void main(List<String> arguments) async {
   //
   // return;
 
-  final lesson = await api.lessons.create({
+  final lesson = await api.lesson.create({
     'lesson': {'title': 'My Lesson'},
   });
 
   final lessonId = lesson!.id;
 
-  final stepResult = await api.steps.create({
+  final stepResult = await api.stepSource.create({
     'stepSource': {
       'block': {'name': 'text', 'text': 'Hello World!'},
       'lesson': lessonId,
@@ -90,7 +90,7 @@ void main(List<String> arguments) async {
   print('StepId: $stepId');
   // return;
 
-  final updatedStep = await api.steps.update(
+  final updatedStep = await api.stepSource.update(
     stepId,
     {
       'stepSource': {
@@ -106,7 +106,7 @@ void main(List<String> arguments) async {
 
   print('Step updated: ${updatedStep!.id}');
 
-  final multiChoiceStep = await api.steps.create({
+  final multiChoiceStep = await api.stepSource.create({
     'stepSource': {
       'block': {
         'name': 'choice',
@@ -133,7 +133,7 @@ void main(List<String> arguments) async {
   print(multiChoiceStep);
   print('--> Check https://stepik.org/lesson/$lessonId');
 
-  final course = await api.courses.create({
+  final course = await api.course.create({
     'course': {
       'title': 'Test course. Please, ignore it',
       'is_public': false,
@@ -144,7 +144,7 @@ void main(List<String> arguments) async {
   print('Course ID: $courseId');
   print('');
 
-  final section = await api.sections.create({
+  final section = await api.section.create({
     'section': {
       'title': 'My Section',
       'course': courseId,
@@ -155,7 +155,7 @@ void main(List<String> arguments) async {
   print('Section ID: $sectionId');
 
   // Add your existing lesson to this section (it is called unit)
-  final createUnitResult = await api.units.create({
+  final createUnitResult = await api.unit.create({
     'unit': {
       'section': sectionId,
       'lesson': lessonId,

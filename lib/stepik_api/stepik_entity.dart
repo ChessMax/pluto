@@ -8,7 +8,7 @@ class StepikEntity<T> {
   final StepikApi _api;
   final T Function(JsonObject value) _parse;
 
-  StepikEntity(this._api, this._name, this._parse);
+  StepikEntity(this._api, String name, this._parse) : _name = '${name}s';
 
   Future<T?> create(JsonObject value) async {
     final result = await _api.client.postRequest(
