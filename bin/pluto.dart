@@ -38,39 +38,6 @@ void main(List<String> arguments) async {
   stepikDio.interceptors.add(BearerInterceptor(token.accessToken));
 
   final api = StepikApi(stepikDio);
-  // final course = await api.courses.fetchById(283025);
-
-  // await StepikApi.courses.fetch('283025');
-  
-  // final result = await client.getCourse('283025');
-  // final course = result.toNullable()!.courses.first;
-  // print(course);
-
-  // final lr = await api.lessons.create({
-  //   'lesson': {'title': 'My Api Lesson'},
-  // });
-  // print(lr);
-  //
-  // final ulr = await api.lessons.update(lr!.id, {
-  //   'lesson': {
-  //     'title':'My updated api lesson',
-  //   }
-  // });
-  // print(ulr);
-
-  // final dr = await api.lessons.delete(2330884);
-  // print(dr as dynamic);
-  //
-  // final lr2 = await api.lessons.fetchById(2330884);
-  // print(lr2);
-
-  // final lessons = await api.lessons.fetch();
-  // print(lessons);
-
-  // final lessons = await api.lessons.fetchByIds([1, 2]);
-  // print(lessons);
-  //
-  // return;
 
   final lesson = await api.lesson.create({
     'lesson': {'title': 'My Lesson'},
