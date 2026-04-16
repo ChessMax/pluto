@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:pluto/data/create_course_response.dart';
 import 'package:pluto/data/create_section_response.dart';
 import 'package:pluto/data/create_unit_response.dart';
-import 'package:pluto/data/json.dart';
 import 'package:pluto/data/lesson_dto.dart';
 import 'package:pluto/data/step_dto.dart';
 import 'package:pluto/stepik_api/stepik_entity.dart';
