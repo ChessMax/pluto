@@ -8,14 +8,14 @@ import 'package:pluto/stepik_api/stepik_entity.dart';
 
 class StepikApi {
   static const url = 'https://stepik.org/api';
-  
+
+  final Dio _client;
+
   late final StepikEntity<LessonDto> lesson = .new(this, 'lesson', LessonDto.fromJson);
   late final StepikEntity<StepSourceDto> stepSource = .new(this, 'step-source', StepSourceDto.fromJson);
   late final StepikEntity<CourseDto> course = .new(this, 'course', CourseDto.fromJson);
   late final StepikEntity<SectionDto> section = .new(this, 'section', SectionDto.fromJson);
   late final StepikEntity<UnitDto> unit = .new(this, 'unit', UnitDto.fromJson);
-
-  final Dio _client;
 
   StepikApi(this._client);
 
