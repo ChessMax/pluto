@@ -2,6 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:pluto/data/create_section_response.dart';
 import 'package:pluto/data/json.dart';
 import 'package:pluto/data/meta_dto.dart';
+import 'package:pluto/data/partial_dto.dart';
 import 'package:pluto/data/stepik_list_response.dart';
 
 part 'create_course_response.g.dart';
@@ -32,6 +33,7 @@ class CourseDto {
   final String intro;
   final String courseFormat;
   final String targetAudience;
+
   // final dynamic? certificateFooter;
   // final dynamic? certificateCoverOrg;
   // final bool isCertificateIssued;
@@ -43,6 +45,7 @@ class CourseDto {
   final String requirements;
   final String description;
   final List<int> sections;
+
   // final List<SectionDto> sections;
   final int totalUnits;
   final int enrollment;
@@ -116,11 +119,13 @@ class CourseDto {
   final String progress;
   final dynamic? firstLesson;
   final dynamic? firstUnit;
+
   // final String? certificateLink;
   // final String certificateRegularLink;
   // final String certificateDistinctionLink;
   final String? userCertificate;
   final String referralLink;
+
   // final String scheduleLink;
   // final String scheduleLongLink;
   // final dynamic? firstDeadline;
@@ -192,6 +197,7 @@ class CourseDto {
   final dynamic? previewLesson;
   final dynamic? previewUnit;
   final List<String> possibleCurrencies;
+
   // final String? commissionBasic;
   // final String commissionPromo;
   // final bool withCertificate;
@@ -389,8 +395,7 @@ class CourseDto {
     required this.ltiPrivateProfile,
   });
 
-  static CourseDto fromJson(JsonObject value) =>
-      _$CourseDtoFromJson(value);
+  static CourseDto fromJson(JsonObject value) => _$CourseDtoFromJson(value);
 
   JsonObject toJson() => _$CourseDtoToJson(this);
 }
@@ -400,13 +405,33 @@ class EnrollmentDto {
   final int id;
   final int course;
 
-  EnrollmentDto({
-    required this.id,
-    required this.course
-  });
+  EnrollmentDto({required this.id, required this.course});
 
   static EnrollmentDto fromJson(JsonObject value) =>
       _$EnrollmentDtoFromJson(value);
 
   JsonObject toJson() => _$EnrollmentDtoToJson(this);
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class PartialCourseDto extends PartialDto {
+  final int id;
+  final String summary;
+  final String workload;
+  final String intro;
+
+  PartialCourseDto({
+    required this.id,
+    required this.summary,
+    required this.workload,
+    required this.intro,
+  });
+
+  static PartialCourseDto fromJson(JsonObject value) =>
+      _$PartialCourseDtoFromJson(value)..rawJson = value;
+
+  @override
+  JsonObject toJson() {
+    return {...rawJson, ..._$PartialCourseDtoToJson(this)};
+  }
 }

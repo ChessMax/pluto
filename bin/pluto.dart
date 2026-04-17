@@ -1,7 +1,10 @@
 import 'package:dio/dio.dart';
+import 'package:pluto/commands/export_course_command.dart';
+import 'package:pluto/commands/list_command.dart';
 import 'package:pluto/data/client.dart';
 import 'package:pluto/data/interceptors/bearer_interceptor.dart';
 import 'package:pluto/env.dart';
+import 'package:pluto/stepik_api/raw_stepik_api.dart';
 import 'package:pluto/stepik_api/stepik_api.dart';
 import 'package:talker_dio_logger/talker_dio_logger.dart';
 
@@ -38,13 +41,36 @@ void main(List<String> arguments) async {
   stepikDio.interceptors.add(BearerInterceptor(token.accessToken));
 
   final api = StepikApi(stepikDio);
-
-  final cid = 134733;
-  final c = (await api.course.fetchById(cid));
-
-  print(c);
-
+  final rawApi = RawStepikApi(stepikDio);
+  
+  await ExportCourseCommand(api: rawApi).execute(134733);
   return;
+  
+  
+  //
+  // await ListCommand(api: api).execute();
+  //
+  //
+  // return ;
+
+  // final cid = 134733;
+  // final c = (await api.course.fetchById(cid));
+  //
+  // print(c);
+
+  // await api.course.delete(283597);
+  // await api.course.delete(283596);
+  // await api.course.delete(283595);
+  // await api.course.delete(283594);
+
+
+  // final courses = await api.course.fetch();
+  //
+  // for (final course in courses!) {
+  //   print('[${course.id}] ${course.title}');
+  // }
+  //
+  // return;
 
   final lesson = await api.lesson.create({
     'lesson': {'title': 'My Lesson'},

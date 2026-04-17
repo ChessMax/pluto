@@ -292,3 +292,19 @@ EnrollmentDto _$EnrollmentDtoFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$EnrollmentDtoToJson(EnrollmentDto instance) =>
     <String, dynamic>{'id': instance.id, 'course': instance.course};
+
+PartialCourseDto _$PartialCourseDtoFromJson(Map<String, dynamic> json) =>
+    PartialCourseDto(
+      id: (json['id'] as num).toInt(),
+      summary: json['summary'] as String,
+      workload: json['workload'] as String,
+      intro: json['intro'] as String,
+    );
+
+Map<String, dynamic> _$PartialCourseDtoToJson(PartialCourseDto instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'summary': instance.summary,
+      'workload': instance.workload,
+      'intro': instance.intro,
+    };
