@@ -10,7 +10,9 @@ environment:
 dependencies:
   dio: ^5.9.1
   fpdart: ^1.2.0
+  intl: ^0.20.2
   json_annotation: ^4.11.0
+  path: ^1.9.1
   talker_dio_logger: ^5.1.13
 
 dev_dependencies:

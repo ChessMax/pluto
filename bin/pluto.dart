@@ -43,8 +43,8 @@ void main(List<String> arguments) async {
   final api = StepikApi(stepikDio);
   final rawApi = RawStepikApi(stepikDio);
   
-  // await ExportCourseCommand(api: rawApi).execute(134733);
-  // return;
+  await ExportCourseCommand(api: rawApi).execute(134733);
+  return;
   
   // await ListCommand(api: api).execute();
   // return ;
