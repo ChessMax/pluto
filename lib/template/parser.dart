@@ -9,16 +9,12 @@ class Parser {
 
     int position = 0;
 
-    // Node readImplicitExpression() {
-    //
-    // }
-
     Token? peak() => position >= 0 && position < tokens.length ? tokens[position] : null;
     Token? peakNext() => position + 1 >= 0 && position + 1 < tokens.length ? tokens[position + 1] : null;
 
     void consume(String reason) {
       ++position;
-      print('Consume: $reason');
+      // print('Consume: $reason');
     }
 
     Token? tryConsumeToken(TokenType type) {
@@ -33,25 +29,36 @@ class Parser {
       return token;
     }
 
+
+
     String consumeId() => consumeToken(.identifier).identifier;
 
-    print('tokens: ${tokens.map((t) => '.${t.type.name}${t.value != null ? '(${t.value})' : ''}').toList()}');
+    // print('tokens: ${tokens.map((t) => '.${t.type.name}${t.value != null ? '(${t.value})' : ''}').toList()}');
 
     // tokens: [.lt, .identifier(p), .gt, .at, .identifier(model), .lt, .slash, .identifier(p), .gt, .eof]
     while (position < tokens.length) {
       final token = tokens[position];
       final String ts = tokens.sublist(position).map((t) => '.${t.type.name}${t.value != null ? '(${t.value})' : ''}').join(', ');
-      print('Current token: ' + token.toString());
-      print('tokens: ${ts}');
+      // print('Current token: ' + token.toString());
+      // print('tokens: ${ts}');
 
       switch (token.type) {
         case TokenType.at:
           consume('@');
           final id = consumeId();
+          final nextToken = peak();
+          if (nextToken != null && nextToken.type == .dot) {
+            consume('.');
+            final id2 = consumeId();
+            nodes.add(ImplicitExpressionNode('$id.$id2'));
+            break;
+          }
           nodes.add(ImplicitExpressionNode(id));
           break;
         case TokenType.dot:
-          throw UnimplementedError();
+          consume('.');
+          final id = consumeId();
+          nodes.add(ImplicitExpressionNode('.$id'));
         case TokenType.identifier:
           throw UnimplementedError();
         case TokenType.literal:

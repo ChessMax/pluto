@@ -7,33 +7,33 @@ import 'package:pluto/template/parser.dart';
 import 'package:test/test.dart';
 
 void main() {
-
+  String code(String value) => CodeGenerator.header + value + CodeGenerator.footer;
   Node parse(String source) => Parser().parse(Lexer(source).lex().toList());
   String codeGen(String source) => CodeGenerator().generate(parse(source));
 
   test('code gen', () async {
     final actualCode = codeGen('<p>@model</p>');
-    final expectedCode =
+    final expectedCode = code(
 '''
-import 'dart:isolate';
-
-void main(List<String> args, dynamic message) {
-  final replyTo = message[0] as SendPort;
-  final model = message[1];
-  String result = '';
-
   result += '<p>';
   result += model.toString();
   result += '</p>';
-  replyTo.send(result);
-}
-''';
-    // File('actual_code.dart').writeAsStringSync(actualCode);
-    // File('expected_code.dart').writeAsStringSync(expectedCode);
+'''
+    );
+    expect(actualCode, expectedCode);
+  });
+  test('code gen2', () async {
+    final actualCode = codeGen('<p>@model.name</p>');
+    final expectedCode = code(
+'''
+  result += '<p>';
+  result += model.name.toString();
+  result += '</p>';
+'''
+    );
     print(actualCode);
     print('');
     print(expectedCode);
     expect(actualCode, expectedCode);
   });
-
 }

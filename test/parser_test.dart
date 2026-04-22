@@ -18,6 +18,11 @@ void main() {
   });
 
   test('parser2', () async {
+    final result = (parse('<p>@model.name</p>') as DocumentNode).children.map((n) => n.toString()).toList();
+    expect(result.join(', '), '<p>, model.name, </p>');
+  });
+
+  test('parser2', () async {
     final result = Lexer('<p>@@userName</p>').lex().toList();
     expect(result, <Token>[t(.lt), id('p'), t(.gt), t(.at), t(.at), id('userName'), t(.lt), t(.slash), id('p'), t(.gt), t(.eof)]);
   });

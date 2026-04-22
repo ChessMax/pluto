@@ -1,17 +1,26 @@
+
 import 'package:pluto/template/node.dart';
 
 class CodeGenerator {
-  String generate(Node node) {
-    final sb = StringBuffer(
+  static const header =
 '''
 import 'dart:isolate';
+import 'package:pluto/template/map_wrapper.dart';
 
 void main(List<String> args, dynamic message) {
   final replyTo = message[0] as SendPort;
-  final model = message[1];
+  final model = message[1] is Map<String, dynamic> ? MapWrapper(message[1] as Map<String, dynamic>) : message[1];
   String result = '';
 
-''');
+''';
+
+  static const footer =
+'''
+  replyTo.send(result);
+}''';
+
+  String generate(Node node) {
+    final sb = StringBuffer(header);
 
     void writeNode(Node node) {
       switch (node) {
@@ -31,10 +40,7 @@ void main(List<String> args, dynamic message) {
 
     writeNode(node);
 
-    sb.writeln(
-'''
-  replyTo.send(result);
-}''');
+    sb.write(footer);
     return sb.toString();
   }
 }

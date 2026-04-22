@@ -18,6 +18,14 @@ void main() {
     expect(result , '<p>Ivan</p>');
   });
 
+  test('implicit expression should return correct values', () async {
+    final template = getTemplate('<p>@model.name</p>');
+    final result = await template.render({'name': 'Ivan'});
+    print('result: $result');
+
+    expect(result , '<p>Ivan</p>');
+  });
+
   test('escape should return correct values', () async {
     final template = getTemplate('<p>@@userName</p>');
     final result = await template.render(null);
