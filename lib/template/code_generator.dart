@@ -5,7 +5,7 @@ class CodeGenerator {
   static const header =
 '''
 import 'dart:isolate';
-import 'package:pluto/template/map_wrapper.dart';
+import 'package:pluto/template/map_view.dart';
 
 void main(List<String> args, dynamic message) {
   final replyTo = message[0] as SendPort;
