@@ -27,11 +27,11 @@ void main() {
   });
 
   test('escape should return correct values', () async {
-    final template = getTemplate('<p>@@userName</p>');
+    final template = getTemplate('<p>@@model</p>');
     final result = await template.render(null);
     print('result: $result');
 
-    expect(result , '<p>@userName</p>');
+    expect(result , '<p>@model</p>');
   });
 
   test('inline expressions should work', () async {
