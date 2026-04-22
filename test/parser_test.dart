@@ -1,0 +1,24 @@
+import 'package:pluto/template/lexer.dart';
+import 'package:pluto/template/node.dart';
+import 'package:pluto/template/parser.dart';
+import 'package:pluto/template/token.dart';
+import 'package:test/test.dart';
+
+void main() {
+  Token t(TokenType type, [Object? value]) => Token(type: type, value: value);
+
+  Token id(String value) => Token(type: .identifier, value: value);
+  Token l(String literal) => Token(type: .literal, value: literal);
+
+  Node parse(String source) => Parser().parse(Lexer(source).lex().toList());
+
+  test('parser', () async {
+    final result = parse('<p>@model</p>').toString();
+    expect(result, '<p>model</p>');
+  });
+
+  test('parser2', () async {
+    final result = Lexer('<p>@@userName</p>').lex().toList();
+    expect(result, <Token>[t(.lt), id('p'), t(.gt), t(.at), t(.at), id('userName'), t(.lt), t(.slash), id('p'), t(.gt), t(.eof)]);
+  });
+}
