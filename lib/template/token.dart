@@ -8,6 +8,8 @@ enum TokenType {
   lt,
   gt,
   slash,
+  openParen,
+  closeParen,
   eof;
 
   const TokenType();

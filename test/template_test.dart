@@ -26,6 +26,16 @@ void main() {
     expect(result , '<p>Ivan</p>');
   });
 
+  test('implicit expression should return correct values', () async {
+    final template = getTemplate('<p>@DateTime.now()</p>');
+    final result = await template.render(null);
+    print('result: $result');
+
+    // <p>2026-04-22 22:20:51.556456</p>
+    final regex = RegExp(r'^<p>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{6}<\/p>$');
+    expect(regex.hasMatch(result) , true);
+  });
+
   test('escape should return correct values', () async {
     final template = getTemplate('<p>@@model</p>');
     final result = await template.render(null);

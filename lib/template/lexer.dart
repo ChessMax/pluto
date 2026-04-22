@@ -60,6 +60,8 @@ class Lexer {
         case '>': yield Token(type: .gt); break;
         case '/': yield Token(type: .slash); break;
         case '.': yield Token(type: .dot); break;
+        case '(': yield Token(type: .openParen); break;
+        case ')': yield Token(type: .closeParen); break;
         case '@': yield Token(type: .at); break;
         default:
           if (char.isAlpha) {

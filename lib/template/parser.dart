@@ -9,8 +9,11 @@ class Parser {
 
     int position = 0;
 
-    Token? peak() => position >= 0 && position < tokens.length ? tokens[position] : null;
-    Token? peakNext() => position + 1 >= 0 && position + 1 < tokens.length ? tokens[position + 1] : null;
+    Token? peak() =>
+        position >= 0 && position < tokens.length ? tokens[position] : null;
+    Token? peakNext() => position + 1 >= 0 && position + 1 < tokens.length
+        ? tokens[position + 1]
+        : null;
 
     void consume(String reason) {
       ++position;
@@ -29,8 +32,6 @@ class Parser {
       return token;
     }
 
-
-
     String consumeId() => consumeToken(.identifier).identifier;
 
     // print('tokens: ${tokens.map((t) => '.${t.type.name}${t.value != null ? '(${t.value})' : ''}').toList()}');
@@ -38,7 +39,10 @@ class Parser {
     // tokens: [.lt, .identifier(p), .gt, .at, .identifier(model), .lt, .slash, .identifier(p), .gt, .eof]
     while (position < tokens.length) {
       final token = tokens[position];
-      final String ts = tokens.sublist(position).map((t) => '.${t.type.name}${t.value != null ? '(${t.value})' : ''}').join(', ');
+      final String ts = tokens
+          .sublist(position)
+          .map((t) => '.${t.type.name}${t.value != null ? '(${t.value})' : ''}')
+          .join(', ');
       // print('Current token: ' + token.toString());
       // print('tokens: ${ts}');
 
@@ -50,6 +54,19 @@ class Parser {
           if (nextToken != null && nextToken.type == .dot) {
             consume('.');
             final id2 = consumeId();
+
+            final nextNextToken = peak();
+            final nextNextNextToken = peakNext();
+            if (nextNextToken != null &&
+                nextNextToken.type == .openParen &&
+                nextNextNextToken != null &&
+                nextNextNextToken.type == .closeParen) {
+              consume('(');
+              consume(')');
+              nodes.add(ImplicitExpressionNode('$id.$id2()'));
+              break;
+            }
+
             nodes.add(ImplicitExpressionNode('$id.$id2'));
             break;
           }
@@ -85,9 +102,13 @@ class Parser {
             throw 'Expected eof last token';
           }
           break;
+        case TokenType.openParen:
+          // TODO: Handle this case.
+          throw UnimplementedError();
+        case TokenType.closeParen:
+          // TODO: Handle this case.
+          throw UnimplementedError();
       }
-
-
     }
     return DocumentNode(nodes);
   }
