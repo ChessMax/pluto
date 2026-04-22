@@ -76,11 +76,19 @@ extension type RawStepSourceDto(JsonObject value) implements JsonObject {
 
   int get lesson => value['lesson'] as int;
   int get position => value['position'] as int;
-  String get block => value['block'] as String;
+  RawStepSourceBlockDto get block => value['block'] as RawStepSourceBlockDto;
   String get cost => value['cost'] as String;
 
   static RawStepSourceDto fromJson(JsonObject value) => RawStepSourceDto(value);
 }
+
+extension type RawStepSourceBlockDto(JsonObject value) implements JsonObject {
+  String get name => value['name'] as String;
+  String get text => value['text'] as String;
+
+  static RawStepSourceDto fromJson(JsonObject value) => RawStepSourceDto(value);
+}
+
 
 extension type RawStepDto(JsonObject value) implements JsonObject {
   int get id => value['id'] as int;
