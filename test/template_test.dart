@@ -3,7 +3,6 @@ import 'package:pluto/template/lexer.dart';
 import 'package:pluto/template/node.dart';
 import 'package:pluto/template/parser.dart';
 import 'package:pluto/template/template.dart';
-import 'package:pluto/template/template_parser.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -20,7 +19,7 @@ void main() {
   });
 
   test('escape should return correct values', () async {
-    final template = await TemplateParser().parse('<p>@@userName</p>');
+    final template = getTemplate('<p>@@userName</p>');
     final result = await template.render(null);
     print('result: $result');
 
@@ -28,7 +27,7 @@ void main() {
   });
 
   test('inline expressions should work', () async {
-    final template = await TemplateParser().parse('<b>@DateTime.now()</b>');
+    final template = getTemplate('<b>@DateTime.now()</b>');
     final result = await template.render(null);
     print('result: $result');
 
