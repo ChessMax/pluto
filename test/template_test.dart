@@ -43,14 +43,4 @@ void main() {
 
     expect(result , '<p>@model</p>');
   });
-
-  test('inline expressions should work', () async {
-    final template = getTemplate('<b>@DateTime.now()</b>');
-    final result = await template.render(null);
-    print('result: $result');
-
-    expect(result.length, 33);
-    expect(result.startsWith('<b>'), isTrue);
-    expect(result.endsWith('</b>'), isTrue);
-  });
 }

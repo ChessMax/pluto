@@ -9,8 +9,8 @@ void main() {
   Token l(String literal) => Token(type: .literal, value: literal);
 
   test('lexer', () async {
-    final result = Lexer('<p>@@userName</p>').lex().toList();
-    expect(result, <Token>[t(.lt), id('p'), t(.gt), t(.at), t(.at), id('userName'), t(.lt), t(.slash), id('p'), t(.gt), t(.eof)]);
+    final result = Lexer('<p>@@model</p>').lex().toList();
+    expect(result, <Token>[t(.lt), id('p'), t(.gt), t(.at), t(.at), id('model'), t(.lt), t(.slash), id('p'), t(.gt), t(.eof)]);
   });
 
   test('lexer2', () async {

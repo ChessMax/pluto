@@ -33,6 +33,7 @@ class Parser {
     }
 
     String consumeId() => consumeToken(.identifier).identifier;
+    String? tryConsumeId() => tryConsumeToken(.identifier)?.identifier;
 
     // print('tokens: ${tokens.map((t) => '.${t.type.name}${t.value != null ? '(${t.value})' : ''}').toList()}');
 
@@ -49,6 +50,16 @@ class Parser {
       switch (token.type) {
         case TokenType.at:
           consume('@');
+          if (peak()?.type == .at) {
+            consume('@');
+            final id = tryConsumeId();
+            if (id != null) {
+              nodes.add(MarkupNode('@$id'));
+            } else {
+              nodes.add(MarkupNode('@'));
+            }
+            break;
+          }
           final id = consumeId();
           final nextToken = peak();
           if (nextToken != null && nextToken.type == .dot) {
