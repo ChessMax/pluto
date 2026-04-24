@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 
 void main() {
   String code(String value) => CodeGenerator.header + value + CodeGenerator.footer;
-  Node parse(String source) => Parser().parse(Lexer(source).lex().toList());
+  Node parse(String source) => Parser().parse(Lexer().lex(source).toList());
   String codeGen(String source) => CodeGenerator().generate(parse(source));
 
   test('code gen', () async {

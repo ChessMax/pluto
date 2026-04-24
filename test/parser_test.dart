@@ -10,7 +10,7 @@ void main() {
   Token id(String value) => Token(type: .identifier, value: value);
   Token l(String literal) => Token(type: .literal, value: literal);
 
-  Node parse(String source) => Parser().parse(Lexer(source).lex().toList());
+  Node parse(String source) => Parser().parse(Lexer().lex(source).toList());
 
   test('parser', () async {
     final result = parse('<p>@model</p>').toString();

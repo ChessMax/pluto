@@ -6,7 +6,7 @@ import 'package:pluto/template/template.dart';
 import 'package:test/test.dart';
 
 void main() {
-  Node parse(String source) => Parser().parse(Lexer(source).lex().toList());
+  Node parse(String source) => Parser().parse(Lexer().lex(source).toList());
   String codeGen(String source) => CodeGenerator().generate(parse(source));
   Template getTemplate(String source) => Template(codeGen(source));
 
