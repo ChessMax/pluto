@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
+import 'package:pluto/assets/templates/asset_templates.dart';
 import 'package:pluto/commands/export_course_command.dart';
 import 'package:pluto/commands/list_command.dart';
 import 'package:pluto/data/client.dart';
@@ -42,8 +45,14 @@ void main(List<String> arguments) async {
 
   final api = StepikApi(stepikDio);
   final rawApi = RawStepikApi(stepikDio);
+
+  final courseTemplate = await AssetTemplates.course;
+  print(courseTemplate);
+  print(courseTemplate);
+
+  return;
   
-  await ExportCourseCommand(api: rawApi).execute(134733);
+  await ExportCourseCommand(api: rawApi, format: .json).execute(134733);
   return;
   
   // await ListCommand(api: api).execute();

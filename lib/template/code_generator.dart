@@ -19,6 +19,8 @@ void main(List<String> args, dynamic message) {
   replyTo.send(result);
 }''';
 
+  const CodeGenerator();
+
   String generate(Node node) {
     final sb = StringBuffer(header);
 

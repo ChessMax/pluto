@@ -6,12 +6,17 @@ import 'package:path/path.dart';
 import 'package:pluto/data/json.dart';
 import 'package:pluto/stepik_api/raw_stepik_api.dart';
 
+enum ExportFormat { json, md }
+
 class ExportCourseCommand {
   static final _encoder = JsonEncoder.withIndent('  ');
 
   final RawStepikApi _api;
+  final ExportFormat _format;
 
-  ExportCourseCommand({required RawStepikApi api}) : _api = api;
+  ExportCourseCommand({required RawStepikApi api, required ExportFormat format})
+    : _api = api,
+      _format = format;
 
   String getValidFileName(String value) {
     final expression = RegExp(r'[^\w\s.-]', unicode: true);
@@ -32,7 +37,10 @@ class ExportCourseCommand {
     assert(sections.length == course.sections.length);
 
     for (final section in sections) {
-      final paddedSectionPosition = (section.position.toString().padLeft(2, '0'));
+      final paddedSectionPosition = (section.position.toString().padLeft(
+        2,
+        '0',
+      ));
       _writeJson([
         exportDir,
         '${courseId}_$exportTime',
@@ -69,56 +77,55 @@ class ExportCourseCommand {
           'lesson.json',
         ], lesson);
 
-          final stepIds = lesson.steps;
-          final steps = (await _api.step.fetchByIds(stepIds))!;
-          assert(steps.length == stepIds.length);
+        final stepIds = lesson.steps;
+        final steps = (await _api.step.fetchByIds(stepIds))!;
+        assert(steps.length == stepIds.length);
 
-          for (final step in steps) {
-            final stepSource = (await _api.stepSource.fetchById(step.id))!;
+        for (final step in steps) {
+          final stepSource = (await _api.stepSource.fetchById(step.id))!;
 
-            // save step source
-            _writeJson([
-              exportDir,
-              '${courseId}_$exportTime',
-              paddedSectionPosition,
-              paddedUnitPosition,
-              'step-source_${lessonId}_${stepSource.position}.json',
-            ], stepSource);
+          // save step source
+          _writeJson([
+            exportDir,
+            '${courseId}_$exportTime',
+            paddedSectionPosition,
+            paddedUnitPosition,
+            'step-source_${lessonId}_${stepSource.position}.json',
+          ], stepSource);
 
-            // final dirPath = './export/$courseId/';
-            //
-            // var path = [
-            //   'export',
-            //   '$courseId',
-            //   // '${course['id'].toString().padLeft(2, '0')} ${getValidFileName(course.title)}',
-            //   '${section['position'].toString().padLeft(2, '0')} ${getValidFileName(section.title)}',
-            //   '${unit['position'].toString().padLeft(2, '0')} ${getValidFileName(lesson.title)}',
-            //   '${lesson['id']}_${step['position'].toString().padLeft(2, '0')}_${step['block']['name']}.step'
-            // ];
-            //
-            // try {
-            //   Directory(path.take(path.length - 1).join(Platform.pathSeparator))
-            //       .createSync(recursive: true);
-            // } catch (e) {
-            //   print(e);
-            //   // Handle exceptions if any
-            // }
-            //
-            // var filename = path.join(Platform.pathSeparator);
-            // var file = File(filename);
-            // var data = {
-            //   'block': stepSource['block'],
-            //   'id': step.id.toString(),
-            //   'time': DateTime.now().toIso8601String(),
-            // };
-            //
-            // file.writeAsStringSync(jsonEncode(data));
-            // print(filename);
-          }
+          // final dirPath = './export/$courseId/';
+          //
+          // var path = [
+          //   'export',
+          //   '$courseId',
+          //   // '${course['id'].toString().padLeft(2, '0')} ${getValidFileName(course.title)}',
+          //   '${section['position'].toString().padLeft(2, '0')} ${getValidFileName(section.title)}',
+          //   '${unit['position'].toString().padLeft(2, '0')} ${getValidFileName(lesson.title)}',
+          //   '${lesson['id']}_${step['position'].toString().padLeft(2, '0')}_${step['block']['name']}.step'
+          // ];
+          //
+          // try {
+          //   Directory(path.take(path.length - 1).join(Platform.pathSeparator))
+          //       .createSync(recursive: true);
+          // } catch (e) {
+          //   print(e);
+          //   // Handle exceptions if any
+          // }
+          //
+          // var filename = path.join(Platform.pathSeparator);
+          // var file = File(filename);
+          // var data = {
+          //   'block': stepSource['block'],
+          //   'id': step.id.toString(),
+          //   'time': DateTime.now().toIso8601String(),
+          // };
+          //
+          // file.writeAsStringSync(jsonEncode(data));
+          // print(filename);
         }
       }
     }
-
+  }
 
   void _writeJson(List<String> path, JsonObject data) {
     try {

@@ -4,6 +4,8 @@ import 'package:pluto/template/token.dart';
 import 'node.dart';
 
 class Parser {
+  const Parser();
+
   Node parse(List<Token> tokens) {
     List<Node> nodes = [];
 

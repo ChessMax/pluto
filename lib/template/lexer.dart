@@ -1,9 +1,9 @@
 import 'package:pluto/template/token.dart';
 
 class Lexer {
-  final String source;
+ /* final String source;*/
 
-  Lexer(this.source);
+  const Lexer(/*this.source*/);
 
   bool _isAlpha(String value) {
     final code = value.codeUnitAt(0);
@@ -22,7 +22,7 @@ class Lexer {
         code >= '0'.codeUnitAt(0) && code <= '90'.codeUnitAt(0);
   }
 
-  Iterable<Token> lex() sync* {
+  Iterable<Token> lex(String source) sync* {
     int position = -1;
     String? nextChar() => source.length > position + 1 ? source[position + 1] : null;
     void consume() => ++position;

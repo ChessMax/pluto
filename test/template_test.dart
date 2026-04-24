@@ -26,6 +26,15 @@ void main() {
     expect(result , '<p>Ivan</p>');
   });
 
+  test('implicit expression should return correct values2', () async {
+    final template = getTemplate('@model.name');
+    final result = await template.render({'name': 'Ivan'});
+    print('result: $result');
+
+    expect(result , 'Ivan');
+  });
+
+
   test('implicit expression should return correct values', () async {
     final template = getTemplate('<p>@DateTime.now()</p>');
     final result = await template.render(null);
