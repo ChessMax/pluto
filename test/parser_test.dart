@@ -14,26 +14,26 @@ void main() {
     const Parser().parse(const Lexer().lex(source).toList()).toList(),
   ).toString();
 
-  // test('empty', () async {
-  //   final result = Lexer().lex('').toList();
-  //   expect(result, <Token>[t(.eof)]);
-  // });
-  //
-  // test('ws', () async {
-  //   final result = Lexer().lex(' ').toList();
-  //   expect(result, <Token>[text(' '), t(.eof)]);
-  // });
-  //
-  // test('ws 2', () async {
-  //   final result = Lexer().lex('\t').toList();
-  //   expect(result, <Token>[text('\t'), t(.eof)]);
-  // });
-  //
-  // test('ws 3', () async {
-  //   final result = Lexer().lex('\n').toList();
-  //   expect(result, <Token>[text('\n'), t(.eof)]);
-  // });
-  //
+  test('empty', () async {
+    final result = parse('');
+    expect(result, '');
+  });
+
+  test('ws', () async {
+    final result = parse(' ');
+    expect(result, ' ');
+  });
+
+  test('ws 2', () async {
+    final result = parse('\t');
+    expect(result, '\t');
+  });
+
+  test('ws 3', () async {
+    final result = parse('\n');
+    expect(result,  '\n' );
+  });
+
   test('parser', () async {
     final result = parse('Hello, world!');
     expect(result, 'Hello, world!');
@@ -46,17 +46,17 @@ void main() {
 
   test('parser 2', () async {
     final result = parse('<p>@model</p>');
-    expect(result, '<p>model</p>');
+    expect(result, '<p>`model`</p>');
   });
 
   test('parser 3', () async {
     final result = parse('<p>@user.name</p>');
-    expect(result, '<p>user.name</p>');
+    expect(result, '<p>`user.name`</p>');
   });
 
   test('parser 4', () async {
     final result = parse('<p>@user.</p>');
-    expect(result, '<p>user.</p>');
+    expect(result, '<p>`user`.</p>');
   });
   // =====
   // test('parser', () async {
