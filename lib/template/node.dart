@@ -12,10 +12,10 @@ class ImplicitExpressionNode extends Node {
   String toString() => expression;
 }
 
-class MarkupNode extends Node {
+class TextNode extends Node {
   final String value;
 
-  MarkupNode(this.value);
+  TextNode(this.value);
 
   @override
   String toString() => value;
