@@ -35,6 +35,12 @@ class Lexer {
       for (var char = peak(); char != null; char = peak()) {
         switch (char) {
           case '.': position += 1; yield Token(type: .dot); break;
+          case '(': position += 1; yield Token(type: .openParen);
+            // TODO: wait for closing
+          break;
+          case ')': position += 1; yield Token(type: .closeParen);
+          // TODO: wait for closing
+          break;
         // TODO: (),[],'',""
           default:
             if (char.isIdentifierStart) {

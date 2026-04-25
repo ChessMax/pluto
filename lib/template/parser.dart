@@ -50,11 +50,16 @@ class Parser {
               break;
             }
             break loop;
+          case .openParen:
+            position += 2;
+            expression += '()';
+            break;
 
-          case TokenType.at:
-          case TokenType.id:
-          case TokenType.text:
-          case TokenType.eof:
+          case .at:
+          case .id:
+          case .text:
+          case .closeParen:
+          case .eof:
             break loop;
         }
       }
@@ -68,18 +73,20 @@ class Parser {
       loop:
       for (var token = peek(); token != null; token = peek()) {
         switch (token.type) {
-          case TokenType.dot:
+          case .dot:
             position += 1;
             text += '.';
             break;
-          case TokenType.text:
+          case .text:
             position += 1;
             text += token.text;
             break;
 
-          case TokenType.at:
-          case TokenType.id:
-          case TokenType.eof:
+          case .at:
+          case .id:
+          case .openParen:
+          case .closeParen:
+          case .eof:
             break loop;
         }
       }

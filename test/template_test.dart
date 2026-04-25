@@ -41,6 +41,13 @@ void main() {
     expect(regex.hasMatch(result) , true);
   });
 
+  test('implicit expression should return correct values 4', () async {
+    final template = getTemplate('<p>@DateTime.now().year</p>');
+    final result = await template.render(null);
+
+    expect(result, '<p>${DateTime.now().year}</p>');
+  });
+
   test('escape should return correct values 5', () async {
     final template = getTemplate('<p>@@model</p>');
     final result = await template.render(null);

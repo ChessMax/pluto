@@ -7,6 +7,8 @@ void main() {
   Token text(String value) => t(.text, value);
   Token id(String value) => t(.id, value);
   final dot = t(.dot);
+  final op = t(.openParen);
+  final cp = t(.closeParen);
 
   test('empty', () async {
     final result = Lexer().lex('').toList();
@@ -51,5 +53,15 @@ void main() {
   test('lexer 4', () async {
     final result = Lexer().lex('<p>@user.</p>').toList();
     expect(result, <Token>[text('<p>'), t(.at), id('user'), dot, text('</p>'), t(.eof)]);
+  });
+
+  test('lexer 5', () async {
+    final result = Lexer().lex('@DateTime.now()').toList();
+    expect(result, <Token>[t(.at), id('DateTime'), dot, id('now'), op, cp, t(.eof)]);
+  });
+
+  test('lexer 5', () async {
+    final result = Lexer().lex('<p>@DateTime.now()</p>').toList();
+    expect(result, <Token>[text('<p>'), t(.at), id('DateTime'), dot, id('now'), op, cp, text('</p>'), t(.eof)]);
   });
 }

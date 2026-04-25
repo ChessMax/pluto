@@ -52,11 +52,23 @@ void main() {
     final result = parse('<p>@user.</p>');
     expect(result, '<p>`user`.</p>');
   });
-  // =====
 
-  // test('parser3', () async {
-  //   final result = parse('<p>@DateTime.now()</p>');
-  //   expect(result, '<p>`DateTime.now()`</p>');
-  // });
+  test('parser 5', () async {
+    final result = parse('@DateTime.now()');
+    expect(result, '`DateTime.now()`');
+  });
+
+  test('parser 6', () async {
+    final result = parse('<p>@DateTime.now()</p>');
+    expect(result, '<p>`DateTime.now()`</p>');
+  });
+
+  test('parser 7', () async {
+    final result = parse('<p>@DateTime.now().year</p>');
+    expect(result, '<p>`DateTime.now().year`</p>');
+  });
+
+  // TODO: call with args, strings, indexers.
+
 
 }

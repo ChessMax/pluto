@@ -7,8 +7,8 @@ enum TokenType {
   // expressions
   id,
   dot,
-  // openParen,
-  // closeParen,
+  openParen,
+  closeParen,
   // openBracket,
   // closeBracket,
   // stringLiteral,
