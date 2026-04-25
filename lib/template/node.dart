@@ -9,7 +9,7 @@ class ImplicitExpressionNode extends Node {
   ImplicitExpressionNode(this.expression);
 
   @override
-  String toString() => expression;
+  String toString() => '`$expression`';
 }
 
 class TextNode extends Node {
