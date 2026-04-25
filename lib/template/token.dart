@@ -1,15 +1,20 @@
 import 'package:equatable/equatable.dart';
 
 enum TokenType {
+  // escape
   at,
+
+  // expressions
+  id,
   dot,
-  identifier,
-  literal,
-  lt,
-  gt,
-  slash,
-  openParen,
-  closeParen,
+  // openParen,
+  // closeParen,
+  // openBracket,
+  // closeBracket,
+  // stringLiteral,
+
+  // common
+  text,
   eof;
 
   const TokenType();
@@ -25,4 +30,9 @@ class Token extends Equatable {
   List<Object?> get props => [type, value];
 
   String get identifier => value as String;
+
+  @override
+  String toString() {
+    return '.${type.name}${value != null ? ', $value' : ''}';
+  }
 }

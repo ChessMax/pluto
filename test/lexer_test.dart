@@ -4,17 +4,52 @@ import 'package:test/test.dart';
 
 void main() {
   Token t(TokenType type, [Object? value]) => Token(type: type, value: value);
+  Token text(String value) => t(.text, value);
+  Token id(String value) => t(.id, value);
+  final dot = t(.dot);
 
-  Token id(String value) => Token(type: .identifier, value: value);
-  Token l(String literal) => Token(type: .literal, value: literal);
-
-  test('lexer', () async {
-    final result = Lexer().lex('<p>@@model</p>').toList();
-    expect(result, <Token>[t(.lt), id('p'), t(.gt), t(.at), t(.at), id('model'), t(.lt), t(.slash), id('p'), t(.gt), t(.eof)]);
+  test('empty', () async {
+    final result = Lexer().lex('').toList();
+    expect(result, <Token>[t(.eof)]);
   });
 
-  test('lexer2', () async {
+  test('ws', () async {
+    final result = Lexer().lex(' ').toList();
+    expect(result, <Token>[text(' '), t(.eof)]);
+  });
+
+  test('ws 2', () async {
+    final result = Lexer().lex('\t').toList();
+    expect(result, <Token>[text('\t'), t(.eof)]);
+  });
+
+  test('ws 3', () async {
+    final result = Lexer().lex('\n').toList();
+    expect(result, <Token>[text('\n'), t(.eof)]);
+  });
+
+  test('lexer', () async {
+    final result = Lexer().lex('Hello, world!').toList();
+    expect(result, <Token>[text('Hello, world!'), t(.eof)]);
+  });
+
+  test('lexer 1', () async {
+    final result = Lexer().lex('<p>@@model</p>').toList();
+    expect(result, <Token>[text('<p>'), text('@'), text('model</p>'), t(.eof)]);
+  });
+
+  test('lexer 2', () async {
     final result = Lexer().lex('<p>@userName</p>').toList();
-    expect(result, <Token>[t(.lt), id('p'), t(.gt), t(.at), id('userName'), t(.lt), t(.slash), id('p'), t(.gt), t(.eof)]);
+    expect(result, <Token>[text('<p>'), t(.at), id('userName'), text('</p>'), t(.eof)]);
+  });
+
+  test('lexer 3', () async {
+    final result = Lexer().lex('<p>@user.name</p>').toList();
+    expect(result, <Token>[text('<p>'), t(.at), id('user'), dot, id('name'), text('</p>'), t(.eof)]);
+  });
+
+  test('lexer 4', () async {
+    final result = Lexer().lex('<p>@user.</p>').toList();
+    expect(result, <Token>[text('<p>'), t(.at), id('user'), dot, text('</p>'), t(.eof)]);
   });
 }
