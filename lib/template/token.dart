@@ -29,6 +29,7 @@ class Token extends Equatable {
   @override
   List<Object?> get props => [type, value];
 
+  String get text => value as String;
   String get identifier => value as String;
 
   @override

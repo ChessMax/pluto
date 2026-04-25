@@ -11,6 +11,7 @@ class Lexer {
 
     String? peakNext() =>
         position + 1 < source.length ? source[position + 1] : null;
+
     Token consumeText() {
       final start = position;
 
@@ -31,8 +32,7 @@ class Lexer {
     }
 
     Iterable<Token> consumeIdentifierOrOperators() sync* {
-      var stop = false;
-      for (var char = peak(); char != null && !stop; char = peak()) {
+      for (var char = peak(); char != null; char = peak()) {
         switch (char) {
           case '.': position += 1; yield Token(type: .dot); break;
         // TODO: (),[],'',""
