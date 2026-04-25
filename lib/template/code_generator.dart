@@ -29,7 +29,7 @@ void main(List<String> args, dynamic message) {
         case ImplicitExpressionNode():
           sb.writeln('  result += ${node.expression}.toString();');
           break;
-        case MarkupNode():
+        case TextNode():
           sb.writeln('  result += \'${node.value}\';');
           break;
         case DocumentNode():
