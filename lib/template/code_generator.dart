@@ -22,6 +22,7 @@ void main(List<String> args, dynamic message) {
   const CodeGenerator();
 
   String generate(Node node) {
+    final tripleQuotes = "'''";
     final sb = StringBuffer(header);
 
     void writeNode(Node node) {
@@ -30,7 +31,8 @@ void main(List<String> args, dynamic message) {
           sb.writeln('  result += ${node.expression}.toString();');
           break;
         case TextNode():
-          sb.writeln('  result += \'${node.value}\';');
+          final escaped = node.value.replaceAll("'''", "''' \"'''\" r'''\n");
+          sb.writeln("  result += r'''\n$escaped''';");
           break;
         case DocumentNode():
           for (final childNode in node.children) {
@@ -43,6 +45,10 @@ void main(List<String> args, dynamic message) {
     writeNode(node);
 
     sb.write(footer);
-    return sb.toString();
+    final result = sb.toString();
+
+    print('```\n$result\n```');
+
+    return result;
   }
 }
