@@ -10,12 +10,9 @@ void main() {
   final dot = t(.dot);
   final op = t(.openParen);
   final cp = t(.closeParen);
-  final ees = t(.explicitExprStart);
-  final eee = t(.explicitExprEnd);
-  final bs = t(.blockStart);
-  final be = t(.blockEnd);
-  Token expr(String value) => t(.explicitExpression, value);
-  Token stmt(String value) => t(.statement, value);
+  final at = t(.at);
+  Token expr(String value) => t(.expr, value);
+  Token stmt(String value) => t(.stmt, value);
 
   test('empty', () async {
     final result = parse('');
@@ -49,36 +46,36 @@ void main() {
 
   test('lexer 2', () async {
     final result = parse('<p>@userName</p>');
-    expect(result, <Token>[text('<p>'), t(.at), id('userName'), text('</p>'), t(.eof)]);
+    expect(result, <Token>[text('<p>'), at, id('userName'), text('</p>'), t(.eof)]);
   });
 
   test('lexer 3', () async {
     final result = parse('<p>@user.name</p>');
-    expect(result, <Token>[text('<p>'), t(.at), id('user'), dot, id('name'), text('</p>'), t(.eof)]);
+    expect(result, <Token>[text('<p>'), at, id('user'), dot, id('name'), text('</p>'), t(.eof)]);
   });
 
   test('lexer 4', () async {
     final result = parse('<p>@user.</p>');
-    expect(result, <Token>[text('<p>'), t(.at), id('user'), dot, text('</p>'), t(.eof)]);
+    expect(result, <Token>[text('<p>'), at, id('user'), dot, text('</p>'), t(.eof)]);
   });
 
   test('lexer 5', () async {
     final result = parse('@DateTime.now()');
-    expect(result, <Token>[t(.at), id('DateTime'), dot, id('now'), op, cp, t(.eof)]);
+    expect(result, <Token>[at, id('DateTime'), dot, id('now'), op, cp, t(.eof)]);
   });
 
   test('lexer 5', () async {
     final result = parse('<p>@DateTime.now()</p>');
-    expect(result, <Token>[text('<p>'), t(.at), id('DateTime'), dot, id('now'), op, cp, text('</p>'), t(.eof)]);
+    expect(result, <Token>[text('<p>'), at, id('DateTime'), dot, id('now'), op, cp, text('</p>'), t(.eof)]);
   });
 
   test('lexer 6', () async {
     final result = parse('<p>@(DateTime.now() - 1)</p>');
-    expect(result, <Token>[text('<p>'), expr('(DateTime.now() - 1)'), text('</p>'), t(.eof)]);
+    expect(result, <Token>[text('<p>'), at, expr('(DateTime.now() - 1)'), text('</p>'), t(.eof)]);
   });
 
   test('lexer 7', () async {
     final result = parse('@{ var user = model.name; }<p>@user</p>');
-    expect(result, <Token>[stmt('{ var user = model.name; }'), text('<p>'), t(.at), id('user'), text('</p>'), t(.eof)]);
+    expect(result, <Token>[at, stmt('{ var user = model.name; }'), text('<p>'), at, id('user'), text('</p>'), t(.eof)]);
   });
 }

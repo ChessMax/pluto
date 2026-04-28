@@ -35,7 +35,7 @@ class Lexer {
     Token consumeExplicitExpression() {
       final end = const AnalyzerLexer().readExpr(source.substring(position));
       if (end != null) {
-        final token = Token(type: .explicitExpression, value: source.substring(position, position + end));
+        final token = Token(type: .expr, value: source.substring(position, position + end));
         position += end;
         return token;
       }
@@ -45,7 +45,7 @@ class Lexer {
     Token consumeStatement() {
       final end = const AnalyzerLexer().readStatement(source.substring(position));
       if (end != null) {
-        final token = Token(type: .statement, value: source.substring(position, position + end));
+        final token = Token(type: .stmt, value: source.substring(position, position + end));
         position += end;
         return token;
       }
@@ -89,9 +89,11 @@ class Lexer {
           } // else if @*, @if ...
 
           else if (char == '(') {
+            yield Token(type: .at);
             yield consumeExplicitExpression();
             break;
           } else if (char == '{') {
+            yield Token(type: .at);
             yield consumeStatement();
             break;
           }

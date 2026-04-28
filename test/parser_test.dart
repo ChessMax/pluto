@@ -69,6 +69,14 @@ void main() {
   });
 
   // TODO: call with args, strings, indexers.
+  test('lexer 8', () async {
+    final result = parse('<p>@(DateTime.now() - 1)</p>');
+    expect(result, '<p>`(DateTime.now() - 1)`</p>');
+  });
 
+  test('lexer 9', () async {
+    final result = parse('@{ var user = model.name; }<p>@user</p>');
+    expect(result, '```{ var user = model.name; }```<p>`user`</p>');
+  });
 
 }
