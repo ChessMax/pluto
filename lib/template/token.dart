@@ -3,6 +3,8 @@ import 'package:equatable/equatable.dart';
 enum TokenType {
   // escape
   at,
+  stmt,
+  expr,
 
   // expressions
   id,
@@ -31,6 +33,7 @@ class Token extends Equatable {
 
   String get text => value as String;
   String get identifier => value as String;
+  String get code => value as String;
 
   @override
   String toString() {

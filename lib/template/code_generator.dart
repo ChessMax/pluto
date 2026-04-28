@@ -27,6 +27,12 @@ void main(List<String> args, dynamic message) {
 
     void writeNode(Node node) {
       switch (node) {
+        case StatementExpressionNode():
+          sb.writeln('  ${node.statement.replaceFirst('{', '').replaceLast('}', '')}');
+          break;
+        case ExplicitExpressionNode():
+          sb.writeln('  result += ${node.expression}.toString();');
+          break;
         case ImplicitExpressionNode():
           sb.writeln('  result += ${node.expression}.toString();');
           break;
@@ -50,5 +56,13 @@ void main(List<String> args, dynamic message) {
     print('```\n$result\n```');
 
     return result;
+  }
+}
+
+extension on String {
+  String replaceLast(String from, String to) {
+    int lastIndex = lastIndexOf(from);
+    if (lastIndex == -1) return this;
+    return replaceFirst(from, to, lastIndex);
   }
 }
