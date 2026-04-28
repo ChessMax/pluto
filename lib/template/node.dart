@@ -12,6 +12,24 @@ class ImplicitExpressionNode extends Node {
   String toString() => '`$expression`';
 }
 
+class ExplicitExpressionNode extends Node {
+  final String expression;
+
+  ExplicitExpressionNode(this.expression);
+
+  @override
+  String toString() => '`$expression`';
+}
+
+class StatementExpressionNode extends Node {
+  final String statement;
+
+  StatementExpressionNode(this.statement);
+
+  @override
+  String toString() => '```$statement```';
+}
+
 class TextNode extends Node {
   final String value;
 
