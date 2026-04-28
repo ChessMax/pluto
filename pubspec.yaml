@@ -8,6 +8,7 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
+  analyzer: ^12.1.0
   dio: ^5.9.1
   equatable: ^2.0.8
   fpdart: ^1.2.0

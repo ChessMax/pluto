@@ -1,3 +1,4 @@
+import 'package:pluto/template/analyzer_lexer.dart';
 import 'package:pluto/template/token.dart';
 
 class Lexer {
@@ -29,6 +30,26 @@ class Lexer {
       } while (position < source.length && source[position].isIdentifierContinue);
 
       return Token(type: .id, value: source.substring(start, position));
+    }
+
+    Token consumeExplicitExpression() {
+      final end = const AnalyzerLexer().readExpr(source.substring(position));
+      if (end != null) {
+        final token = Token(type: .explicitExpression, value: source.substring(position, position + end));
+        position += end;
+        return token;
+      }
+      throw 'Expected explicit expression';
+    }
+
+    Token consumeStatement() {
+      final end = const AnalyzerLexer().readStatement(source.substring(position));
+      if (end != null) {
+        final token = Token(type: .statement, value: source.substring(position, position + end));
+        position += end;
+        return token;
+      }
+      throw 'Expected statement';
     }
 
     Iterable<Token> consumeIdentifierOrOperators() sync* {
@@ -66,6 +87,14 @@ class Lexer {
             yield Token(type: .text, value: '@'); // TODO: consume text?
             break;
           } // else if @*, @if ...
+
+          else if (char == '(') {
+            yield consumeExplicitExpression();
+            break;
+          } else if (char == '{') {
+            yield consumeStatement();
+            break;
+          }
 
           // identifier or . ( [ ' "
           yield Token(type: .at);

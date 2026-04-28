@@ -9,6 +9,12 @@ void main() {
   final dot = t(.dot);
   final op = t(.openParen);
   final cp = t(.closeParen);
+  final ees = t(.explicitExprStart);
+  final eee = t(.explicitExprEnd);
+  final bs = t(.blockStart);
+  final be = t(.blockEnd);
+  Token expr(String value) => t(.explicitExpression, value);
+  Token stmt(String value) => t(.statement, value);
 
   test('empty', () async {
     final result = Lexer().lex('').toList();
@@ -63,5 +69,15 @@ void main() {
   test('lexer 5', () async {
     final result = Lexer().lex('<p>@DateTime.now()</p>').toList();
     expect(result, <Token>[text('<p>'), t(.at), id('DateTime'), dot, id('now'), op, cp, text('</p>'), t(.eof)]);
+  });
+
+  test('lexer 6', () async {
+    final result = Lexer().lex('<p>@(DateTime.now() - 1)</p>').toList();
+    expect(result, <Token>[text('<p>'), expr('(DateTime.now() - 1)'), text('</p>'), t(.eof)]);
+  });
+
+  test('lexer 7', () async {
+    final result = Lexer().lex('@{ var user = model.name; }<p>@user</p>').toList();
+    expect(result, <Token>[stmt('{ var user = model.name; }'), text('<p>'), t(.at), id('user'), text('</p>'), t(.eof)]);
   });
 }
