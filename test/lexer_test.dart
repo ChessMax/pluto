@@ -37,13 +37,13 @@ void main() {
   });
 
   test('lexer 2', () async {
-    final result = parse('<p>@userName</p>');
-    expect(result, '<p>@`userName`</p>');// TODO: should be '<p>@`userName`</p>'
+    final result = parse('<p>@model</p>');
+    expect(result, '<p>@`model`</p>');
   });
 
   test('lexer 3', () async {
     final result = parse('<p>@user.name</p>');
-    expect(result, '<p>@`user.name`</p>');// TODO: should be '<p>@`userName`</p>'
+    expect(result, '<p>@`user.name`</p>');
   });
 
   test('lexer 4', () async {
@@ -66,7 +66,7 @@ void main() {
     expect(result, '@`DateTime.now(1, \'user\', 2.0, [], item.name)`');
   });
 
-  test('lexer 5', () async {
+  test('lexer 52', () async {
     final result = parse('<p>@DateTime.now()</p>');
     expect(result, '<p>@`DateTime.now()`</p>');
   });
@@ -76,7 +76,12 @@ void main() {
     expect(result, '<p>@`(DateTime.now() - 1)`</p>');
   });
 
-  test('lexer 7', () async {
+  test('parser 7', () async {
+    final result = parse('<p>@DateTime.now().year</p>');
+    expect(result, '<p>@`DateTime.now().year`</p>');
+  });
+
+  test('lexer 8', () async {
     final result = parse('@{ var user = model.name; }<p>@user</p>');
     expect(result, '@```{ var user = model.name; }```<p>@`user`</p>');
   });
