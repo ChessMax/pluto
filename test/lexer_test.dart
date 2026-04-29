@@ -3,79 +3,99 @@ import 'package:pluto/template/token.dart';
 import 'package:test/test.dart';
 
 void main() {
-  List<Token> parse(String source) => (const Lexer()).lex(source).toList();
+  String parse(String source) => (const Lexer()).lex(source).map((t) => t.toString()).join();
   Token t(TokenType type, [Object? value]) => Token(type: type, value: value);
-  Token text(String value) => t(.text, value);
-  Token id(String value) => t(.id, value);
-  final dot = t(.dot);
-  final op = t(.openParen);
-  final cp = t(.closeParen);
-  final at = t(.at);
-  Token expr(String value) => t(.expr, value);
-  Token stmt(String value) => t(.stmt, value);
 
   test('empty', () async {
     final result = parse('');
-    expect(result, <Token>[t(.eof)]);
+    expect(result, '');
   });
 
   test('ws', () async {
     final result = parse(' ');
-    expect(result, <Token>[text(' '), t(.eof)]);
+    expect(result, ' ');
   });
 
   test('ws 2', () async {
     final result = parse('\t');
-    expect(result, <Token>[text('\t'), t(.eof)]);
+    expect(result, '\t');
   });
 
   test('ws 3', () async {
     final result = parse('\n');
-    expect(result, <Token>[text('\n'), t(.eof)]);
+    expect(result, '\n');
   });
 
   test('lexer', () async {
     final result = parse('Hello, world!');
-    expect(result, <Token>[text('Hello, world!'), t(.eof)]);
+    expect(result, 'Hello, world!');
   });
 
   test('lexer 1', () async {
     final result = parse('<p>@@model</p>');
-    expect(result, <Token>[text('<p>'), text('@'), text('model</p>'), t(.eof)]);
+    expect(result, '<p>@model</p>');
   });
 
   test('lexer 2', () async {
     final result = parse('<p>@userName</p>');
-    expect(result, <Token>[text('<p>'), at, id('userName'), text('</p>'), t(.eof)]);
+    expect(result, '<p>@`userName`</p>');// TODO: should be '<p>@`userName`</p>'
   });
 
   test('lexer 3', () async {
     final result = parse('<p>@user.name</p>');
-    expect(result, <Token>[text('<p>'), at, id('user'), dot, id('name'), text('</p>'), t(.eof)]);
+    expect(result, '<p>@`user.name`</p>');// TODO: should be '<p>@`userName`</p>'
   });
 
   test('lexer 4', () async {
     final result = parse('<p>@user.</p>');
-    expect(result, <Token>[text('<p>'), at, id('user'), dot, text('</p>'), t(.eof)]);
+    expect(result, '<p>@`user`.</p>');
+  });
+
+  test('lexer 41', () async {
+    final result = parse('<p>@user[\'name\']</p>');
+    expect(result, '<p>@`user[\'name\']`</p>');
   });
 
   test('lexer 5', () async {
     final result = parse('@DateTime.now()');
-    expect(result, <Token>[at, id('DateTime'), dot, id('now'), op, cp, t(.eof)]);
+    expect(result, '@`DateTime.now()`');
+  });
+
+  test('lexer 51', () async {
+    final result = parse('@DateTime.now(1, \'user\', 2.0, [], item.name)');
+    expect(result, '@`DateTime.now(1, \'user\', 2.0, [], item.name)`');
   });
 
   test('lexer 5', () async {
     final result = parse('<p>@DateTime.now()</p>');
-    expect(result, <Token>[text('<p>'), at, id('DateTime'), dot, id('now'), op, cp, text('</p>'), t(.eof)]);
+    expect(result, '<p>@`DateTime.now()`</p>');
   });
 
   test('lexer 6', () async {
     final result = parse('<p>@(DateTime.now() - 1)</p>');
-    expect(result, <Token>[text('<p>'), at, expr('(DateTime.now() - 1)'), text('</p>'), t(.eof)]);
+    expect(result, '<p>@`(DateTime.now() - 1)`</p>');
   });
 
   test('lexer 7', () async {
     final result = parse('@{ var user = model.name; }<p>@user</p>');
-    expect(result, <Token>[at, stmt('{ var user = model.name; }'), text('<p>'), at, id('user'), text('</p>'), t(.eof)]);
+    expect(result, '@```{ var user = model.name; }```<p>@`user`</p>');
   });
+
+//   test('lexer 7', () async {
+//     final result = parse('''
+// @{
+//   var user = {'name': 'Ivan'};
+//   <text>User name: @user.name</text>
+// }''');
+//     expect(result, '''
+// @```{
+//   var user = {'name': 'Ivan'};
+//   <text>User name: @`user.name`</text>
+// }```''');
+//   });
+
+  // test('lexer 8', () async {
+  //   final result = parse('@if (true) { <text>true</text> } else { <text>false</text> }');
+  //   expect(result, <Token>[at, ifStmt('(true)'), text('<p>'), at, id('user'), text('</p>'), t(.eof)]);
+  // });
 }

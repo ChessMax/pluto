@@ -6,6 +6,8 @@ enum TokenType {
   stmt,
   expr,
 
+  ifStmt,
+
   // expressions
   id,
   dot,
@@ -37,6 +39,18 @@ class Token extends Equatable {
 
   @override
   String toString() {
-    return '.${type.name}${value != null ? ', $value' : ''}';
+    return switch (type) {
+      TokenType.at => '@',
+      TokenType.stmt => '```$code```',
+      TokenType.expr => '`$code`',
+      TokenType.ifStmt => throw UnimplementedError(),
+      TokenType.id => identifier,
+      TokenType.dot => '.',
+      TokenType.openParen => '(',
+      TokenType.closeParen => ')',
+      TokenType.text => text,
+      TokenType.eof => '',
+    };
+    // return '.${type.name}${value != null ? ', $value' : ''}';
   }
 }

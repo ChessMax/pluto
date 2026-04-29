@@ -42,35 +42,24 @@ class Lexer {
       throw 'Expected explicit expression';
     }
 
+    Token consumeImplicitExpression() {
+      final end = const AnalyzerLexer().readImplicitExpr(source.substring(position));
+      if (end != null) {
+        final token = Token(type: .expr, value: source.substring(position, position + end));
+        position += end;
+        return token;
+      }
+      throw 'Expected implicit expression';
+    }
+
     Token consumeStatement() {
-      final end = const AnalyzerLexer().readStatement(source.substring(position));
+      final end = const AnalyzerLexer().readStmt(source.substring(position));
       if (end != null) {
         final token = Token(type: .stmt, value: source.substring(position, position + end));
         position += end;
         return token;
       }
       throw 'Expected statement';
-    }
-
-    Iterable<Token> consumeIdentifierOrOperators() sync* {
-      for (var char = peak(); char != null; char = peak()) {
-        switch (char) {
-          case '.': position += 1; yield Token(type: .dot); break;
-          case '(': position += 1; yield Token(type: .openParen);
-            // TODO: wait for closing
-          break;
-          case ')': position += 1; yield Token(type: .closeParen);
-          // TODO: wait for closing
-          break;
-        // TODO: (),[],'',""
-          default:
-            if (char.isIdentifierStart) {
-              yield consumeIdentifier();
-              break;
-            }
-            return;
-        }
-      }
     }
 
     while (position < source.length) {
@@ -100,14 +89,9 @@ class Lexer {
 
           // identifier or . ( [ ' "
           yield Token(type: .at);
-          yield* consumeIdentifierOrOperators();
+          yield consumeImplicitExpression();
           break;
         default:
-          // if (char.isIdentifierStart) {
-          //   yield consumeIdentifier();
-          //   break;
-          // }
-
           yield consumeText();
           break;
       }

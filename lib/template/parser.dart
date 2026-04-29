@@ -64,6 +64,9 @@ class Parser {
           case .stmt:
           case .expr:
             break loop;
+          case TokenType.ifStmt:
+            // TODO: Handle this case.
+            throw UnimplementedError();
         }
       }
 
@@ -93,6 +96,9 @@ class Parser {
           case .stmt:
           case .expr:
             break loop;
+          case TokenType.ifStmt:
+            // TODO: Handle this case.
+            throw UnimplementedError();
         }
       }
 
