@@ -9,8 +9,6 @@ enum TokenType {
   ifStmt,
 
   // expressions
-  id,
-  dot,
   openParen,
   closeParen,
   // openBracket,
@@ -34,7 +32,6 @@ class Token extends Equatable {
   List<Object?> get props => [type, value];
 
   String get text => value as String;
-  String get identifier => value as String;
   String get code => value as String;
 
   @override
@@ -44,13 +41,10 @@ class Token extends Equatable {
       TokenType.stmt => '```$code```',
       TokenType.expr => '`$code`',
       TokenType.ifStmt => throw UnimplementedError(),
-      TokenType.id => identifier,
-      TokenType.dot => '.',
       TokenType.openParen => '(',
       TokenType.closeParen => ')',
       TokenType.text => text,
       TokenType.eof => '',
     };
-    // return '.${type.name}${value != null ? ', $value' : ''}';
   }
 }

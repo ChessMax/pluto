@@ -30,10 +30,7 @@ void main(List<String> args, dynamic message) {
         case StatementExpressionNode():
           sb.writeln('  ${node.statement.replaceFirst('{', '').replaceLast('}', '')}');
           break;
-        case ExplicitExpressionNode():
-          sb.writeln('  result += ${node.expression}.toString();');
-          break;
-        case ImplicitExpressionNode():
+        case ExpressionNode():
           sb.writeln('  result += ${node.expression}.toString();');
           break;
         case TextNode():

@@ -22,16 +22,6 @@ class Lexer {
       return Token(type: .text, value: source.substring(start, position));
     }
 
-    Token consumeIdentifier() {
-      final start = position;
-
-      do {
-        position++;
-      } while (position < source.length && source[position].isIdentifierContinue);
-
-      return Token(type: .id, value: source.substring(start, position));
-    }
-
     Token consumeExplicitExpression() {
       final end = const AnalyzerLexer().readExpr(source.substring(position));
       if (end != null) {

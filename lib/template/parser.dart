@@ -38,58 +38,18 @@ class Parser {
       }
     }
 
-    Node parseImplicitExpression() {
-      var expression = consumeToken(.id).identifier; // consumes id
-
-      loop:
-      for (var token = peek(); token != null; token = peek()) {
-        switch (token.type) {
-          case .dot:
-            if (peekNext()?.type == .id) {
-              position += 1;
-              expression += '.${consumeToken(.id).identifier}';
-              break;
-            }
-            break loop;
-          case .openParen:
-            position += 2;
-            expression += '()';
-            break;
-
-          case .at:
-          case .id:
-          case .text:
-          case .closeParen:
-          case .eof:
-          case .stmt:
-          case .expr:
-            break loop;
-          case TokenType.ifStmt:
-            // TODO: Handle this case.
-            throw UnimplementedError();
-        }
-      }
-
-      return ImplicitExpressionNode(expression);
-    }
-
     Node parseText() {
       var text = '';
 
       loop:
       for (var token = peek(); token != null; token = peek()) {
         switch (token.type) {
-          case .dot:
-            position += 1;
-            text += '.';
-            break;
           case .text:
             position += 1;
             text += token.text;
             break;
 
           case .at:
-          case .id:
           case .openParen:
           case .closeParen:
           case .eof:
@@ -97,7 +57,6 @@ class Parser {
           case .expr:
             break loop;
           case TokenType.ifStmt:
-            // TODO: Handle this case.
             throw UnimplementedError();
         }
       }
@@ -110,11 +69,11 @@ class Parser {
       if (tryConsumeToken(.at)) {
         if (tryConsumeToken(.expr)) {
           final expression = source[position - 1].code;
-          return ExplicitExpressionNode(expression);
+          return ExpressionNode(expression);
         } else if (tryConsumeToken(.stmt)) {
           return StatementExpressionNode(source[position - 1].code);
         }
-        return parseImplicitExpression();
+        throw 'Expected implicit or explicit expression or code block';
       }
       return parseText();
     }

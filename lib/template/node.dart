@@ -3,19 +3,10 @@ sealed class Node {
   String toString();
 }
 
-class ImplicitExpressionNode extends Node {
+class ExpressionNode extends Node {
   final String expression;
 
-  ImplicitExpressionNode(this.expression);
-
-  @override
-  String toString() => '`$expression`';
-}
-
-class ExplicitExpressionNode extends Node {
-  final String expression;
-
-  ExplicitExpressionNode(this.expression);
+  ExpressionNode(this.expression);
 
   @override
   String toString() => '`$expression`';
