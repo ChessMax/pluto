@@ -90,8 +90,8 @@ void main() {
   });
 
   test('lexer 9', () async {
-    final result = parse('@{ var user = model.name; }<p>@user</p>');
-    expect(result, '```{ var user = model.name; }```<p>`user`</p>');
+    final result = parse('@{ var user = model.name; <p>@user</p> }');
+    expect(result, '```{ var user = model.name; ```<p>`user`</p>```}```');
   });
 
 }

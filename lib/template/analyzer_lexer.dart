@@ -45,8 +45,40 @@ class AnalyzerLexer {
   int? readExpr(String source) =>
       _consumeCode(source, .OPEN_PAREN, .CLOSE_PAREN);
 
-  int? readStmt(String source) =>
-      _consumeCode(source, .OPEN_CURLY_BRACKET, .CLOSE_CURLY_BRACKET);
+  int? readStmt(String source) {
+    final scanner = Scanner(
+      source,
+      DiagnosticReporter(
+        DiagnosticListener.nullListener,
+        StringSource(source, null),
+      ),
+    );
+    scanner.configureFeatures(
+      featureSetForOverriding: FeatureSet.latestLanguageVersion(),
+      featureSet: FeatureSet.latestLanguageVersion(),
+    );
+
+    var depth = 0;
+    var token = scanner.tokenize();
+
+    while (token.type != .EOF) {
+      // print("Token: ${token.lexeme} | Type: ${token.type}");
+
+      if (token.type == .OPEN_CURLY_BRACKET) {
+        depth++;
+      } else if (token.type == .CLOSE_CURLY_BRACKET) {
+        depth--;
+      }
+
+      if (depth == 0) {
+        return token.charEnd;
+      }
+
+      token = token.next!;
+    }
+
+    return null;
+  }
 
   int? readImplicitExpr(String source) {
     final scanner = Scanner(
