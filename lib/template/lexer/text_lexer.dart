@@ -9,6 +9,85 @@ class TextLexer {
   const TextLexer();
 
   Iterable<Token> tokenize(SourceView source) sync* {
+    var position = 0;
+
+    Iterable<Token> consumeText() sync* {
+      if (position > 0) {
+        yield Token(type: .text, value: source.substring(0, position));
+        source.consume(position);
+      }
+    }
+
+    Token? tryReadTag(SourceView source, int position) {
+      var start = position;
+      var closing = false;
+
+      if (source.peakNext() == '/') {
+        ++position;
+        closing = true;
+      }
+
+      if (position < source.length) {
+        while (++position < source.length && source[position].isIdentifierContinue) {}
+        if (position < source.length && source[position] == '>') {
+          final tag = source.substring(start + (closing ? 1 : 0), position);
+          return Token(type: closing ? .closingTag : .openTag, value: tag);
+        }
+      }
+
+      return null;
+    }
+
+    loop:
+    do {
+      final char = source[position];
+      swt:
+      switch (char) {
+        case '<':
+          final tag = tryReadTag(source, position + 1);
+          if (tag != null) {
+            yield* consumeText();
+            yield tag;
+            source.consume(tag.text.length + (tag.type == .closingTag ? 3 : 2));
+            position = 0;
+          }
+          continue loop;
+        case '@':
+          final nextChar = source.peakNext(position + 1);
+          switch (nextChar) {
+            case '@':
+              break swt;
+            case '{':
+              yield* consumeText();
+              yield Token(type: .at);
+              source.consume();
+              yield* const StatementLexer().tokenize(source);
+              position = 0;
+              return;
+            case '(':
+              yield* consumeText();
+              yield* const ExplicitExpressionLexer().tokenize(source);
+              position = 0;
+              break loop;
+            default:
+              if (nextChar?.isIdentifierStart != true) throw 'Unexpected end of source';
+              yield* consumeText();
+              yield Token(type: .at);
+              source.consume();
+              yield* const ImplicitExpressionLexer().tokenize(source);
+              position = 0;
+              break loop;
+          }
+      }
+      ++position;
+    } while (position < source.length);
+
+    if (source.isNotEmpty) {
+      yield Token(type: .text, value: source.substring(0, source.length));
+    }
+
+    return;
+
     int getTransitionIndex() {
       var index = -1;
 

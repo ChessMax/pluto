@@ -11,6 +11,8 @@ enum TokenType {
   // expressions
   openParen,
   closeParen,
+  openTag,
+  closingTag,
   // openBracket,
   // closeBracket,
   // stringLiteral,
@@ -31,20 +33,23 @@ class Token extends Equatable {
   @override
   List<Object?> get props => [type, value];
 
+  String get id => value as String;
   String get text => value as String;
   String get code => value as String;
 
   @override
   String toString() {
     return switch (type) {
-      TokenType.at => '@',
-      TokenType.stmt => '```$code```',
-      TokenType.expr => '`$code`',
-      TokenType.ifStmt => throw UnimplementedError(),
-      TokenType.openParen => '(',
-      TokenType.closeParen => ')',
-      TokenType.text => text,
-      TokenType.eof => '',
+      .at => '@',
+      .openTag => '<$value>',
+      .closingTag => '</$value>',
+      .stmt => '```$code```',
+      .expr => '`$code`',
+      .ifStmt => throw UnimplementedError(),
+      .openParen => '(',
+      .closeParen => ')',
+      .text => text,
+      .eof => '',
     };
   }
 }

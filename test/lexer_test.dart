@@ -5,29 +5,41 @@ import 'package:test/test.dart';
 import 'package:pluto/template/lexer/lexer.dart' as l2;
 
 void main() {
-  String parse(String source) =>
-      (const Lexer()).lex(source).map((t) => t.toString()).join();
+  // String parse(String source) =>
+  //     (const Lexer()).lex(source).map((t) => t.toString()).join();
+  List<String> parse(String source) =>
+      l2.Lexer().tokenize(source).map((t) => t.toString()).toList();
   Token t(TokenType type, [Object? value]) => Token(type: type, value: value);
 
   test('Code block with markup', () async {
-    // String parse(String source) =>
-    //     l2.Lexer().tokenize(source).map((t) => t.toString()).join();
-    List<String> parse(String source) =>
-        l2.Lexer().tokenize(source).map((t) => t.toString()).toList();
     final result = parse('''@{ var name = 'User';<p>Hello, @name</p> }''');
-    // expect(result, '''@```{ var name = 'User';```<p>Hello, @`name`</p> }''');
-    expect(result, ['@', '''```{ var name = 'User';```''', '<p>Hello, ', '@', '`name`', '</p>', '``` }```']);
+    expect(result, ['@', '''```{ var name = 'User';```''', '<p>', 'Hello, ', '@', '`name`', '</p>', '``` }```']);
   });
 
-  // test('empty', () async {
-  //   final result = parse('');
-  //   expect(result, '');
-  // });
-  //
-  // test('ws', () async {
-  //   final result = parse(' ');
-  //   expect(result, ' ');
-  // });
+  test('Code block with markup2', () async {
+    final result = parse('''@{ var name = 'User';<p>Hello</p> }''');
+    expect(result, ['@', '''```{ var name = 'User';```''', '<p>', 'Hello','</p>', '``` }```']);
+  });
+
+  test('html', () async {
+    final result = parse('123 <p>Hello, World!</p> 321');
+    expect(result, ['123 ', '<p>', 'Hello, World!', '</p>', ' 321']);
+  });
+
+  test('html 2', () async {
+    final result = parse('<p>Hello, @name</p>');
+    expect(result, ['<p>', 'Hello, ', '@', '`name`', '</p>']);
+  });
+
+  test('empty', () async {
+    final result = parse('');
+    expect(result, ['']);
+  });
+
+  test('ws', () async {
+    final result = parse(' ');
+    expect(result, [' ']);
+  });
   //
   // test('ws 2', () async {
   //   final result = parse('\t');
