@@ -9,10 +9,9 @@ import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/error/listener.dart';
 
-class ImplicitExpressionLexer implements ModalLexer {
+class ImplicitExpressionLexer {
   const ImplicitExpressionLexer();
 
-  @override
   Iterable<Token> tokenize(SourceView source) sync* {
     int? readImplicitExpr(String source) {
       final scanner = Scanner(

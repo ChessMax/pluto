@@ -2,10 +2,6 @@ import 'package:pluto/template/lexer/source_view.dart';
 import 'package:pluto/template/lexer/text_lexer.dart';
 import 'package:pluto/template/token.dart';
 
-abstract interface class ModalLexer {
-  Iterable<Token> tokenize(SourceView source);
-}
-
 class Lexer {
   @override
   Iterable<Token> tokenize(String value) sync* {

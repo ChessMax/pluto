@@ -11,10 +11,9 @@ import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/error/listener.dart';
 
-class StatementLexer implements ModalLexer {
+class StatementLexer {
   const StatementLexer();
 
-  @override
   Iterable<Token> tokenize(SourceView source) sync* {
     Scanner createScanner(String value) {
       final scanner = Scanner(

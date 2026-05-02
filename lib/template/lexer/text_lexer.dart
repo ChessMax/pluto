@@ -5,10 +5,9 @@ import 'package:pluto/template/lexer/source_view.dart';
 import 'package:pluto/template/lexer/statement_lexer.dart';
 import 'package:pluto/template/token.dart';
 
-class TextLexer implements ModalLexer {
+class TextLexer {
   const TextLexer();
 
-  @override
   Iterable<Token> tokenize(SourceView source) sync* {
     int getTransitionIndex() {
       var index = -1;
