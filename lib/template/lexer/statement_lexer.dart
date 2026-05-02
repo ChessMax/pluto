@@ -45,7 +45,7 @@ class StatementLexer {
             );
             source.consume(token.previous!.end);
 
-            yield* const TextLexer().tokenize(source);
+            yield* const TextLexer(topLevel: false).tokenize(source);
 
             scanner = createScanner(source.toString());
             token = scanner.tokenize();

@@ -6,10 +6,14 @@ import 'package:pluto/template/lexer/statement_lexer.dart';
 import 'package:pluto/template/token.dart';
 
 class TextLexer {
-  const TextLexer();
+  final bool topLevel;
+
+  const TextLexer({required this.topLevel});
 
   Iterable<Token> tokenize(SourceView source) sync* {
     var position = 0;
+
+    final tags = <Token>[];
 
     Iterable<Token> consumeText() sync* {
       if (position > 0) {
@@ -50,6 +54,15 @@ class TextLexer {
             yield tag;
             source.consume(tag.text.length + (tag.type == .closingTag ? 3 : 2));
             position = 0;
+            if (tag.type == .openTag) {
+              tags.add(tag);
+            } else if (tags.isEmpty) {
+              throw 'Unexpected closing tag: ${tag.text}';
+            } else if (tags.last.value != tag.value) {
+              throw 'Unbalanced tags closing: ${tags.last.value} and ${tag.value}';
+            } else {
+              tags.removeLast();
+            }
           }
           continue loop;
         case '@':
@@ -83,59 +96,11 @@ class TextLexer {
     } while (position < source.length);
 
     if (source.isNotEmpty) {
-      yield Token(type: .text, value: source.substring(0, source.length));
-    }
-
-    return;
-
-    int getTransitionIndex() {
-      var index = -1;
-
-      do {
-        index = source.indexOf('@', index + 1);
-
-        if (index == -1) return -1;
-        if (source.peakNext(index + 1) != '@') {
-          return index;
-        }
-      } while (index < source.length);
-
-      return index;
-    }
-
-    do {
-      final index = getTransitionIndex();
-
-      if (index == -1) {
-        var index = source.indexOf('>');
-        yield Token(type: .text, value: source.substring(0, index + 1));
-        source.consume(index + 1);
+      if (!topLevel && tags.isEmpty) {
         return;
       }
-
-      if (index > 0) {
-        yield Token(type: .text, value: source.substring(0, index));
-      }
-      yield Token(type: .at);
-
-      source.consume(index + 1);
-
-      final char = source.peak();
-
-      switch (char) {
-        case '{':
-          yield* const StatementLexer().tokenize(source);
-          return;
-        case '(':
-          yield* const ExplicitExpressionLexer().tokenize(source);
-          break;
-
-        default:
-          if (char?.isIdentifierStart != true) throw 'Unexpected end of source';
-          yield* const ImplicitExpressionLexer().tokenize(source);
-          break;
-      }
-    } while (source.isNotEmpty);
+      yield Token(type: .text, value: source.substring(0, source.length));
+    }
   }
 }
 
