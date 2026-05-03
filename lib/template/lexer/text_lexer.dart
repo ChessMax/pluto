@@ -96,16 +96,14 @@ class TextLexer {
               continue loop;
             case '(':
               yield* consumeText();
-              yield Token(type: .at);
-              source.consume();
+              source.consume(); // @
               yield* const ExplicitExpressionLexer().tokenize(source);
               position = 0;
               continue loop;
             default:
               if (nextChar?.isIdentifierStart != true) throw 'Unexpected end of source';
               yield* consumeText();
-              yield Token(type: .at);
-              source.consume();
+              source.consume(); // @
               yield* const ImplicitExpressionLexer().tokenize(source);
               position = 0;
               continue loop;

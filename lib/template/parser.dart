@@ -27,14 +27,9 @@ class Parser {
     }
 
     Node parseMarkupStatement() {
-      if (tryConsume(.at) != null) {
-        if (tryConsume(.expr) case final exprToken?) {
-          return ExpressionNode(exprToken.code);
-        } else {
-          throw 'Expected expression not found';
-        }
-      } else
-      if (tryConsume(.text) case final textToken?) {
+      if (tryConsume(.expr) case final exprToken?) {
+        return ExpressionNode(exprToken.code);
+      } else if (tryConsume(.text) case final textToken?) {
         return TextNode(textToken.text);
       } else if (tryConsume(.expr) case final exprToken?) {
         return ExpressionNode(exprToken.code);
@@ -44,7 +39,9 @@ class Parser {
     }
 
     Node consumeMarkup() {
-      final openTag = position < source.length ? source[position] : (throw 'Expected open tag but eof found');
+      final openTag = position < source.length
+          ? source[position]
+          : (throw 'Expected open tag but eof found');
       final children = <Node>[TextNode(openTag.toString())];
       ++position; // consume openTag
       // while (position < source.length && source[position].type != .closingTag) {
@@ -88,14 +85,9 @@ class Parser {
 
     Iterable<Node> consumeTokens() sync* {
       while (position < source.length) {
-        if (tryConsume(.at) != null) {
-          if (tryConsume(.expr) case final exprToken?) {
-            yield ExpressionNode(exprToken.code);
-          } else {
-            throw 'Expected expression not found';
-          }
-        } else
-        if (tryConsume(.blockStart) != null) {
+        if (tryConsume(.expr) case final exprToken?) {
+          yield ExpressionNode(exprToken.code);
+        } else if (tryConsume(.blockStart) != null) {
           yield consumeBlock();
         } else if (tryConsume(.text) case final textToken?) {
           yield TextNode(textToken.text);

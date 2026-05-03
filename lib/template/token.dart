@@ -2,7 +2,6 @@ import 'package:equatable/equatable.dart';
 
 enum TokenType {
   // escape
-  at,
   stmt,
   expr,
   blockStart,
@@ -36,7 +35,6 @@ class Token extends Equatable {
   @override
   String toString() {
     return switch (type) {
-      .at => '@',
       .blockStart => '@{',
       .blockEnd => '}',
       .openTag => '<$value>',
