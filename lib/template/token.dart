@@ -11,8 +11,6 @@ enum TokenType {
   ifStmt,
 
   // expressions
-  openParen,
-  closeParen,
   openTag,
   closingTag,
 
@@ -46,8 +44,6 @@ class Token extends Equatable {
       .stmt => '```$code```',
       .expr => '`$code`',
       .ifStmt => throw UnimplementedError(),
-      .openParen => '(',
-      .closeParen => ')',
       .text => text,
       .eof => '',
     };
