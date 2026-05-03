@@ -38,5 +38,10 @@ class SourceView {
       source.substring(position + start, end != null ? position + end : null);
 
   @override
-  String toString() => source.substring(position);
+  String toString() {
+    if (position < source.length) {
+      return source.substring(position);
+    }
+    return '';
+  }
 }

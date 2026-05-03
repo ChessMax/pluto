@@ -1,12 +1,17 @@
-import 'package:pluto/template/lexer.dart';
+import 'package:pluto/template/lexer/lexer.dart';
 import 'package:pluto/template/node.dart';
 import 'package:pluto/template/parser.dart';
 import 'package:test/test.dart';
 
 void main() {
   String parse(String source) => DocumentNode(
-    const Parser().parse(const Lexer().lex(source).toList()).toList(),
+    const Parser().parse(const Lexer().tokenize(source).toList()).toList(),
   ).toString();
+
+  test('Code block with markup', () async {
+    final result = parse('''@{ var name = 'User';<p>Hello, @name</p> }''');
+    expect(result,         '@{``` var name = \'User\';```<p>Hello, `name`</p>``` ```}');
+  });
 
   test('empty', () async {
     final result = parse('');
@@ -83,15 +88,26 @@ void main() {
     expect(result, '<p>`DateTime.now().year`</p>');
   });
 
-  // TODO: call with args, strings, indexers.
+  // // TODO: call with args, strings, indexers.
   test('lexer 8', () async {
     final result = parse('@{ var user = model.name; }<p>@user</p>');
-    expect(result, '```{ var user = model.name; }```<p>`user`</p>');
+    expect(result, '@{``` var user = model.name; ```}<p>`user`</p>');
   });
 
   test('lexer 9', () async {
     final result = parse('@{ var user = model.name; <p>@user</p> }');
-    expect(result, '```{ var user = model.name; ```<p>`user`</p>```}```');
+    expect(result, '@{``` var user = model.name; ```<p>`user`</p>``` ```}');
+  });
+
+
+  test('Code block with markup 2', () async {
+    final result = parse('''@{ var name = 'User';<p>Hello</p> }''');
+    expect(result, '@{``` var name = \'User\';```<p>Hello</p>``` ```}');
+  });
+
+  test('html', () async {
+    final result = parse('123 <p>Hello, World!</p> 321');
+    expect(result, '123 <p>Hello, World!</p> 321');
   });
 
 }

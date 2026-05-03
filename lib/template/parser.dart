@@ -11,78 +11,100 @@ class Parser {
   }
 
   Iterable<Node> parseDocument(List<Token> source) sync* {
-    int position = 0;
+    var position = 0;
 
-    Token? peek() => position < source.length ? source[position] : null;
-    Token? peekNext() =>
-        position + 1 < source.length ? source[position + 1] : null;
-    bool isAtEnd() => position >= source.length;
+    Token? tryConsume(TokenType type) {
+      final token = position < source.length ? source[position] : null;
+      if (token != null && token.type == type) {
+        ++position;
+        return token;
+      }
+      return null;
+    }
 
     Token consumeToken(TokenType type) {
-      final token = peek();
-      if (token != null && token.type == type) {
-        position += 1;
-        return token;
-      } else {
-        throw 'Expected $type not found';
-      }
+      return tryConsume(type) ?? (throw 'Expected token $type');
     }
 
-    bool tryConsumeToken(TokenType type) {
-      final token = peek();
-      if (token != null && token.type == type) {
-        position += 1;
-        return true;
-      } else {
-        return false;
+    Node parseMarkupStatement() {
+      if (tryConsume(.at) != null) {
+        if (tryConsume(.expr) case final exprToken?) {
+          return ExpressionNode(exprToken.code);
+        } else {
+          throw 'Expected expression not found';
+        }
+      } else
+      if (tryConsume(.text) case final textToken?) {
+        return TextNode(textToken.text);
+      } else if (tryConsume(.expr) case final exprToken?) {
+        return ExpressionNode(exprToken.code);
       }
+
+      throw 'Unexpected markup statement';
     }
 
-    Node parseText() {
-      var text = '';
-
-      loop:
-      for (var token = peek(); token != null; token = peek()) {
-        switch (token.type) {
-          case .text:
-            position += 1;
-            text += token.text;
-            break;
-
-          case .at:
-          case .openParen:
-          case .closeParen:
-          case .eof:
-          case .stmt:
-          case .expr:
-            break loop;
-          case TokenType.ifStmt:
-            throw UnimplementedError();
+    Node consumeMarkup() {
+      final openTag = position < source.length ? source[position] : (throw 'Expected open tag but eof found');
+      final children = <Node>[TextNode(openTag.toString())];
+      ++position; // consume openTag
+      // while (position < source.length && source[position].type != .closingTag) {
+      //   children.add(parseMarkupStatement());
+      // }
+      while (position < source.length) {
+        final token = source[position];
+        if (token.type != .closingTag) {
+          children.add(parseMarkupStatement());
+        } else {
+          break;
         }
       }
-
-      return TextNode(text);
-    }
-
-    Node parseStatement() {
-      // TODO: hangs if there is no at
-      if (tryConsumeToken(.at)) {
-        if (tryConsumeToken(.expr)) {
-          final expression = source[position - 1].code;
-          return ExpressionNode(expression);
-        } else if (tryConsumeToken(.stmt)) {
-          return StatementExpressionNode(source[position - 1].code);
-        }
-        throw 'Expected implicit or explicit expression or code block';
+      final closeTag = consumeToken(.closingTag);
+      if (closeTag.text != openTag.text) {
+        throw 'Unbalanced tags $openTag:$closeTag';
       }
-      return parseText();
+      children.add(TextNode(closeTag.toString()));
+      return MarkupNode(children);
     }
 
-    final nodes = <Node>[];
-    while (!isAtEnd() && peek()?.type != TokenType.eof) {
-      nodes.add(parseStatement());
+    Node consumeStatement() {
+      final token = source[position];
+      if (token.type == .openTag) {
+        return consumeMarkup();
+      } else if (token.type == .stmt) {
+        position++;
+        return StatementNode(token.code);
+      }
+      throw 'Unexpected token: $token';
     }
-    consumeToken(TokenType.eof);
-    yield DocumentNode(nodes);
+
+    Node consumeBlock() {
+      final children = <Node>[];
+      while (position < source.length && source[position].type != .blockEnd) {
+        children.add(consumeStatement());
+      }
+      consumeToken(.blockEnd);
+      return BlockNode(children);
+    }
+
+    Iterable<Node> consumeTokens() sync* {
+      while (position < source.length) {
+        if (tryConsume(.at) != null) {
+          if (tryConsume(.expr) case final exprToken?) {
+            yield ExpressionNode(exprToken.code);
+          } else {
+            throw 'Expected expression not found';
+          }
+        } else
+        if (tryConsume(.blockStart) != null) {
+          yield consumeBlock();
+        } else if (tryConsume(.text) case final textToken?) {
+          yield TextNode(textToken.text);
+        } else if (source[position].type == .openTag) {
+          yield consumeMarkup();
+        }
+      }
+    }
+
+    yield DocumentNode(consumeTokens().toList());
   }
 }

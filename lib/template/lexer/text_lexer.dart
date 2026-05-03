@@ -84,13 +84,16 @@ class TextLexer {
               break swt;
             case '{':
               yield* consumeText();
-              yield Token(type: .at);
-              source.consume();
+              yield Token(type: .blockStart);
+              source.consume(2);
               yield* const StatementLexer().tokenize(source);
               position = 0;
-
-              print('Text lexer end: ${source.toString()}');
-              return; // TODO: is it correct?
+              continue loop;
+            case '}':
+              source.consume(2);
+              yield Token(type: .blockEnd);
+              position = 0;
+              continue loop;
             case '(':
               yield* consumeText();
               yield Token(type: .at);

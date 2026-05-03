@@ -10,12 +10,12 @@ void main() {
 
   test('Code block with markup', () async {
     final result = parse('''@{ var name = 'User';<p>Hello, @name</p> }''');
-    expect(result, ['@', '''```{ var name = 'User';```''', '<p>', 'Hello, ', '@', '`name`', '</p>', '``` }```']);
+    expect(result, ['@{', '''``` var name = 'User';```''', '<p>', 'Hello, ', '@', '`name`', '</p>', '``` ```', '}']);
   });
 
   test('Code block with markup 2', () async {
     final result = parse('''@{ var name = 'User';<p>Hello</p> }''');
-    expect(result, ['@', '''```{ var name = 'User';```''', '<p>', 'Hello','</p>', '``` }```']);
+    expect(result, ['@{', '''``` var name = 'User';```''', '<p>', 'Hello','</p>', '``` ```', '}']);
   });
 
   test('html', () async {
@@ -106,12 +106,17 @@ void main() {
 
   test('lexer 8', () async {
     final result = parse('@{ var user = model.name; }<p>@user</p>');
-    expect(result, ['@', '```{ var user = model.name; }```', '<p>', '@', '`user`', '</p>']);
+    expect(result, ['@{', '``` var user = model.name; ```', '}', '<p>', '@', '`user`', '</p>']);
   });
 
   test('lexer 9', () async {
     final result = parse('''@{ var user = {'name': 'Ivan'}; <text>User name: @user.name</text> }''');
-    expect(result,        ['@', '```{ var user = {\'name\': \'Ivan\'}; ```', '<text>', 'User name: ', '@', '`user.name`', '</text>', '``` }```']);
+    expect(result,        ['@{', '``` var user = {\'name\': \'Ivan\'}; ```', '<text>', 'User name: ', '@', '`user.name`', '</text>', '``` ```', '}']);
+  });
+
+  test('lexer 88', () async {
+    final result = parse('@{ var user = model.name; }<p>@user</p>');
+    expect(result, ['@{', '``` var user = model.name; ```', '}', '<p>', '@', '`user`', '</p>']);
   });
 
   // test('lexer if', () async {

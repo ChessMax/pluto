@@ -12,13 +12,31 @@ class ExpressionNode extends Node {
   String toString() => '`$expression`';
 }
 
-class StatementExpressionNode extends Node {
+class StatementNode extends Node {
   final String statement;
 
-  StatementExpressionNode(this.statement);
+  StatementNode(this.statement);
 
   @override
   String toString() => '```$statement```';
+}
+
+class BlockNode extends Node {
+  final List<Node> children;
+
+  BlockNode(this.children);
+
+  @override
+  String toString() => '@{${ children.map((n) => n.toString()).join() }}';
+}
+
+class MarkupNode extends Node {
+  final List<Node> children;
+
+  MarkupNode(this.children);
+
+  @override
+  String toString() => children.map((n) => n.toString()).join();
 }
 
 class TextNode extends Node {

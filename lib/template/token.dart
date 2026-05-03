@@ -5,6 +5,8 @@ enum TokenType {
   at,
   stmt,
   expr,
+  blockStart,
+  blockEnd,
 
   ifStmt,
 
@@ -13,9 +15,8 @@ enum TokenType {
   closeParen,
   openTag,
   closingTag,
-  // openBracket,
-  // closeBracket,
-  // stringLiteral,
+
+
 
   // common
   text,
@@ -28,12 +29,15 @@ class Token extends Equatable {
   final TokenType type;
   final Object? value;
 
-  Token({required this.type, this.value});
+  Token({required this.type, this.value}) {
+    if (value == '}') {
+      print(value);
+    }
+  }
 
   @override
   List<Object?> get props => [type, value];
 
-  String get id => value as String;
   String get text => value as String;
   String get code => value as String;
 
@@ -41,6 +45,8 @@ class Token extends Equatable {
   String toString() {
     return switch (type) {
       .at => '@',
+      .blockStart => '@{',
+      .blockEnd => '}',
       .openTag => '<$value>',
       .closingTag => '</$value>',
       .stmt => '```$code```',
