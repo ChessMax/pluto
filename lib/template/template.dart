@@ -6,6 +6,10 @@ class Template {
   Template(this.code);
 
   Future<String> render(dynamic model) async {
+    print('```');
+    print(code);
+    print('```');
+
     final uri = Uri.dataFromString(code, mimeType: 'application/dart');
     final receivePort = ReceivePort();
 

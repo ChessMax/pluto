@@ -13,6 +13,7 @@ class ImplicitExpressionLexer {
   Iterable<Token> tokenize(SourceView source) sync* {
     print('Implicit expression lexer begin: ${source.toString()}');
 
+
     int? readImplicitExpr(String source) {
       final scanner = Scanner(
         source,
@@ -36,6 +37,8 @@ class ImplicitExpressionLexer {
       loop:
       while (token.type != .EOF) {
         final next = token.next!;
+        print('$next: ${next.type}');
+        print(' ');
         switch (next.type) {
           case .PERIOD:
           case .COMMA:
@@ -65,7 +68,14 @@ class ImplicitExpressionLexer {
       return token.end;
     }
 
-    final end = readImplicitExpr(source.toString());
+    // TODO: fix
+    var value = source.toString();
+    var index = value.indexOf('\n');
+    if (index != -1) {
+      value = value.substring(0, index);
+    }
+
+    final end = readImplicitExpr(value.toString());
     if (end != null) {
       final token = Token(type: .expr, value: source.substring(0, end));
       source.consume(end);

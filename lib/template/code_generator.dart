@@ -1,5 +1,6 @@
 
 import 'package:pluto/template/node.dart';
+import 'package:source_helper/source_helper.dart';
 
 class CodeGenerator {
   static const header =
@@ -34,8 +35,8 @@ void main(List<String> args, dynamic message) {
           sb.writeln('  result += ${node.expression}.toString();');
           break;
         case TextNode():
-          final escaped = node.value.replaceAll("'''", "''' \"'''\" r'''\n");
-          sb.writeln("  result += r'''\n$escaped''';");
+          final escaped = escapeDartString(node.value);
+          sb.writeln("  result += $escaped;");
           break;
         case DocumentNode():
           for (final childNode in node.children) {

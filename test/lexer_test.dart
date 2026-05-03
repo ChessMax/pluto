@@ -117,6 +117,13 @@ void main() {
     expect(result, ['@{', '``` var user = model.name; ```', '}', '<p>', '@', '`user`', '</p>']);
   });
 
+  test('template', () async {
+    final result = parse('@model.id\ntitle');
+    expect(result, ['@', '`model.id`', '\ntitle']);
+  //   final result = parse('--- id: @model.id\ntitle: @model.title\ntitle_en: @model.title_en\n---');
+  //   expect(result, ['--- id: ', '@', '`model.id`', '\ntitle: ', '@', '`model.title`', '\ntitle_en: ', '@', '`model.title_en`', '\n---']);
+  });
+
   // test('lexer if', () async {
   //   final result = parse('@if (true) { <text>true</text> } else { <text>false</text> }');
   //   expect(result, <Token>[at, ifStmt('(true)'), text('<p>'), at, id('user'), text('</p>'), t(.eof)]);
