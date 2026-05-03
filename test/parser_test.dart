@@ -114,4 +114,14 @@ void main() {
     final result = parse('--- id: @model.id\ntitle: @model.title\ntitle_en: @model.title_en\n---');
     expect(result, '--- id: `model.id`\ntitle: `model.title`\ntitle_en: `model.title_en`\n---');
   });
+
+  test('lexer if', () async {
+    final result = parse('@if (true) { <text>true</text> }');
+    expect(result, 'if ` (true)` @{``` ```<text>true</text>``` ```}');
+  });
+
+  test('lexer if else', () async {
+    final result = parse('@if (true) { <text>true</text> } else { <text>false</text> }');
+    expect(result, 'if ` (true)` @{``` ```<text>true</text>``` ```} else @{``` ```<text>false</text>``` ```}');
+  });
 }

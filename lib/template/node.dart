@@ -48,6 +48,20 @@ class TextNode extends Node {
   String toString() => value;
 }
 
+class IfNode extends Node {
+  final Node condition;
+  final Node ifStmt;
+  final Node? elseStmt;
+
+  IfNode(this.condition, this.ifStmt, this.elseStmt);
+
+  @override
+  String toString() {
+    final elseStmt = this.elseStmt;
+    return elseStmt != null ? 'if $condition $ifStmt else $elseStmt' : 'if $condition $ifStmt';
+  }
+}
+
 class DocumentNode extends Node {
   final List<Node> children;
 

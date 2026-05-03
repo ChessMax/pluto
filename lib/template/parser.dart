@@ -85,6 +85,17 @@ class Parser {
 
     Iterable<Node> consumeTokens() sync* {
       while (position < source.length) {
+        if (tryConsume(.ifStmt) case final ifStmt?) {
+          final condition = ExpressionNode(consumeToken(.expr).code);
+          consumeToken(.blockStart);
+          final ifStmt = consumeBlock();
+          Node? elseStmt;
+          if (tryConsume(.elseStmt) != null) {
+            consumeToken(.blockStart);
+            elseStmt = consumeBlock();
+          }
+          yield IfNode(condition, ifStmt, elseStmt);
+        } else
         if (tryConsume(.expr) case final exprToken?) {
           yield ExpressionNode(exprToken.code);
         } else if (tryConsume(.blockStart) != null) {
