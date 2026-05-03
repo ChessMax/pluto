@@ -146,6 +146,18 @@ void main() {
     expect(actual, '<text>true</text>');
   });
 
+  test('template if 2', () async {
+    final template = getTemplate('@if (model % 2 == 0) { <text>Even</text> }');
+    final actual = await template.render(4);
+    expect(actual, '<text>Even</text>');
+  });
+
+  test('template if 3', () async {
+    final template = getTemplate('@if (model % 2 == 0) { <text>@model</text> }');
+    final actual = await template.render(4);
+    expect(actual, '<text>4</text>');
+  });
+
   test('template if else 1', () async {
     final template = getTemplate('@if (true) { <text>true</text> } else { <text>false</text> }');
     final actual = await template.render(null);
