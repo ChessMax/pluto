@@ -11,7 +11,14 @@ class TextLexer {
   const TextLexer({required this.topLevel});
 
   Iterable<Token> tokenize(SourceView source) sync* {
+    print('Text lexer begin ($topLevel): ${source.toString()}');
     var position = 0;
+
+    if (source.isEmpty) {
+      yield Token(type: .text, value: '');
+      print('Text lexer end: ${source.toString()}');
+      return;
+    }
 
     final tags = <Token>[];
 
@@ -26,7 +33,7 @@ class TextLexer {
       var start = position;
       var closing = false;
 
-      if (source.peakNext() == '/') {
+      if (source.peakNext(position) == '/') {
         ++position;
         closing = true;
       }
@@ -64,11 +71,16 @@ class TextLexer {
               tags.removeLast();
             }
           }
-          continue loop;
+          continue loop; // TODO: hangs if only <?
         case '@':
           final nextChar = source.peakNext(position + 1);
           switch (nextChar) {
             case '@':
+              consumeText();
+              source.consume();
+              yield Token(type: .text, value: '@');
+              source.consume();
+              position = 0;
               break swt;
             case '{':
               yield* consumeText();
@@ -76,12 +88,16 @@ class TextLexer {
               source.consume();
               yield* const StatementLexer().tokenize(source);
               position = 0;
-              return;
+
+              print('Text lexer end: ${source.toString()}');
+              return; // TODO: is it correct?
             case '(':
               yield* consumeText();
+              yield Token(type: .at);
+              source.consume();
               yield* const ExplicitExpressionLexer().tokenize(source);
               position = 0;
-              break loop;
+              continue loop;
             default:
               if (nextChar?.isIdentifierStart != true) throw 'Unexpected end of source';
               yield* consumeText();
@@ -89,7 +105,7 @@ class TextLexer {
               source.consume();
               yield* const ImplicitExpressionLexer().tokenize(source);
               position = 0;
-              break loop;
+              continue loop;
           }
       }
       ++position;
@@ -97,10 +113,12 @@ class TextLexer {
 
     if (source.isNotEmpty) {
       if (!topLevel && tags.isEmpty) {
+        print('Text lexer end: ${source.toString()}');
         return;
       }
       yield Token(type: .text, value: source.substring(0, source.length));
     }
+    print('Text lexer end: ${source.toString()}');
   }
 }
 

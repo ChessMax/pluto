@@ -15,6 +15,7 @@ class StatementLexer {
   const StatementLexer();
 
   Iterable<Token> tokenize(SourceView source) sync* {
+    print('Statement lexer begin: ${source.toString()}');
     Scanner createScanner(String value) {
       final scanner = Scanner(
         value,
@@ -41,9 +42,9 @@ class StatementLexer {
               when tokenNextNext.type == .GT) {
             yield Token(
               type: .stmt,
-              value: source.substring(0, token.previous!.end),
+              value: source.substring(0, token.offset),
             );
-            source.consume(token.previous!.end);
+            source.consume(token.offset);
 
             yield* const TextLexer(topLevel: false).tokenize(source);
 
@@ -58,7 +59,12 @@ class StatementLexer {
       token = token.next!;
     }
 
-    yield Token(type: .stmt, value: source.substring(0, token.end));
-    source.consume(token.end);
+    final statement = source.substring(0, token.end);
+    if (statement.isNotEmpty) {
+      yield Token(type: .stmt, value: statement);
+      source.consume(token.end);
+    }
+
+    print('Statement lexer end: ${source.toString()}');
   }
 }

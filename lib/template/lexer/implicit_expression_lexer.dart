@@ -13,6 +13,8 @@ class ImplicitExpressionLexer {
   const ImplicitExpressionLexer();
 
   Iterable<Token> tokenize(SourceView source) sync* {
+    print('Implicit expression lexer begin: ${source.toString()}');
+
     int? readImplicitExpr(String source) {
       final scanner = Scanner(
         source,
@@ -58,6 +60,7 @@ class ImplicitExpressionLexer {
       }
 
       if (token.type == .PERIOD) {
+        print('Implicit expression lexer end: ${source.toString()}');
         return token.previous!.end;
       }
 
@@ -69,6 +72,7 @@ class ImplicitExpressionLexer {
       final token = Token(type: .expr, value: source.substring(0, end));
       source.consume(end);
       yield token;
+      print('Implicit expression lexer end: ${source.toString()}');
       return;
     }
     throw 'Expected implicit expression';

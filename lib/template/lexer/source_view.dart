@@ -6,6 +6,8 @@ class SourceView {
 
   int get length => source.length - position;
 
+  bool get isEmpty => length <= 0;
+
   bool get isNotEmpty => length > 0;
 
   int indexOf(Pattern pattern, [int start = 0]) =>
