@@ -1,10 +1,9 @@
-
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:pluto/template/node.dart';
 import 'package:source_helper/source_helper.dart';
 
 class CodeGenerator {
-  static const header =
-'''
+  static const header = '''
 import 'dart:isolate';
 import 'package:pluto/template/map_view.dart';
 
@@ -15,24 +14,47 @@ void main(List<String> args, dynamic message) {
 
 ''';
 
-  static const footer =
-'''
+  static const footer = '''
   replyTo.send(result);
 }''';
 
   const CodeGenerator();
 
   String generate(Node node) {
-    final tripleQuotes = "'''";
     final sb = StringBuffer(header);
 
-    void writeNode(Node node) {
+    void writeNode(Node node, [Node? parent]) {
       switch (node) {
         case StatementNode():
-          sb.writeln('  ${node.statement.replaceFirst('{', '').replaceLast('}', '')}');
+          if (parent != null && parent is IfNode) {
+            sb.write(' ${node.statement} ');
+          } else {
+            sb.writeln(
+              '  ${node.statement.replaceFirst('{', '').replaceLast('}', '')}',
+            );
+          }
+
           break;
         case ExpressionNode():
-          sb.writeln('  result += ${node.expression}.toString();');
+          if (parent != null && parent is IfNode) {
+            sb.write(node.expression);
+          } else {
+            sb.writeln('  result += ${node.expression}.toString();');
+          }
+          break;
+        case IfNode():
+          sb.write('  if ');
+          writeNode(node.condition, node);
+          sb.write(' { ');
+          writeNode(node.ifStmt, node);
+          sb.write(' } ');
+
+          final elseStmt = node.elseStmt;
+          if (elseStmt != null) {
+            sb.writeln(' else { ');
+            writeNode(elseStmt, node);
+            sb.write(' } ');
+          }
           break;
         case TextNode():
           final escaped = escapeDartString(node.value);
@@ -45,7 +67,7 @@ void main(List<String> args, dynamic message) {
           break;
         case BlockNode():
           for (final childNode in node.children) {
-            writeNode(childNode);
+            writeNode(childNode, parent);
           }
           break;
         case MarkupNode():

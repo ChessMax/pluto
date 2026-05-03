@@ -6,9 +6,9 @@ import 'package:pluto/template/template.dart';
 import 'package:test/test.dart';
 
 void main() {
-  Node parse(String source) =>
+  Node p(String source) =>
       DocumentNode(Parser().parse(const Lexer().tokenize(source).toList()).toList());
-  String codeGen(String source) => CodeGenerator().generate(parse(source));
+  String codeGen(String source) => CodeGenerator().generate(p(source));
   Template getTemplate(String source) => Template(codeGen(source));
 
   test('implicit expression should return correct values 1', () async {
@@ -138,5 +138,23 @@ void main() {
     final template = getTemplate('--- id: @model.id\ntitle: @model.title\ntitle_en: @model.title_en\n---');
     final actual = await template.render({'id': 14, 'title':'Practical dart', 'title_en':'Dart Practical'});
     expect(actual, '--- id: 14\ntitle: Practical dart\ntitle_en: Dart Practical\n---');
+  });
+
+  test('template if', () async {
+    final template = getTemplate('@if (true) { <text>true</text> }');
+    final actual = await template.render(null);
+    expect(actual, '<text>true</text>');
+  });
+
+  test('template if else 1', () async {
+    final template = getTemplate('@if (true) { <text>true</text> } else { <text>false</text> }');
+    final actual = await template.render(null);
+    expect(actual, '<text>true</text>');
+  });
+
+  test('template if else 2', () async {
+    final template = getTemplate('@if (false) { <text>true</text> } else { <text>false</text> }');
+    final actual = await template.render(null);
+    expect(actual, '<text>false</text>');
   });
 }
