@@ -8,12 +8,11 @@ enum TokenType {
   blockEnd,
 
   ifStmt,
-
-  // expressions
-  openTag,
-  closingTag,
+  // elseStmt,
 
   // common
+  openTag,
+  closingTag,
   text,
   eof;
 
@@ -35,7 +34,7 @@ class Token extends Equatable {
   @override
   String toString() {
     return switch (type) {
-      .blockStart => '@{',
+      .blockStart => '{',
       .blockEnd => '}',
       .openTag => '<$value>',
       .closingTag => '</$value>',
