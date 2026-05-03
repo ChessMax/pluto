@@ -1,4 +1,5 @@
 import 'package:pluto/template/lexer/explicit_expression_lexer.dart';
+import 'package:pluto/template/lexer/if_statement_lexer.dart';
 import 'package:pluto/template/lexer/implicit_expression_lexer.dart';
 import 'package:pluto/template/lexer/lexer.dart';
 import 'package:pluto/template/lexer/source_view.dart';
@@ -69,6 +70,7 @@ class TextLexer {
               throw 'Unbalanced tags closing: ${tags.last.value} and ${tag.value}';
             } else {
               tags.removeLast();
+              break loop;
             }
           }
           continue loop; // TODO: hangs if only <?
@@ -100,6 +102,15 @@ class TextLexer {
               yield* const ExplicitExpressionLexer().tokenize(source);
               position = 0;
               continue loop;
+            case 'i':
+              if (source.peakNext(position + 2) == 'f') {
+                yield* consumeText();
+                yield Token(type: .ifStmt);
+                source.consume(3); // @if
+                yield* const IfStatementLexer().tokenize(source);
+                position = 0;
+                continue loop;
+              }
             default:
               if (nextChar?.isIdentifierStart != true) throw 'Unexpected end of source';
               yield* consumeText();

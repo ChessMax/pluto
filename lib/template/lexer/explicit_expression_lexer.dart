@@ -54,7 +54,7 @@ class ExplicitExpressionLexer {
       final token = Token(type: .expr, value: source.substring(0, end));
       source.consume(end);
       yield token;
-      print('Explicit expression lexer end: ${source.toString()}');
+      // print('Explicit expression lexer end: ${source.toString()}');
       return;
     }
     throw 'Expected explicit expression';

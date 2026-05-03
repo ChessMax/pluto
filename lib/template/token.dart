@@ -8,7 +8,7 @@ enum TokenType {
   blockEnd,
 
   ifStmt,
-  // elseStmt,
+  elseStmt,
 
   // common
   openTag,
@@ -40,7 +40,8 @@ class Token extends Equatable {
       .closingTag => '</$value>',
       .stmt => '```$code```',
       .expr => '`$code`',
-      .ifStmt => throw UnimplementedError(),
+      .ifStmt => 'if',
+      .elseStmt => 'else',
       .text => text,
       .eof => '',
     };

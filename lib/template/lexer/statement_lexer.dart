@@ -15,7 +15,7 @@ class StatementLexer {
   const StatementLexer();
 
   Iterable<Token> tokenize(SourceView source) sync* {
-    print('Statement lexer begin: ${source.toString()}');
+    // print('Statement lexer begin: ${source.toString()}');
     Scanner createScanner(String value) {
       final scanner = Scanner(
         value,
@@ -87,6 +87,6 @@ class StatementLexer {
 
     yield* consumeCode(token);
 
-    print('Statement lexer end: ${source.toString()}');
+    // print('Statement lexer end: ${source.toString()}');
   }
 }
