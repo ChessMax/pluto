@@ -16,8 +16,6 @@ enum TokenType {
   openTag,
   closingTag,
 
-
-
   // common
   text,
   eof;
@@ -29,11 +27,7 @@ class Token extends Equatable {
   final TokenType type;
   final Object? value;
 
-  Token({required this.type, this.value}) {
-    if (value == '}') {
-      print(value);
-    }
-  }
+  Token({required this.type, this.value});
 
   @override
   List<Object?> get props => [type, value];
