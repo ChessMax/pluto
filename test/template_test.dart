@@ -1,5 +1,5 @@
 import 'package:pluto/template/code_generator.dart';
-import 'package:pluto/template/lexer.dart';
+import 'package:pluto/template/lexer/lexer.dart';
 import 'package:pluto/template/node.dart';
 import 'package:pluto/template/parser.dart';
 import 'package:pluto/template/template.dart';
@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 
 void main() {
   Node parse(String source) =>
-      DocumentNode(Parser().parse(Lexer().lex(source).toList()).toList());
+      DocumentNode(Parser().parse(const Lexer().tokenize(source).toList()).toList());
   String codeGen(String source) => CodeGenerator().generate(parse(source));
   Template getTemplate(String source) => Template(codeGen(source));
 
@@ -115,4 +115,22 @@ void main() {
       expect(result, '<p>Ivan</p><p>Peter</p>');
     },
   );
+
+  test('Code block with markup 55', () async {
+    final template = getTemplate('''@{ var name = 'User';<p>Hello, @name</p> }''');
+    final result = await template.render(null);
+    expect(result, '<p>Hello, User</p>');
+  });
+
+  test('Code block with markup 22', () async {
+    final template = getTemplate('''@{ var name = 'User';<p>Hello</p> }''');
+    final result = await template.render(null);
+    expect(result, '<p>Hello</p>');
+  });
+
+  test('html', () async {
+    final template = getTemplate('123 <p>Hello, World!</p> 321');
+    final result = await template.render(null);
+    expect(result, '123 <p>Hello, World!</p> 321');
+  });
 }

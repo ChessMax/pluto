@@ -1,5 +1,3 @@
-import 'package:pluto/template/analyzer_lexer.dart';
-import 'package:pluto/template/lexer/lexer.dart';
 import 'package:pluto/template/lexer/source_view.dart';
 import 'package:pluto/template/token.dart';
 

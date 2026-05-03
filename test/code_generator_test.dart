@@ -1,14 +1,14 @@
 import 'dart:io';
 
 import 'package:pluto/template/code_generator.dart';
-import 'package:pluto/template/lexer.dart';
+import 'package:pluto/template/lexer/lexer.dart';
 import 'package:pluto/template/node.dart';
 import 'package:pluto/template/parser.dart';
 import 'package:test/test.dart';
 
 void main() {
   String code(String value) => CodeGenerator.header + value + CodeGenerator.footer;
-  Node parse(String source) => DocumentNode(Parser().parse(Lexer().lex(source).toList()).toList());
+  Node parse(String source) => DocumentNode(Parser().parse(Lexer().tokenize(source).toList()).toList());
   String codeGen(String source) => CodeGenerator().generate(parse(source));
 
   test('code gen', () async {

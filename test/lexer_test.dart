@@ -1,12 +1,10 @@
-import 'package:pluto/template/lexer.dart';
-import 'package:pluto/template/token.dart';
 import 'package:test/test.dart';
 
-import 'package:pluto/template/lexer/lexer.dart' as l2;
+import 'package:pluto/template/lexer/lexer.dart';
 
 void main() {
   List<String> parse(String source) =>
-      l2.Lexer().tokenize(source).map((t) => t.toString()).toList();
+     const Lexer().tokenize(source).map((t) => t.toString()).toList();
 
   test('Code block with markup', () async {
     final result = parse('''@{ var name = 'User';<p>Hello, @name</p> }''');

@@ -27,7 +27,7 @@ void main(List<String> args, dynamic message) {
 
     void writeNode(Node node) {
       switch (node) {
-        case StatementExpressionNode():
+        case StatementNode():
           sb.writeln('  ${node.statement.replaceFirst('{', '').replaceLast('}', '')}');
           break;
         case ExpressionNode():
@@ -38,6 +38,16 @@ void main(List<String> args, dynamic message) {
           sb.writeln("  result += r'''\n$escaped''';");
           break;
         case DocumentNode():
+          for (final childNode in node.children) {
+            writeNode(childNode);
+          }
+          break;
+        case BlockNode():
+          for (final childNode in node.children) {
+            writeNode(childNode);
+          }
+          break;
+        case MarkupNode():
           for (final childNode in node.children) {
             writeNode(childNode);
           }
