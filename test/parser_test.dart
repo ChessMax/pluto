@@ -110,4 +110,8 @@ void main() {
     expect(result, '123 <p>Hello, World!</p> 321');
   });
 
+  test('template', () async {
+    final result = parse('--- id: @model.id\ntitle: @model.title\ntitle_en: @model.title_en\n---');
+    expect(result, '--- id: `model.id`\ntitle: `model.title`\ntitle_en: `model.title_en`\n---');
+  });
 }

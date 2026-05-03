@@ -133,4 +133,10 @@ void main() {
     final result = await template.render(null);
     expect(result, '123 <p>Hello, World!</p> 321');
   });
+
+  test('template', () async {
+    final template = getTemplate('--- id: @model.id\ntitle: @model.title\ntitle_en: @model.title_en\n---');
+    final actual = await template.render({'id': 14, 'title':'Practical dart', 'title_en':'Dart Practical'});
+    expect(actual, '--- id: 14\ntitle: Practical dart\ntitle_en: Dart Practical\n---');
+  });
 }

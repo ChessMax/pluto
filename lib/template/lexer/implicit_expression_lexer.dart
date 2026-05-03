@@ -13,7 +13,6 @@ class ImplicitExpressionLexer {
   Iterable<Token> tokenize(SourceView source) sync* {
     print('Implicit expression lexer begin: ${source.toString()}');
 
-
     int? readImplicitExpr(String source) {
       final scanner = Scanner(
         source,
@@ -27,7 +26,6 @@ class ImplicitExpressionLexer {
         featureSet: FeatureSet.latestLanguageVersion(),
       );
 
-      var depth = 0;
       var token = scanner.tokenize();
 
       if (token.type != .IDENTIFIER) {
@@ -37,8 +35,8 @@ class ImplicitExpressionLexer {
       loop:
       while (token.type != .EOF) {
         final next = token.next!;
-        print('$next: ${next.type}');
-        print(' ');
+        // print('$next: ${next.type}');
+        // print(' ');
         switch (next.type) {
           case .PERIOD:
           case .COMMA:
@@ -53,6 +51,11 @@ class ImplicitExpressionLexer {
           case .DOUBLE:
           case .DOUBLE_WITH_SEPARATORS:
           case .INDEX:
+            final trivia = source.substring(token.end, next.offset);
+            if (trivia.contains('\n')) {
+              break loop;
+            }
+
             token = next;
             break;
           default:
@@ -70,10 +73,10 @@ class ImplicitExpressionLexer {
 
     // TODO: fix
     var value = source.toString();
-    var index = value.indexOf('\n');
-    if (index != -1) {
-      value = value.substring(0, index);
-    }
+    // var index = value.indexOf('\n');
+    // if (index != -1) {
+    //   value = value.substring(0, index);
+    // }
 
     final end = readImplicitExpr(value.toString());
     if (end != null) {

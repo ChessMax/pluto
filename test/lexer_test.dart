@@ -118,10 +118,8 @@ void main() {
   });
 
   test('template', () async {
-    final result = parse('@model.id\ntitle');
-    expect(result, ['@', '`model.id`', '\ntitle']);
-  //   final result = parse('--- id: @model.id\ntitle: @model.title\ntitle_en: @model.title_en\n---');
-  //   expect(result, ['--- id: ', '@', '`model.id`', '\ntitle: ', '@', '`model.title`', '\ntitle_en: ', '@', '`model.title_en`', '\n---']);
+    final result = parse('--- id: @model.id\ntitle: @model.title\ntitle_en: @model.title_en\n---');
+    expect(result, ['--- id: ', '@', '`model.id`', '\ntitle: ', '@', '`model.title`', '\ntitle_en: ', '@', '`model.title_en`', '\n---']);
   });
 
   // test('lexer if', () async {
