@@ -18,7 +18,8 @@ class SourceView {
 
   String operator [](int index) => source[position + index];
 
-  String? peak() => position < source.length ? source[position] : null;
+  String? peak([int offset = 0]) =>
+      position + offset < source.length ? source[position + offset] : null;
 
   String? peakNext([int value = 1]) =>
       position + value < source.length ? source[position + value] : null;
@@ -90,6 +91,26 @@ class SourceView {
   }
 }
 
+extension SourceViewExtension on SourceView {
+  String? tryConsumeIdentifier([int position = 0]) {
+    var start = position;
+    var char = peak(position);
+    if (char != null && char.isIdentifierStart) {
+      int p;
+      for (p = position + 1; peakNext(p)?.isIdentifierContinue == true; ++p) {}
+      var id = substring(start, p);
+      consume(p - start);
+      return id;
+    }
+    return null;
+  }
+
+  String consumeIdentifier() {
+    final id = tryConsumeIdentifier();
+    return id ?? (throw 'Expected identifier');
+  }
+}
+
 extension on String {
   bool operator <=(String other) => codeUnitAt(0) <= other.codeUnitAt(0);
 
@@ -105,4 +126,203 @@ extension on String {
 
   bool get isWhiteSpace =>
       this == ' ' || this == '\n' || this == '\t' || this == '\r';
+}
+
+class Tag {
+  final String name;
+  final bool isClosing;
+  final List<({String key, String value})>? attributes;
+
+  Tag({required this.name, required this.isClosing, required this.attributes});
+}
+
+class SourceView2 {
+  final String source;
+  int _position = 0;
+  late String c = source.isNotEmpty ? source[0] : '';
+
+  SourceView2(this.source);
+
+  int get position => _position;
+  set position(int value) {
+    _position = value;
+    c = value < source.length ? source[value] : '';
+  }
+
+  bool get isEmpty => position >= source.length;
+
+  String? peak() => position < source.length ? source[position] : null;
+
+  String? readChar(String value) {
+    assert(value.length == 1);
+
+    if (peak() == value) {
+      ++position;
+      return value;
+    }
+
+    return null;
+  }
+
+  String? readString(String value) {
+    final start = position;
+    for (var i = 0; i < value.length; ++i) {
+      if (readChar(value[i]) == null) {
+        position = start;
+        return null;
+      }
+    }
+
+    return value;
+  }
+
+  int? readPositionUntilChar(String value) {
+    assert(value.length == 1);
+
+    final start = position;
+
+    while (position < source.length && source[position] != value) {
+      position++;
+    }
+
+    if (position < source.length && source[position] == value) {
+      return position;
+    }
+
+    position = start;
+    return null;
+  }
+
+  String? readUntilChar(String value) {
+    assert(value.length == 1);
+
+    final start = position;
+    final end = readPositionUntilChar(value);
+    if (end != null) {
+      return source.substring(start, end);
+    }
+
+    position = start;
+    return null;
+  }
+
+  String? readUntilString(String value) {
+    final start = position;
+
+    final prefixPosition = readPositionUntilChar(value[0]);
+    if (prefixPosition != null) {
+      if (readString(value) == value) {
+        position = prefixPosition;
+        final result = source.substring(start, prefixPosition);
+        return result;
+      }
+    }
+
+    position = start;
+    return null;
+  }
+
+  String? readUntilAny(List<String> values) {
+    final start = position;
+
+    for (final value in values) {
+      if (readUntilString(value) != null) {
+        // position -= value.length;
+        return value;
+      }
+    }
+
+    position = start;
+    return null;
+  }
+
+  String? readWhiteSpaces() {
+    final start = position;
+
+    while (position < source.length && source[position].isWhiteSpace) {
+      position++;
+    }
+
+    return (position > start) ? source.substring(start, position) : null;
+  }
+
+  String? readIdentifier() {
+    final start = position;
+
+    if (position < source.length && source[position].isIdentifierStart) {
+      ++position;
+    } else {
+      return null;
+    }
+
+    while (position < source.length && source[position].isIdentifierContinue) {
+      ++position;
+    }
+
+    return (position > start) ? source.substring(start, position) : null;
+  }
+
+  String? readAny(List<String> values) {
+    for (final value in values) {
+      final result = readString(value);
+      if (result != null) {
+        return result;
+      }
+    }
+
+    return null;
+  }
+
+  // <div id="myId">
+  String? readTag() {
+    final start = position;
+
+    if (readChar('<') != null) {
+      if (readString('div') != null) {
+        if (readWhiteSpaces() != null) {
+          final attribute = readIdentifier();
+          if (attribute != null) {
+            if (readChar('=') != null) {
+              if (readChar('"') != null) {
+                final value = readIdentifier();
+                if (value != null) {
+                  if (readChar('"') != null) {
+                    if (readChar('>') != null) {
+                      return '<div $attribute=$value>';
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    position = start;
+    return null;
+  }
+
+  String consumeChar(String value) {
+    return readChar(value) ?? (throw 'Expected `$value` char');
+  }
+
+  String consumeString(String value) {
+    return readString(value) ?? (throw 'Expected `$value` string');
+  }
+
+  String consumeWhiteSpaces() {
+    return readWhiteSpaces() ?? (throw 'Expected white spaces');
+  }
+
+  String consumeIdentifier() {
+    return readIdentifier() ?? (throw 'Expected identifier');
+  }
+
+  String substring(int start, [int? end]) =>
+      source.substring(position + start, end != null ? position + end : null);
+
+  @override
+  String toString() =>
+      position < source.length ? source.substring(position) : '';
 }

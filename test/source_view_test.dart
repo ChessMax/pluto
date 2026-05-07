@@ -1,0 +1,255 @@
+import 'package:pluto/template/lexer/source_view.dart';
+import 'package:test/test.dart';
+
+void main() {
+
+  group('read char should work correct', (){
+    test('read char should return char', () async {
+      final sv = SourceView2('source');
+      final char = sv.readChar('s');
+      expect(char, 's');
+      expect(sv.toString(), 'ource');
+    });
+
+    test('read char should not return char', () async {
+      final sv = SourceView2('source');
+      final char = sv.readChar('o');
+      expect(char, null);
+      expect(sv.toString(), 'source');
+    });
+  });
+
+  group('read string should work correct', (){
+    test('read string should return empty string', () async {
+      final sv = SourceView2('source');
+      final actual = sv.readString('');
+      expect(actual, '');
+      expect(sv.toString(), 'source');
+    });
+
+    test('read string should not return string', () async {
+      final sv = SourceView2('source');
+      final actual = sv.readString('o');
+      expect(actual, null);
+      expect(sv.toString(), 'source');
+    });
+
+    test('read string should return string', () async {
+      final sv = SourceView2('source');
+      final actual = sv.readString('source');
+      expect(actual, 'source');
+      expect(sv.toString(), '');
+    });
+
+    test('read string should return string 2', () async {
+      final sv = SourceView2('source');
+      final actual = sv.readString('source code');
+      expect(actual, null);
+      expect(sv.toString(), 'source');
+    });
+
+    test('read string should return string 3', () async {
+      final sv = SourceView2('source code');
+      final actual1 = sv.readString('source');
+      final actual2 = sv.readString(' ');
+      expect(actual1, 'source');
+      expect(actual2, ' ');
+      expect(sv.toString(), 'code');
+    });
+
+    test('read string should return string 4', () async {
+      final sv = SourceView2('source code');
+      final actual1 = sv.readString('source');
+      final actual2 = sv.readString(' ');
+      final actual3 = sv.readString('code');
+      expect(actual1, 'source');
+      expect(actual2, ' ');
+      expect(actual3, 'code');
+      expect(sv.toString(), '');
+    });
+
+    test('read string should return string 5', () async {
+      final sv = SourceView2('source');
+
+      final actual1 = sv.readString('source');
+      final actual2 = sv.readString('code');
+
+      expect(actual1, 'source');
+      expect(actual2, null);
+      expect(sv.toString(), '');
+    });
+
+    test('read string should return string with extra', () async {
+      final sv = SourceView2('source code');
+      final actual = sv.readString('source');
+      expect(actual, 'source');
+      expect(sv.toString(), ' code');
+    });
+
+    test('read string should not return string', () async {
+      final sv = SourceView2('source');
+      final actual = sv.readString('field');
+      expect(actual, null);
+      expect(sv.toString(), 'source');
+    });
+  });
+
+  group('read any should return correct values', (){
+    test('should return null if input is empty', (){
+      final sv = SourceView2('source code');
+
+      final actual = sv.readAny(const []);
+
+      expect(actual, null);
+      expect(sv.toString(), 'source code');
+    });
+
+    test('should return null if no values', (){
+      final sv = SourceView2('source code');
+
+      final actual = sv.readAny(const ['field', 'bool', 'do']);
+
+      expect(actual, null);
+      expect(sv.toString(), 'source code');
+    });
+
+    test('should return value if there is values', (){
+      final sv = SourceView2('source code');
+
+      final actual = sv.readAny(const ['code', 'source', 'do']);
+
+      expect(actual, 'source');
+      expect(sv.toString(), ' code');
+    });
+  });
+
+  group('read identifier should return correct identifiers', (){
+    test('should return null if input is empty', (){
+      final sv = SourceView2('5 source code');
+
+      final actual = sv.readIdentifier();
+
+      expect(actual, null);
+      expect(sv.toString(), '5 source code');
+    });
+
+    test('should return identifier if there is an identifier', (){
+      final sv = SourceView2('source code');
+
+      final actual = sv.readIdentifier();
+
+      expect(actual, 'source');
+      expect(sv.toString(), ' code');
+    });
+
+    test('should return identifier if there is an identifier 2', (){
+      final sv = SourceView2('_source code');
+
+      final actual = sv.readIdentifier();
+
+      expect(actual, '_source');
+      expect(sv.toString(), ' code');
+    });
+
+    test('should return identifier if there is an identifier 3', (){
+      final sv = SourceView2('_source2 code');
+
+      final actual = sv.readIdentifier();
+
+      expect(actual, '_source2');
+      expect(sv.toString(), ' code');
+    });
+
+    test('should return identifier if there is an identifier 4', (){
+      final sv = SourceView2('_source\$ code');
+
+      final actual = sv.readIdentifier();
+
+      expect(actual, '_source\$');
+      expect(sv.toString(), ' code');
+    });
+
+    test('should return identifier if there is an identifier 5', (){
+      final sv = SourceView2('_source+ code');
+
+      final actual = sv.readIdentifier();
+
+      expect(actual, '_source');
+      expect(sv.toString(), '+ code');
+    });
+
+    test('should consume id', (){
+      final sv = SourceView2('_source2');
+
+      final actual = sv.readIdentifier();
+
+      expect(actual, '_source2');
+      expect(sv.toString(), '');
+    });
+
+    test('should return null if no values', (){
+      final sv = SourceView2('source code');
+
+      final actual = sv.readAny(const ['field', 'bool', 'do']);
+
+      expect(actual, null);
+      expect(sv.toString(), 'source code');
+    });
+
+    test('should return value if there is values', (){
+      final sv = SourceView2('source code');
+
+      final actual = sv.readAny(const ['code', 'source', 'do']);
+
+      expect(actual, 'source');
+      expect(sv.toString(), ' code');
+    });
+  });
+
+  group('read white spaces should return correct values', (){
+    test('should return white spaces', () {
+      final sv = SourceView2('  source');
+
+      final actual = sv.readWhiteSpaces();
+
+      expect(actual, '  ');
+      expect(sv.toString(), 'source');
+    });
+
+    test('should return white spaces 2', () {
+      final sv = SourceView2('\t \n \r source');
+
+      final actual = sv.readWhiteSpaces();
+
+      expect(actual, '\t \n \r ');
+      expect(sv.toString(), 'source');
+    });
+
+    test('should return null if there is no white spaces', () {
+      final sv = SourceView2('source');
+
+      final actual = sv.readWhiteSpaces();
+
+      expect(actual, null);
+      expect(sv.toString(), 'source');
+    });
+
+    test('should return null if there is no white spaces 2', () {
+      final sv = SourceView2('source code');
+
+      final actual = sv.readWhiteSpaces();
+
+      expect(actual, null);
+      expect(sv.toString(), 'source code');
+    });
+
+    test('should return null if there is no white spaces 3', () {
+      final sv = SourceView2('');
+
+      final actual = sv.readWhiteSpaces();
+
+      expect(actual, null);
+      expect(sv.toString(), '');
+    });
+  });
+}
