@@ -128,12 +128,29 @@ extension on String {
       this == ' ' || this == '\n' || this == '\t' || this == '\r';
 }
 
+enum TagType { opening, closing, selfClosing }
+
 class Tag {
   final String name;
-  final bool isClosing;
+  final TagType type;
   final List<({String key, String value})>? attributes;
 
-  Tag({required this.name, required this.isClosing, required this.attributes});
+  Tag({required this.name, required this.type, this.attributes}) {
+    if (name.contains('<')) {
+      print('Error');
+    }
+  }
+
+  @override
+  String toString() {
+    return switch (type) {
+      .opening when attributes != null =>
+        '<$name ${attributes!.map((a) => '${a.key}="${a.value}"').join(' ')}>',
+      .opening => '<$name>',
+      .selfClosing => '<$name/>',
+      .closing => '</$name>',
+    };
+  }
 }
 
 class SourceView2 {
@@ -144,6 +161,7 @@ class SourceView2 {
   SourceView2(this.source);
 
   int get position => _position;
+
   set position(int value) {
     _position = value;
     c = value < source.length ? source[value] : '';
@@ -151,7 +169,14 @@ class SourceView2 {
 
   bool get isEmpty => position >= source.length;
 
+  void consume([int value = 1]) => position += value;
+
   String? peak() => position < source.length ? source[position] : null;
+
+  String? peakNext() =>
+      position + 1 < source.length ? source[position + 1] : null;
+  String? peakNextNext() =>
+      position + 2 < source.length ? source[position + 2] : null;
 
   String? readChar(String value) {
     assert(value.length == 1);
@@ -174,6 +199,28 @@ class SourceView2 {
     }
 
     return value;
+  }
+
+  bool startsWith(String value) {
+    if (position + value.length >= source.length) return false;
+
+    for (var i = 0; i < value.length; ++i) {
+      if (source[position + i] != value[i]) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  bool startsWithAny(List<String> values) {
+    for (final value in values) {
+      if (!startsWith(value)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   int? readPositionUntilChar(String value) {
@@ -236,11 +283,40 @@ class SourceView2 {
     return null;
   }
 
+  String? readUntilAnyExcept(List<String> values, List<String> exceptions) {
+    final start = position;
+
+    for (final value in values) {
+      if (readUntilString(value) != null) {
+        // position -= value.length;
+        return value;
+      }
+    }
+
+    position = start;
+    return null;
+  }
+
   String? readWhiteSpaces() {
     final start = position;
 
     while (position < source.length && source[position].isWhiteSpace) {
       position++;
+    }
+
+    return (position > start) ? source.substring(start, position) : null;
+  }
+
+  String? readWhile(int Function(SourceView2 source) predicate) {
+    final start = position;
+
+    // while (position < source.length && predicate(this)) {
+    //   ++position;
+    // }
+    while (position < source.length) {
+      final offset = predicate(this);
+      if (offset <= 0) break;
+      position += offset;
     }
 
     return (position > start) ? source.substring(start, position) : null;
@@ -274,34 +350,34 @@ class SourceView2 {
   }
 
   // <div id="myId">
-  String? readTag() {
-    final start = position;
-
-    if (readChar('<') != null) {
-      if (readString('div') != null) {
-        if (readWhiteSpaces() != null) {
-          final attribute = readIdentifier();
-          if (attribute != null) {
-            if (readChar('=') != null) {
-              if (readChar('"') != null) {
-                final value = readIdentifier();
-                if (value != null) {
-                  if (readChar('"') != null) {
-                    if (readChar('>') != null) {
-                      return '<div $attribute=$value>';
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    position = start;
-    return null;
-  }
+  // String? readTag() {
+  //   final start = position;
+  //
+  //   if (readChar('<') != null) {
+  //     if (readString('div') != null) {
+  //       if (readWhiteSpaces() != null) {
+  //         final attribute = readIdentifier();
+  //         if (attribute != null) {
+  //           if (readChar('=') != null) {
+  //             if (readChar('"') != null) {
+  //               final value = readIdentifier();
+  //               if (value != null) {
+  //                 if (readChar('"') != null) {
+  //                   if (readChar('>') != null) {
+  //                     return '<div $attribute=$value>';
+  //                   }
+  //                 }
+  //               }
+  //             }
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+  //
+  //   position = start;
+  //   return null;
+  // }
 
   String consumeChar(String value) {
     return readChar(value) ?? (throw 'Expected `$value` char');
@@ -312,7 +388,7 @@ class SourceView2 {
   }
 
   String consumeWhiteSpaces() {
-    return readWhiteSpaces() ?? (throw 'Expected white spaces');
+    return readWhiteSpaces() ?? '';
   }
 
   String consumeIdentifier() {
@@ -325,4 +401,47 @@ class SourceView2 {
   @override
   String toString() =>
       position < source.length ? source.substring(position) : '';
+}
+
+extension SourceView2Extension on SourceView2 {
+  // <div>
+  // <div id="header"></div>
+  // <br/>
+  Tag? readTag() {
+    // < already consumed
+    final source = this;
+    // if (source.readChar('<') == null) return null;
+    if (source.readChar('/') != null) {
+      final name = source.readIdentifier();
+      if (name == null) return null;
+      if (source.readChar('>') == null) return null;
+      return Tag(name: name, type: .closing);
+    }
+    final name = source.readIdentifier();
+
+    if (name == null) return null;
+    source.readWhiteSpaces();
+
+    final attribute = source.readIdentifier();
+    if (attribute != null) {
+      if (source.readChar('=') == null) return null;
+      if (source.readChar('"') == null) return null;
+      final value = source.readIdentifier();
+      if (value == null) return null;
+      if (source.readChar('"') == null) return null;
+      if (source.readChar('>') == null) return null;
+      return Tag(
+        name: name,
+        type: .opening,
+        attributes: [(key: attribute, value: value)],
+      );
+    }
+    if (source.readChar('/') != null) {
+      if (source.readChar('>') == null) return null;
+      return Tag(name: name, type: .selfClosing);
+    }
+
+    if (source.readChar('>') == null) return null;
+    return Tag(name: name, type: .opening);
+  }
 }

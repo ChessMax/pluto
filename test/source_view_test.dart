@@ -2,8 +2,7 @@ import 'package:pluto/template/lexer/source_view.dart';
 import 'package:test/test.dart';
 
 void main() {
-
-  group('read char should work correct', (){
+  group('read char should work correct', () {
     test('read char should return char', () async {
       final sv = SourceView2('source');
       final char = sv.readChar('s');
@@ -19,7 +18,7 @@ void main() {
     });
   });
 
-  group('read string should work correct', (){
+  group('read string should work correct', () {
     test('read string should return empty string', () async {
       final sv = SourceView2('source');
       final actual = sv.readString('');
@@ -94,8 +93,8 @@ void main() {
     });
   });
 
-  group('read any should return correct values', (){
-    test('should return null if input is empty', (){
+  group('read any should return correct values', () {
+    test('should return null if input is empty', () {
       final sv = SourceView2('source code');
 
       final actual = sv.readAny(const []);
@@ -104,7 +103,7 @@ void main() {
       expect(sv.toString(), 'source code');
     });
 
-    test('should return null if no values', (){
+    test('should return null if no values', () {
       final sv = SourceView2('source code');
 
       final actual = sv.readAny(const ['field', 'bool', 'do']);
@@ -113,7 +112,7 @@ void main() {
       expect(sv.toString(), 'source code');
     });
 
-    test('should return value if there is values', (){
+    test('should return value if there is values', () {
       final sv = SourceView2('source code');
 
       final actual = sv.readAny(const ['code', 'source', 'do']);
@@ -123,8 +122,8 @@ void main() {
     });
   });
 
-  group('read identifier should return correct identifiers', (){
-    test('should return null if input is empty', (){
+  group('read identifier should return correct identifiers', () {
+    test('should return null if input is empty', () {
       final sv = SourceView2('5 source code');
 
       final actual = sv.readIdentifier();
@@ -133,7 +132,7 @@ void main() {
       expect(sv.toString(), '5 source code');
     });
 
-    test('should return identifier if there is an identifier', (){
+    test('should return identifier if there is an identifier', () {
       final sv = SourceView2('source code');
 
       final actual = sv.readIdentifier();
@@ -142,7 +141,7 @@ void main() {
       expect(sv.toString(), ' code');
     });
 
-    test('should return identifier if there is an identifier 2', (){
+    test('should return identifier if there is an identifier 2', () {
       final sv = SourceView2('_source code');
 
       final actual = sv.readIdentifier();
@@ -151,7 +150,7 @@ void main() {
       expect(sv.toString(), ' code');
     });
 
-    test('should return identifier if there is an identifier 3', (){
+    test('should return identifier if there is an identifier 3', () {
       final sv = SourceView2('_source2 code');
 
       final actual = sv.readIdentifier();
@@ -160,7 +159,7 @@ void main() {
       expect(sv.toString(), ' code');
     });
 
-    test('should return identifier if there is an identifier 4', (){
+    test('should return identifier if there is an identifier 4', () {
       final sv = SourceView2('_source\$ code');
 
       final actual = sv.readIdentifier();
@@ -169,7 +168,7 @@ void main() {
       expect(sv.toString(), ' code');
     });
 
-    test('should return identifier if there is an identifier 5', (){
+    test('should return identifier if there is an identifier 5', () {
       final sv = SourceView2('_source+ code');
 
       final actual = sv.readIdentifier();
@@ -178,7 +177,7 @@ void main() {
       expect(sv.toString(), '+ code');
     });
 
-    test('should consume id', (){
+    test('should consume id', () {
       final sv = SourceView2('_source2');
 
       final actual = sv.readIdentifier();
@@ -187,7 +186,7 @@ void main() {
       expect(sv.toString(), '');
     });
 
-    test('should return null if no values', (){
+    test('should return null if no values', () {
       final sv = SourceView2('source code');
 
       final actual = sv.readAny(const ['field', 'bool', 'do']);
@@ -196,7 +195,7 @@ void main() {
       expect(sv.toString(), 'source code');
     });
 
-    test('should return value if there is values', (){
+    test('should return value if there is values', () {
       final sv = SourceView2('source code');
 
       final actual = sv.readAny(const ['code', 'source', 'do']);
@@ -206,7 +205,7 @@ void main() {
     });
   });
 
-  group('read white spaces should return correct values', (){
+  group('read white spaces should return correct values', () {
     test('should return white spaces', () {
       final sv = SourceView2('  source');
 
@@ -252,4 +251,68 @@ void main() {
       expect(sv.toString(), '');
     });
   });
+
+  group('readWhile should return correct values', () {
+    String? readText(SourceView2 source) {
+      final text = source.readWhile(
+            (source) => switch (source.peak()) {
+          '<' => 0,
+          '@' when source.peakNext() == '@' => 2,
+          '@' => 0,
+          _ => 1,
+        },
+      );
+      return text;
+    }
+
+    final testCases = {
+      '' : (null, ''),
+      'Source code Hello world'              : ('Source code Hello world', ''),
+      'Source code <div>Hello world</div>'   : ('Source code ', '<div>Hello world</div>'),
+      'Source code @model.name.toString()'   : ('Source code ', '@model.name.toString()'),
+      'Source code @@model.name.toString()'  : ('Source code @@model.name.toString()', ''),
+      'Source code @@@model.name.toString()' : ('Source code @@', '@model.name.toString()'),
+      'Source code @{var name = model.name}' : ('Source code ', '@{var name = model.name}'),
+    };
+
+    for (final MapEntry(: key, : value) in testCases.entries) {
+      test('$key -> $value', (){
+        final sv = SourceView2(key);
+
+        final actual = readText(sv);
+
+        expect(actual, value.$1);
+        expect(sv.toString(), value.$2);
+      });
+    }
+  });
+
+  group('readTag should return correct values', () {
+    // <div>
+    // <div id="header">
+    // </div>
+    // <br/>
+    final testCases = {
+      '<div>' : ('<div>', ''),
+      '</div>' : ('</div>', ''),
+      '<div id="header">' : ('<div id="header">', ''),
+      '<br/>' : ('<br/>', ''),
+      '<div>abc' : ('<div>', 'abc'),
+      '</div>abc' : ('</div>', 'abc'),
+      '<div id="header">abc' : ('<div id="header">', 'abc'),
+      '<br/>abc' : ('<br/>', 'abc'),
+    };
+
+    for (final MapEntry(: key, : value) in testCases.entries) {
+      test('$key -> $value', (){
+        final sv = SourceView2(key);
+
+        final actual = sv.readTag();
+
+        expect(actual.toString(), value.$1);
+        expect(sv.toString(), value.$2);
+      });
+    }
+  });
+  
 }

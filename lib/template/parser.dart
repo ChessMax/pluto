@@ -56,7 +56,7 @@ class Parser {
         }
       }
       final closeTag = consumeToken(.closingTag);
-      if (closeTag.text != openTag.text) {
+      if (closeTag.tag.name != openTag.tag.name) {
         throw 'Unbalanced tags $openTag:$closeTag';
       }
       children.add(TextNode(closeTag.toString()));

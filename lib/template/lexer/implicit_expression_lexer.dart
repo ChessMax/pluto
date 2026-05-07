@@ -10,7 +10,7 @@ import 'package:analyzer/error/listener.dart';
 class ImplicitExpressionLexer {
   const ImplicitExpressionLexer();
 
-  Iterable<Token> tokenize(SourceView source) sync* {
+  Iterable<Token> tokenize(SourceView2 source) sync* {
     // print('Implicit expression lexer begin: ${source.toString()}');
 
     int? readImplicitExpr(String source) {

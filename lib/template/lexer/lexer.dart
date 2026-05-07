@@ -7,7 +7,7 @@ class Lexer {
 
   @override
   Iterable<Token> tokenize(String value) sync* {
-    final source = SourceView(value);
+    final source = SourceView2(value);
     yield* const TextLexer(topLevel: true).tokenize(source);
 
     // assert(source.length <= 0, 'Expected all char consumed. But left: ${source.toString()}');

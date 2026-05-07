@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:pluto/template/lexer/source_view.dart';
 
 enum TokenType {
   // escape
@@ -28,6 +29,7 @@ class Token extends Equatable {
   @override
   List<Object?> get props => [type, value];
 
+  Tag get tag => value as Tag;
   String get text => value as String;
   String get code => value as String;
 
@@ -36,8 +38,8 @@ class Token extends Equatable {
     return switch (type) {
       .blockStart => '{',
       .blockEnd => '}',
-      .openTag => '<$value>',
-      .closingTag => '</$value>',
+      .openTag => '$value',
+      .closingTag => '$value',
       .stmt => '```$code```',
       .expr => '`$code`',
       .ifStmt => 'if',

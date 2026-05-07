@@ -14,7 +14,7 @@ import 'package:analyzer/error/listener.dart';
 class StatementLexer {
   const StatementLexer();
 
-  Iterable<Token> tokenize(SourceView source) sync* {
+  Iterable<Token> tokenize(SourceView2 source) sync* {
     // print('Statement lexer begin: ${source.toString()}');
     Scanner createScanner(String value) {
       final scanner = Scanner(

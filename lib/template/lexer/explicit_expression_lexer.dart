@@ -10,7 +10,7 @@ import 'package:analyzer/error/listener.dart';
 class ExplicitExpressionLexer {
   const ExplicitExpressionLexer();
 
-  Iterable<Token> tokenize(SourceView source) sync* {
+  Iterable<Token> tokenize(SourceView2 source) sync* {
     print('Explicit expression lexer begin: ${source.toString()}');
 
     int? readExplicitExpr(String source) {
