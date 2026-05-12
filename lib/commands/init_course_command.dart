@@ -15,8 +15,14 @@ class InitCourseCommand extends Command {
     await deleteDirectory(relativePath('bin'));
     await deleteDirectory(relativePath('test'));
     await deleteFile(relativePath('lib', '$name.dart'));
+    await createDir(relativePath('source'));
 
     print('Course $name initialized');
+  }
+
+  Future<void> createDir(String path) async {
+    print('Creating directory `$path`...');
+    await Directory(path).create(recursive: true);
   }
 
   Future<void> deleteFile(String path) async {
