@@ -1,8 +1,11 @@
 import 'dart:io';
 
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:dio/dio.dart';
 import 'package:pluto/assets/templates/asset_templates.dart';
+import 'package:pluto/commands/command.dart';
 import 'package:pluto/commands/export_course_command.dart';
+import 'package:pluto/commands/init_course_command.dart';
 import 'package:pluto/commands/list_command.dart';
 import 'package:pluto/data/client.dart';
 import 'package:pluto/data/interceptors/bearer_interceptor.dart';
@@ -10,10 +13,29 @@ import 'package:pluto/env.dart';
 import 'package:pluto/stepik_api/raw_stepik_api.dart';
 import 'package:pluto/stepik_api/stepik_api.dart';
 import 'package:talker_dio_logger/talker_dio_logger.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/string_source.dart';
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/source/source.dart';
 
 const _stepikApiUrl = 'https://stepik.org';
 
+const _commands = <Command>[
+  InitCourseCommand(),
+];
+
 void main(List<String> arguments) async {
+  final commandName = arguments.first;
+  for (final command in _commands) {
+    if (command.name == commandName) {
+      if (command is InitCourseCommand) {
+        await command.execute(arguments[1]);
+      }
+    }
+  }
+
+  return;
   final stepikDio = Dio(
     BaseOptions(
       baseUrl: _stepikApiUrl,
@@ -46,15 +68,15 @@ void main(List<String> arguments) async {
   final api = StepikApi(stepikDio);
   final rawApi = RawStepikApi(stepikDio);
 
-  final courseTemplate = await AssetTemplates.course;
-  print(courseTemplate);
-  print(courseTemplate);
+  // final courseTemplate = await AssetTemplates.course;
+  // print(await courseTemplate.render({'id': '1234', 'title': 'Практический курс \'\'\'Dart\'\'\'', 'title_en':'Practical course'}));
+  // print(courseTemplate);
+  //
+  // return;
 
+  await ExportCourseCommand(api: rawApi, format: .md).execute(134733);
   return;
-  
-  await ExportCourseCommand(api: rawApi, format: .json).execute(134733);
-  return;
-  
+
   // await ListCommand(api: api).execute();
   // return ;
 
@@ -67,7 +89,6 @@ void main(List<String> arguments) async {
   // await api.course.delete(283596);
   // await api.course.delete(283595);
   // await api.course.delete(283594);
-
 
   // final courses = await api.course.fetch();
   //
@@ -119,7 +140,7 @@ void main(List<String> arguments) async {
         'source': {
           'options': [
             {'is_correct': false, 'text': '2+2=3', 'feedback': ''},
-            {'is_correct': true,  'text': '2+2=4', 'feedback': ''},
+            {'is_correct': true, 'text': '2+2=4', 'feedback': ''},
             {'is_correct': false, 'text': '2+2=5', 'feedback': ''},
           ],
           'is_always_correct': false,
@@ -127,12 +148,12 @@ void main(List<String> arguments) async {
           'sample_size': 3,
           'is_multiple_choice': false,
           'preserve_order': false,
-          'is_options_feedback': false
-        }
+          'is_options_feedback': false,
+        },
       },
       'lesson': lessonId,
-      'position': 2
-    }
+      'position': 2,
+    },
   });
 
   print(multiChoiceStep);
@@ -143,29 +164,21 @@ void main(List<String> arguments) async {
       'title': 'Test course. Please, ignore it',
       'is_public': false,
       'is_enabled': false,
-    }
+    },
   });
   final courseId = course!.id;
   print('Course ID: $courseId');
   print('');
 
   final section = await api.section.create({
-    'section': {
-      'title': 'My Section',
-      'course': courseId,
-      'position': 1
-    }
+    'section': {'title': 'My Section', 'course': courseId, 'position': 1},
   });
   final sectionId = section!.id;
   print('Section ID: $sectionId');
 
   // Add your existing lesson to this section (it is called unit)
   final createUnitResult = await api.unit.create({
-    'unit': {
-      'section': sectionId,
-      'lesson': lessonId,
-      'position': 1
-    }
+    'unit': {'section': sectionId, 'lesson': lessonId, 'position': 1},
   });
 
   final unitId = createUnitResult!.id;
