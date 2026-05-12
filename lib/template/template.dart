@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:isolate';
 
 class Template {
@@ -10,7 +11,11 @@ class Template {
     print(code);
     print('```');
 
-    final uri = Uri.dataFromString(code, mimeType: 'application/dart');
+    final uri = Uri.dataFromString(
+      code,
+      mimeType: 'application/dart',
+      encoding: utf8,
+    );
     final receivePort = ReceivePort();
 
     await Isolate.spawnUri(uri, [], [receivePort.sendPort, model]);
