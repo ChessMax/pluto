@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:path/path.dart';
 import 'package:pluto/template/code_generator.dart';
 import 'package:pluto/template/lexer/lexer.dart';
 import 'package:pluto/template/node.dart';
@@ -14,7 +15,7 @@ abstract final class AssetTemplates {
   static Future<Template> _getTemplate(String path) async {
     final source = await readTextFile(path);
     final tokens = const Lexer().tokenize(source).toList();
-    final node =  const Parser().parse(tokens);
+    final node = const Parser().parse(tokens);
     final code = const CodeGenerator().generate(DocumentNode(node.toList()));
     final template = Template(code);
     return template;
@@ -32,5 +33,13 @@ extension AssetTemplateExtension on Future<Template> {
     final template = await this;
     final result = template.render(model);
     return result;
+  }
+
+  Future<void> renderToFile(String filePath, dynamic model) async {
+    final dir = dirname(filePath);
+    Directory(dir).createSync(recursive: true);
+    final file = File(filePath);
+    final data = await render(model);
+    file.writeAsStringSync(data);
   }
 }
