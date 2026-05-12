@@ -1,1 +1,25 @@
-@model.id
+---
+id: @model.id
+title: @model.title
+title_en: @model.title_en
+---
+
+<div id="target_audience">
+@model.target_audience
+</div>
+
+<div id="requirements">
+@model.requirements
+</div>
+
+<div id="description">
+@model.description
+</div>
+
+<div id="acquired_skills">
+@model.acquired_skills
+</div>
+
+<div id="acquired_assets">
+@model.acquired_assets
+</div>
