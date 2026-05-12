@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:intl/intl.dart';
 import 'package:path/path.dart';
+import 'package:pluto/assets/templates/asset_templates.dart';
 import 'package:pluto/data/json.dart';
 import 'package:pluto/stepik_api/raw_stepik_api.dart';
 
@@ -31,7 +32,14 @@ class ExportCourseCommand {
     // print(course);
 
     // save course
-    _writeJson([exportDir, '${courseId}_$exportTime', 'course.json'], course);
+    if (_format == .json) {
+      _writeJson([exportDir, '${courseId}_$exportTime', 'course.json'], course);
+    } else if (_format == .md) {
+      final courseMd = await AssetTemplates.course.render(course);
+      _writeString([exportDir, '${courseId}_$exportTime', 'course.md'], courseMd);
+    }
+
+    return;
 
     final sections = (await _api.section.fetchByIds(course.sections))!;
     assert(sections.length == course.sections.length);
@@ -129,11 +137,19 @@ class ExportCourseCommand {
 
   void _writeJson(List<String> path, JsonObject data) {
     try {
+      _writeString(path, _encoder.convert(data));
+    } catch (e) {
+      print('Failed to write file ($path) with error: $e');
+    }
+  }
+
+  void _writeString(List<String> path, String data) {
+    try {
       final filePath = joinAll(path);
       final dir = dirname(filePath);
       Directory(dir).createSync(recursive: true);
       final file = File(filePath);
-      file.writeAsStringSync(_encoder.convert(data));
+      file.writeAsStringSync(data);
     } catch (e) {
       print('Failed to write file ($path) with error: $e');
     }
