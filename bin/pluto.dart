@@ -7,6 +7,7 @@ import 'package:pluto/commands/command.dart';
 import 'package:pluto/commands/export_course_command.dart';
 import 'package:pluto/commands/init_course_command.dart';
 import 'package:pluto/commands/list_command.dart';
+import 'package:pluto/commands/version_command.dart';
 import 'package:pluto/data/client.dart';
 import 'package:pluto/data/interceptors/bearer_interceptor.dart';
 import 'package:pluto/env.dart';
@@ -23,6 +24,7 @@ const _stepikApiUrl = 'https://stepik.org';
 
 const _commands = <Command>[
   InitCourseCommand(),
+  VersionCommand(),
 ];
 
 void main(List<String> arguments) async {
@@ -31,6 +33,8 @@ void main(List<String> arguments) async {
     if (command.name == commandName) {
       if (command is InitCourseCommand) {
         await command.execute(arguments[1]);
+      } else if (command is VersionCommand) {
+        await command.execute();
       }
     }
   }
