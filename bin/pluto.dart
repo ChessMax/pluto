@@ -23,8 +23,9 @@ import 'package:analyzer/source/source.dart';
 const _stepikApiUrl = 'https://stepik.org';
 
 const _commands = <Command>[
-  InitCourseCommand(),
   VersionCommand(),
+
+  InitCourseCommand(),
 ];
 
 void main(List<String> arguments) async {

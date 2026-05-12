@@ -1,25 +1,42 @@
+<!-- title max 64 chars -->
 ---
 id: @model.id
 title: @model.title
 title_en: @model.title_en
 ---
 
-<div id="target_audience">
-@model.target_audience
+<!-- Краткое описание (от 100 до 512 символов) -->
+<div id="summary">
+@model.summary
 </div>
 
-<div id="requirements">
-@model.requirements
+<!-- Чему вы научитесь -->
+<!-- Каждый пункт начинайте с новой строки -->
+<div id="acquired_assets">
+@model.acquired_assets
 </div>
 
+<!-- О курсе -->
 <div id="description">
 @model.description
 </div>
 
-<div id="acquired_skills">
-@model.acquired_skills
+<!-- Для кого этот курс -->
+<div id="target_audience">
+@model.target_audience
 </div>
 
-<div id="acquired_assets">
-@model.acquired_assets
+<!-- Начальные требования -->
+<div id="requirements">
+@model.requirements
+</div>
+
+<!-- Как проходит обучение -->
+<div id="learning_format">
+@model.learning_format
+</div>
+
+<!-- Что вы получаете -->
+<div id="acquired_skills">
+@model.acquired_skills
 </div>
