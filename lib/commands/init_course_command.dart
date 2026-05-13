@@ -3,13 +3,18 @@ import 'dart:io';
 import 'package:path/path.dart';
 import 'package:pluto/assets/templates/asset_templates.dart';
 import 'package:pluto/commands/command.dart';
+import 'package:pluto/template/template.dart';
 
 class InitCourseCommand extends Command {
   const InitCourseCommand() : super('init');
 
   Future<void> execute(String name) async {
-    String relativePath(String part, [String? part2, String? part3, String? part4]) =>
-        join('.', name, part, part2, part3, part4);
+    String relativePath(
+      String part, [
+      String? part2,
+      String? part3,
+      String? part4,
+    ]) => join('.', name, part, part2, part3, part4);
 
     await run(['dart', 'create', name]);
     await run([
@@ -25,8 +30,18 @@ class InitCourseCommand extends Command {
 
     print('Creating course.md ...');
 
-    await AssetTemplates.course.renderToFile(
-      relativePath('source', 'course.md'),
+    final path = ['.', name, 'source'];
+
+    String getPath(String fileName) {
+      path.add(fileName);
+      final result = joinAll(path);
+      path.removeLast();
+      return result;
+    }
+
+    await renderToFile(
+      getPath('course.md'),
+      AssetTemplates.course,
       {
         'id': null,
         'title': name,
@@ -42,10 +57,20 @@ class InitCourseCommand extends Command {
       },
     );
 
-    print('Creating lesson.md ...');
+    path.add('section_01');
+    await renderToFile(getPath('section_01.md'), AssetTemplates.section, {
+      'id': null,
+      'course': null,
+      'units': const <int>[],
+      'position': 1,
+      'title': 'My section',
+    });
 
-    await AssetTemplates.lesson.renderToFile(
-      relativePath('source', '01', '01', 'lesson.md'),
+    path.add('lesson_01');
+
+    await renderToFile(
+      getPath('lesson_01.md'),
+      AssetTemplates.lesson,
       {
         'id': null,
         'title': 'My lesson',
@@ -54,6 +79,15 @@ class InitCourseCommand extends Command {
     );
 
     print('Course $name initialized');
+  }
+
+  Future<void> renderToFile(
+    String path,
+    Future<Template> template,
+    dynamic model,
+  ) async {
+    print('Creating `$path` ...');
+    await template.renderToFile(path, model);
   }
 
   Future<void> createDir(String path) async {

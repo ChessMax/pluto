@@ -1,0 +1,7 @@
+---
+id: @model.id
+course: @model.course
+units: @model.units
+position: @model.position
+title: @model.title
+---
