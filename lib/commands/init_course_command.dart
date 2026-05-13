@@ -71,7 +71,7 @@ class InitCourseCommand extends Command {
     );
     if (result.exitCode != 0) {
       print(result.stderr);
-      throw 'Command `command` failed with error code: ${result.exitCode}';
+      throw 'Command `$command` failed with error code: ${result.exitCode}';
     }
   }
 }
