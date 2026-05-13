@@ -1,0 +1,5 @@
+---
+id: @model.id
+title: @model.title
+steps: @model.steps
+---

@@ -8,9 +8,12 @@ import 'package:pluto/template/parser.dart';
 import 'package:pluto/template/template.dart';
 
 abstract final class AssetTemplates {
+  // TODO: package relative paths and reading?
   static const coursePath = 'assets/templates/course.md.template';
+  static const lessonPath = 'assets/templates/lesson.md.template';
 
   static final Future<Template> course = _getTemplate(coursePath);
+  static final Future<Template> lesson = _getTemplate(lessonPath);
 
   static Future<Template> _getTemplate(String path) async {
     final source = await readTextFile(path);

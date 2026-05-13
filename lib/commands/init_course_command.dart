@@ -8,8 +8,8 @@ class InitCourseCommand extends Command {
   const InitCourseCommand() : super('init');
 
   Future<void> execute(String name) async {
-    String relativePath(String part, [String? part2]) =>
-        join('.', name, part, part2);
+    String relativePath(String part, [String? part2, String? part3, String? part4]) =>
+        join('.', name, part, part2, part3, part4);
 
     await run(['dart', 'create', name]);
     await run([
@@ -38,6 +38,18 @@ class InitCourseCommand extends Command {
         'requirements': '',
         'learning_format': '',
         'acquired_skills': '',
+        'sections': const <int>[],
+      },
+    );
+
+    print('Creating lesson.md ...');
+
+    await AssetTemplates.lesson.renderToFile(
+      relativePath('source', '01', '01', 'lesson.md'),
+      {
+        'id': null,
+        'title': 'My lesson',
+        'steps': const <int>[],
       },
     );
 

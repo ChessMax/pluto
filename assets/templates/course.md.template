@@ -3,6 +3,7 @@ id: @model.id
 # title max 64 chars
 title: @model.title
 title_en: @model.title_en
+sections: @model.sections
 ---
 
 <!-- Краткое описание (от 100 до 512 символов) -->
