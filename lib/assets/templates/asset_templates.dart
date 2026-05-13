@@ -12,9 +12,11 @@ abstract final class AssetTemplates {
   static const coursePath = 'assets/templates/course.md.template';
   static const sectionPath = 'assets/templates/section.md.template';
   static const lessonPath = 'assets/templates/lesson.md.template';
+  static const unitPath = 'assets/templates/unit.md.template';
 
   static final Future<Template> course = _getTemplate(coursePath);
   static final Future<Template> section = _getTemplate(sectionPath);
+  static final Future<Template> unit = _getTemplate(unitPath);
   static final Future<Template> lesson = _getTemplate(lessonPath);
 
   static Future<Template> _getTemplate(String path) async {

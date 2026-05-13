@@ -66,7 +66,14 @@ class InitCourseCommand extends Command {
       'title': 'My section',
     });
 
-    path.add('lesson_01');
+    path.add('unit_01');
+
+    await renderToFile(getPath('unit_01.md'), AssetTemplates.unit, {
+      'id': null,
+      'section': null,
+      'lesson': null,
+      'position': 1,
+    });
 
     await renderToFile(
       getPath('lesson_01.md'),
