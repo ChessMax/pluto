@@ -46,6 +46,11 @@ void main() {
     expect(result, ['\n']);
   });
 
+  test('Should work properly with html comment', (){
+    final result = parse('<!-- html comment -->');
+    expect(result, ['<!-- html comment -->']);
+  });
+
   test('lexer', () async {
     final result = parse('Hello, world!');
     expect(result, ['Hello, world!']);

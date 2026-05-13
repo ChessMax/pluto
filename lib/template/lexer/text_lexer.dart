@@ -21,6 +21,8 @@ class TextLexer {
     String? readText() {
       final text = source2.readWhile(
         (source) => switch (source.peak()) {
+          // <!--
+          '<' when source.peakNext() == '!' => 1,
           '<' || '}' => 0,
           '@' when source.peakNext() == '@' => 0,
           '@' when source.peakNext() == 'i' && source.peakNextNext() == 'f' =>
@@ -87,8 +89,9 @@ class TextLexer {
           yield* const IfStatementLexer().tokenize(source2);
           break;
         case '@':
-          if (source2.peakNext()?.isIdentifierStart != true)
+          if (source2.peakNext()?.isIdentifierStart != true) {
             throw 'Expected implicit expression';
+          }
           yield* const ImplicitExpressionLexer().tokenize(source2);
           continue loop;
         case null:
