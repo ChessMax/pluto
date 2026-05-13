@@ -11,6 +11,13 @@ void main() {
   String codeGen(String source) => CodeGenerator().generate(p(source));
   Template getTemplate(String source) => Template(codeGen(source));
 
+  test('russian words should work properly', () async {
+    final template = getTemplate('Краткость сестра таланта');
+    final actual = await template.render(null);
+
+    expect(actual, 'Краткость сестра таланта');
+  });
+
   test('implicit expression should return correct values 1', () async {
     final template = getTemplate('<p>@model</p>');
     final result = await template.render('Ivan');
