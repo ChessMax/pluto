@@ -1,6 +1,6 @@
-<!-- title max 64 chars -->
 ---
 id: @model.id
+# title max 64 chars
 title: @model.title
 title_en: @model.title_en
 ---
