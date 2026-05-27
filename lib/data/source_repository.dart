@@ -50,7 +50,9 @@ class SourceRepository {
   }
 
   Future<Lesson> readLesson(String dirPath, int position) async {
-    final steps = await _readEntities(dirPath, _stepFileRegExp, readStep);
+    final steps = await _readEntities(dirPath, _stepFileRegExp, readStep)
+      ..sort((a, b) => a.position.compareTo(b.position));
+    ;
 
     final position = _unitDirRegExp.validateAndParsePosition(dirPath);
     final (frontMatter, content) = await File(
@@ -82,7 +84,9 @@ class SourceRepository {
   }
 
   Future<Section> readSection(String dirPath, int position) async {
-    final units = await _readEntities(dirPath, _unitDirRegExp, readUnit);
+    final units = await _readEntities(dirPath, _unitDirRegExp, readUnit)
+      ..sort((a, b) => a.position.compareTo(b.position));
+    ;
 
     final (frontMatter, content) = await File(
       join(dirPath, '${basename(dirPath)}.md'),
@@ -99,11 +103,13 @@ class SourceRepository {
   }
 
   Future<Course> readCourse(String dirPath) async {
-    final sections = await _readEntities(
-      dirPath,
-      _sectionDirRegExp,
-      readSection,
-    );
+    final sections =
+        await _readEntities(
+            dirPath,
+            _sectionDirRegExp,
+            readSection,
+          )
+          ..sort((a, b) => a.position.compareTo(b.position));
 
     final (frontMatter, content) = await File(
       join(dirPath, 'course.md'),
