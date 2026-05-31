@@ -7,6 +7,7 @@ import 'package:pluto/domain/section.dart';
 import 'package:pluto/domain/step.dart';
 import 'package:pluto/domain/unit.dart';
 import 'package:yaml/yaml.dart';
+import 'package:markdown/markdown.dart' as md;
 
 class SourceRepository {
   static final _sectionDirRegExp = RegExp(r'^section_(\d+)$');
@@ -115,19 +116,48 @@ class SourceRepository {
       join(dirPath, 'course.md'),
     ).readMd();
 
+    Map<String, String?> readFields() {
+      final result = <String, String?>{};
+
+      final document = md.Document();
+      final blocks = document.parse(content);
+
+      for (final element in blocks) {
+        if (element is md.Element && element.tag == 'pre') {
+          final codeElement = element.children?.firstOrNull as md.Element?;
+          if (codeElement != null && codeElement.tag == 'code') {
+            final classAttribute = codeElement.attributes['class'];
+            if (classAttribute != null &&
+                classAttribute.startsWith('language-')) {
+              final field = classAttribute.substring(
+                classAttribute.indexOf('language-') + 9,
+              );
+              final textElement = codeElement.children?.firstOrNull as md.Text;
+              if (field.isNotEmpty) {
+                result[field] = textElement.text;
+              }
+            }
+          }
+        }
+      }
+
+      return result;
+    }
+
+    final blockFields = readFields();
+
     final course = Course(
       id: frontMatter['id'] as int?,
       title: frontMatter['title'] as String,
-      // TODO: other fields,
       titleEn: frontMatter['titleEn'] as String?,
       sections: sections,
-      // summary: frontMatter['summary'] as String?,
-      // acquiredAssets: frontMatter['acquiredAssets'] as String?,
-      // description: frontMatter['description'] as String?,
-      // targetAudience: frontMatter['targetAudience'] as String?,
-      // requirements: frontMatter['requirements'] as String?,
-      // learningFormat: frontMatter['learningFormat'] as String?,
-      // acquiredSkills: frontMatter['acquiredSkills'] as String?,
+      summary: frontMatter['summary'] as String?,
+      acquiredAssets: blockFields['acquiredAssets'],
+      description: blockFields['description'],
+      targetAudience: blockFields['targetAudience'],
+      requirements: blockFields['requirements'],
+      learningFormat: blockFields['learningFormat'],
+      acquiredSkills: blockFields['acquiredSkills'],
     );
 
     return course;
