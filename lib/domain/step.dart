@@ -4,6 +4,14 @@ class Step {
   final StepBlock block;
 
   Step({required this.id, required this.position, required this.block});
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'position' : position,
+      'block': block.toJson(),
+    };
+  }
 }
 
 enum StepBlockType {
@@ -19,4 +27,11 @@ class StepBlock {
   final String text;
 
   StepBlock({required this.name, required this.text});
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name.name,
+      'text' : text,
+    };
+  }
 }

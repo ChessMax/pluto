@@ -6,4 +6,12 @@ class Lesson {
   final List<Step> steps;
 
   Lesson({required this.id, required this.title, required this.steps});
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'steps': steps.map((step) => step.toJson()).toList(),
+    };
+  }
 }

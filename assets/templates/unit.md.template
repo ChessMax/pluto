@@ -1,6 +1,4 @@
 ---
 id: @model.id
-section: @model.section
-lesson: @model.lesson
 position: @model.position
 ---

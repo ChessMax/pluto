@@ -14,4 +14,14 @@ class Section {
     required this.description,
     required this.title,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'units': units.map((unit) => unit.toJson()).toList(),
+      'position': position,
+      'description': description,
+    };
+  }
 }

@@ -1,0 +1,9 @@
+---
+id: @model.id
+position: @model.position
+block:
+    name: @model.block.name
+---
+
+```block.text
+@model.block.text```

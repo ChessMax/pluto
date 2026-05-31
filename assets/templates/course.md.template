@@ -2,42 +2,34 @@
 id: @model.id
 # title max 64 chars
 title: @model.title
-title_en: @model.title_en
-sections: @model.sections
+title_en: @model.titleEn
 ---
 
 <!-- Краткое описание (от 100 до 512 символов) -->
 ```summary
-@model.summary
-```
+@model.summary```
 
 <!-- Чему вы научитесь -->
 <!-- Каждый пункт начинайте с новой строки -->
 ```acquired_assets
-@model.acquired_assets
-```
+@model.acquiredAssets```
 
 <!-- О курсе -->
 ```description
-@model.description
-```
+@model.description```
 
 <!-- Для кого этот курс -->
 ```target_audience
-@model.target_audience
-```
+@model.targetAudience```
 
 <!-- Начальные требования -->
 ```requirements
-@model.requirements
-```
+@model.requirements```
 
 <!-- Как проходит обучение -->
 ```learning_format
-@model.learning_format
-```
+@model.learningFormat```
 
 <!-- Что вы получаете -->
 ```acquired_skills
-@model.acquired_skills
-```
+@model.acquiredSkills```

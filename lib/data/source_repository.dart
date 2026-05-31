@@ -1,11 +1,13 @@
 import 'dart:io';
 
 import 'package:path/path.dart';
+import 'package:pluto/assets/templates/asset_templates.dart';
 import 'package:pluto/domain/course.dart';
 import 'package:pluto/domain/lesson.dart';
 import 'package:pluto/domain/section.dart';
 import 'package:pluto/domain/step.dart';
 import 'package:pluto/domain/unit.dart';
+import 'package:pluto/template/template.dart';
 import 'package:yaml/yaml.dart';
 import 'package:markdown/markdown.dart' as md;
 
@@ -15,6 +17,34 @@ class SourceRepository {
   static final _stepFileRegExp = RegExp(r'^step_(\d+).md$');
 
   const SourceRepository();
+
+  Map<String, String?> _readFields(String content) {
+    final result = <String, String?>{};
+
+    final document = md.Document();
+    final blocks = document.parse(content);
+
+    for (final element in blocks) {
+      if (element is md.Element && element.tag == 'pre') {
+        final codeElement = element.children?.firstOrNull as md.Element?;
+        if (codeElement != null && codeElement.tag == 'code') {
+          final classAttribute = codeElement.attributes['class'];
+          if (classAttribute != null &&
+              classAttribute.startsWith('language-')) {
+            final field = classAttribute.substring(
+              classAttribute.indexOf('language-') + 9,
+            );
+            final textElement = codeElement.children?.firstOrNull as md.Text;
+            if (field.isNotEmpty) {
+              result[field] = textElement.text;
+            }
+          }
+        }
+      }
+    }
+
+    return result;
+  }
 
   Future<List<T>> _readEntities<T>(
     String dirPath,
@@ -38,12 +68,14 @@ class SourceRepository {
   Future<Step> readStep(String filePath, int position) async {
     final (frontMatter, content) = await File(filePath).readMd();
 
+    final blockFields = _readFields(content);
+
     final step = Step(
       id: frontMatter['id'] as int?,
       position: position,
       block: StepBlock(
         name: .parse(frontMatter['block']['name'] as String),
-        text: frontMatter['block']['text'] as String,
+        text: blockFields['block.text'] ?? '',
       ),
     );
 
@@ -87,7 +119,6 @@ class SourceRepository {
   Future<Section> readSection(String dirPath, int position) async {
     final units = await _readEntities(dirPath, _unitDirRegExp, readUnit)
       ..sort((a, b) => a.position.compareTo(b.position));
-    ;
 
     final (frontMatter, content) = await File(
       join(dirPath, '${basename(dirPath)}.md'),
@@ -104,6 +135,8 @@ class SourceRepository {
   }
 
   Future<Course> readCourse(String dirPath) async {
+    dirPath = join(dirPath, 'source');
+
     final sections =
         await _readEntities(
             dirPath,
@@ -116,51 +149,101 @@ class SourceRepository {
       join(dirPath, 'course.md'),
     ).readMd();
 
-    Map<String, String?> readFields() {
-      final result = <String, String?>{};
-
-      final document = md.Document();
-      final blocks = document.parse(content);
-
-      for (final element in blocks) {
-        if (element is md.Element && element.tag == 'pre') {
-          final codeElement = element.children?.firstOrNull as md.Element?;
-          if (codeElement != null && codeElement.tag == 'code') {
-            final classAttribute = codeElement.attributes['class'];
-            if (classAttribute != null &&
-                classAttribute.startsWith('language-')) {
-              final field = classAttribute.substring(
-                classAttribute.indexOf('language-') + 9,
-              );
-              final textElement = codeElement.children?.firstOrNull as md.Text;
-              if (field.isNotEmpty) {
-                result[field] = textElement.text;
-              }
-            }
-          }
-        }
-      }
-
-      return result;
-    }
-
-    final blockFields = readFields();
+    final blockFields = _readFields(content);
 
     final course = Course(
       id: frontMatter['id'] as int?,
       title: frontMatter['title'] as String,
-      titleEn: frontMatter['titleEn'] as String?,
+      titleEn: frontMatter['title_en'] as String?,
       sections: sections,
-      summary: frontMatter['summary'] as String?,
-      acquiredAssets: blockFields['acquiredAssets'],
+      summary: blockFields['summary'],
+      acquiredAssets: blockFields['acquired_assets'],
       description: blockFields['description'],
-      targetAudience: blockFields['targetAudience'],
+      targetAudience: blockFields['target_audience'],
       requirements: blockFields['requirements'],
-      learningFormat: blockFields['learningFormat'],
-      acquiredSkills: blockFields['acquiredSkills'],
+      learningFormat: blockFields['learning_format'],
+      acquiredSkills: blockFields['acquired_skills'],
     );
 
     return course;
+  }
+
+  Future<void> _writeEntities<T>(
+    String dirPath,
+    List<T> entities,
+    Future<void> Function(T entity, String dirPath) writeEntity,
+  ) async {
+    for (final entity in entities) {
+      await writeEntity(entity, dirPath);
+    }
+  }
+
+  Future<void> writeStep(Step step, String dirPath) async {
+    final stepName = 'step_${step.position.toString().padLeft(2, '0')}';
+    final stepPath = join(dirPath, '$stepName.md');
+    final model = step.toJson();
+
+    await renderToFile(
+      stepPath,
+      AssetTemplates.step,
+      model,
+    );
+  }
+
+  Future<void> writeLesson(Lesson lesson, String dirPath, int position) async {
+    await _writeEntities(dirPath, lesson.steps, writeStep);
+
+    await renderToFile(
+      join(dirPath, 'lesson_${position.toString().padLeft(2, '0')}.md'),
+      AssetTemplates.lesson,
+      lesson.toJson(),
+    );
+  }
+
+  Future<void> writeUnit(Unit unit, String sectionDirPath) async {
+    final unitName = 'unit_${unit.position.toString().padLeft(2, '0')}';
+
+    final unitDirPath = join(sectionDirPath, unitName);
+    await writeLesson(unit.lesson, unitDirPath, unit.position);
+
+    await renderToFile(
+      join(unitDirPath, '$unitName.md'),
+      AssetTemplates.unit,
+      unit.toJson(),
+    );
+  }
+
+  Future<void> writeSection(Section section, String dirPath) async {
+    final sectionName =
+        'section_${section.position.toString().padLeft(2, '0')}';
+    final sectionDirPath = join(dirPath, sectionName);
+    await _writeEntities(sectionDirPath, section.units, writeUnit);
+
+    await renderToFile(
+      join(sectionDirPath, '$sectionName.md'),
+      AssetTemplates.section,
+      section.toJson(),
+    );
+  }
+
+  Future<void> writeCourse(Course course, String dirPath) async {
+    final sourceDirPath = join(dirPath, 'source');
+
+    await _writeEntities(sourceDirPath, course.sections, writeSection);
+
+    final coursePath = join(sourceDirPath, 'course.md');
+    final model = course.toJson();
+
+    await renderToFile(coursePath, AssetTemplates.course, model);
+  }
+
+  Future<void> renderToFile(
+    String path,
+    Future<Template> template,
+    dynamic model,
+  ) async {
+    print('Creating `$path` ...');
+    await template.renderToFile(path, model);
   }
 }
 

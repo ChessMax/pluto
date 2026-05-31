@@ -9,7 +9,14 @@ class MapView {
   dynamic noSuchMethod(Invocation invocation) {
     if (invocation.isGetter) {
       final name = _symbolToString(invocation.memberName);
-      if (_data.containsKey(name)) return _data[name];
+      if (_data.containsKey(name)) {
+        final value = _data[name];
+        if (value != null && value is Map<String, dynamic>) {
+          return MapView(value);
+        }
+
+        return value;
+      }
     }
     return super.noSuchMethod(invocation);
   }

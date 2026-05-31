@@ -4,7 +4,7 @@ class Course {
   final int? id;
   final String title;
   final String? titleEn;
-  final List<Section>? sections;
+  final List<Section> sections;
 
   final String? summary;
   final String? acquiredAssets;
@@ -19,7 +19,7 @@ class Course {
     required this.id,
     required this.title,
     this.titleEn,
-    this.sections,
+    this.sections = const [],
     this.summary,
     this.acquiredAssets,
     this.description,
@@ -28,4 +28,20 @@ class Course {
     this.learningFormat,
     this.acquiredSkills,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'titleEn': titleEn,
+      'sections': sections.map((section) => section.toJson()).toList(),
+      'summary': summary,
+      'acquiredAssets': acquiredAssets,
+      'description': description,
+      'targetAudience': targetAudience,
+      'requirements': requirements,
+      'learningFormat': learningFormat,
+      'acquiredSkills': acquiredSkills,
+    };
+  }
 }
