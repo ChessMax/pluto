@@ -48,7 +48,7 @@ class CourseDto {
 
   // final List<SectionDto> sections;
   final int totalUnits;
-  final int enrollment;
+  final int? enrollment;
   final bool isFavorite;
 
   // "actions": {
@@ -116,7 +116,7 @@ class CourseDto {
   //   }
   // },
   // "78-274156"
-  final String progress;
+  final String? progress;
   final dynamic? firstLesson;
   final dynamic? firstUnit;
 
@@ -124,7 +124,7 @@ class CourseDto {
   // final String certificateRegularLink;
   // final String certificateDistinctionLink;
   final String? userCertificate;
-  final String referralLink;
+  final String? referralLink;
 
   // final String scheduleLink;
   // final String scheduleLongLink;

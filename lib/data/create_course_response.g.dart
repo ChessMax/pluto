@@ -44,13 +44,13 @@ CourseDto _$CourseDtoFromJson(Map<String, dynamic> json) => CourseDto(
       .map((e) => (e as num).toInt())
       .toList(),
   totalUnits: (json['total_units'] as num).toInt(),
-  enrollment: (json['enrollment'] as num).toInt(),
+  enrollment: (json['enrollment'] as num?)?.toInt(),
   isFavorite: json['is_favorite'] as bool,
-  progress: json['progress'] as String,
+  progress: json['progress'] as String?,
   firstLesson: json['first_lesson'],
   firstUnit: json['first_unit'],
   userCertificate: json['user_certificate'] as String?,
-  referralLink: json['referral_link'] as String,
+  referralLink: json['referral_link'] as String?,
   subscriptions: (json['subscriptions'] as List<dynamic>)
       .map((e) => e as String)
       .toList(),

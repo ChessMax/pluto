@@ -9,9 +9,11 @@ import 'package:pluto/commands/command.dart';
 import 'package:pluto/commands/copy_command.dart';
 import 'package:pluto/commands/export_course_command.dart';
 import 'package:pluto/commands/init/init_course_command.dart';
-import 'package:pluto/commands/list_command.dart';
+import 'package:pluto/commands/stepik/stepik_command.dart';
+import 'package:pluto/commands/stepik/stepik_list_command.dart';
 import 'package:pluto/commands/version_command.dart';
 import 'package:pluto/data/client.dart';
+import 'package:pluto/data/initialize_stepik_client.dart';
 import 'package:pluto/data/interceptors/bearer_interceptor.dart';
 import 'package:pluto/data/source_repository.dart';
 import 'package:pluto/env.dart';
@@ -24,7 +26,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
 
-const _stepikApiUrl = 'https://stepik.org';
+
 
 const _commands = <Command>[
   VersionCommand(),
@@ -35,7 +37,8 @@ const _commands = <Command>[
 void main(List<String> arguments) async {
   final runner = args.CommandRunner<void>("pluto", "Static course generator for stepik.org.")
     ..addCommand(CopyCommand())
-    ..addCommand(InitCourseCommand());
+    ..addCommand(InitCourseCommand())
+    ..addCommand(StepikCommand());
   await runner.run(arguments);
 
   return;
@@ -60,37 +63,11 @@ void main(List<String> arguments) async {
   }
 
   return;
-  final stepikDio = Dio(
-    BaseOptions(
-      baseUrl: _stepikApiUrl,
-      contentType: Headers.jsonContentType,
-      responseType: ResponseType.json,
-    ),
-  );
-  stepikDio.interceptors.add(
-    TalkerDioLogger(
-      settings: const TalkerDioLoggerSettings(
-        printRequestHeaders: true,
-        // printResponseHeaders: true,
-        printResponseMessage: true,
-      ),
-    ),
-  );
-  final client = StepikClient(stepikDio);
-  final tokenResult = await client.getToken(
-    Env.stepikClientId,
-    Env.stepikClientSecret,
-  );
 
-  final token = tokenResult.toNullable();
-  if (token == null) {
-    throw 'Failed to get token';
-  }
+  final r = await initializeStepikClient();
 
-  stepikDio.interceptors.add(BearerInterceptor(token.accessToken));
-
-  final api = StepikApi(stepikDio);
-  final rawApi = RawStepikApi(stepikDio);
+  final api = r.api;
+  final rawApi = r.rawApi;
 
   // final courseTemplate = await AssetTemplates.course;
   // print(await courseTemplate.render({'id': '1234', 'title': 'Практический курс \'\'\'Dart\'\'\'', 'title_en':'Practical course'}));
