@@ -85,7 +85,6 @@ class SourceRepository {
   Future<Lesson> readLesson(String dirPath, int position) async {
     final steps = await _readEntities(dirPath, _stepFileRegExp, readStep)
       ..sort((a, b) => a.position.compareTo(b.position));
-    ;
 
     final position = _unitDirRegExp.validateAndParsePosition(dirPath);
     final (frontMatter, content) = await File(

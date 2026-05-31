@@ -1,15 +1,19 @@
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:args/command_runner.dart' as args;
 import 'package:dio/dio.dart';
+import 'package:path/path.dart';
 import 'package:pluto/assets/templates/asset_templates.dart';
 import 'package:pluto/commands/command.dart';
+import 'package:pluto/commands/copy_command.dart';
 import 'package:pluto/commands/export_course_command.dart';
-import 'package:pluto/commands/init_course_command.dart';
+import 'package:pluto/commands/init/init_course_command.dart';
 import 'package:pluto/commands/list_command.dart';
 import 'package:pluto/commands/version_command.dart';
 import 'package:pluto/data/client.dart';
 import 'package:pluto/data/interceptors/bearer_interceptor.dart';
+import 'package:pluto/data/source_repository.dart';
 import 'package:pluto/env.dart';
 import 'package:pluto/stepik_api/raw_stepik_api.dart';
 import 'package:pluto/stepik_api/stepik_api.dart';
@@ -25,15 +29,30 @@ const _stepikApiUrl = 'https://stepik.org';
 const _commands = <Command>[
   VersionCommand(),
 
-  InitCourseCommand(),
+  // InitCourseCommand(),
 ];
 
 void main(List<String> arguments) async {
+  final runner = args.CommandRunner<void>("pluto", "Static course generator for stepik.org.")
+    ..addCommand(CopyCommand())
+    ..addCommand(InitCourseCommand());
+  await runner.run(arguments);
+
+  return;
+  final c = await const SourceRepository().readCourse(join('.', 'my_second_course'));
+  print('Course.id: ${c.id}');
+  print('Course.title: ${c.title}');
+  print('Course.desc: ${c.description}');
+
+  await const SourceRepository().writeCourse(c, join('.', 'my_third_course'));
+
+  return;
+  //
   final commandName = arguments.first;
   for (final command in _commands) {
     if (command.name == commandName) {
       if (command is InitCourseCommand) {
-        await command.execute(arguments[1]);
+        // await command.execute(arguments[1]);
       } else if (command is VersionCommand) {
         await command.execute();
       }

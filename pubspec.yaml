@@ -9,6 +9,7 @@ environment:
 # Add regular dependencies here.
 dependencies:
   analyzer: ^12.1.0
+  args: ^2.7.0
   code_builder: ^4.11.1
   dio: ^5.9.1
   equatable: ^2.0.8
