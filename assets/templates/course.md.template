@@ -7,37 +7,37 @@ sections: @model.sections
 ---
 
 <!-- Краткое описание (от 100 до 512 символов) -->
-<div id="summary">
+```summary
 @model.summary
-</div>
+```
 
 <!-- Чему вы научитесь -->
 <!-- Каждый пункт начинайте с новой строки -->
-<div id="acquired_assets">
+```acquired_assets
 @model.acquired_assets
-</div>
+```
 
 <!-- О курсе -->
-<div id="description">
+```description
 @model.description
-</div>
+```
 
 <!-- Для кого этот курс -->
-<div id="target_audience">
+```target_audience
 @model.target_audience
-</div>
+```
 
 <!-- Начальные требования -->
-<div id="requirements">
+```requirements
 @model.requirements
-</div>
+```
 
 <!-- Как проходит обучение -->
-<div id="learning_format">
+```learning_format
 @model.learning_format
-</div>
+```
 
 <!-- Что вы получаете -->
-<div id="acquired_skills">
+```acquired_skills
 @model.acquired_skills
-</div>
+```
