@@ -29,6 +29,34 @@ class Course {
     this.acquiredSkills,
   });
 
+  Course copyWith({
+    int? id,
+    String? title,
+    String? titleEn,
+    List<Section>? sections,
+    String? summary,
+    String? acquiredAssets,
+    String? description,
+    String? targetAudience,
+    String? requirements,
+    String? learningFormat,
+    String? acquiredSkills,
+  }) {
+    return Course(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      titleEn: titleEn ?? this.titleEn,
+      sections: sections ?? this.sections,
+      summary: summary ?? this.summary,
+      acquiredAssets: acquiredAssets ?? this.acquiredAssets,
+      description: description ?? this.description,
+      targetAudience: targetAudience ?? this.targetAudience,
+      requirements: requirements ?? this.requirements,
+      learningFormat: learningFormat ?? this.learningFormat,
+      acquiredSkills: acquiredSkills ?? this.acquiredSkills,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
