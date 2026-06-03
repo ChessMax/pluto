@@ -24,7 +24,8 @@ class PushCourseCommand extends Command<void> {
   Future<void> run() async {
     final courseDir = argResults!.rest[0];
 
-    final localCourse = await const SourceRepository().readCourse(courseDir);
+    const sourceRepository =   SourceRepository();
+    final localCourse = await sourceRepository.readCourse(courseDir);
     final courseId = localCourse.id;
 
     final rawApi = (await initializeStepikClient()).rawApi;
@@ -33,6 +34,11 @@ class PushCourseCommand extends Command<void> {
     // updating
     if (courseId != null) {
       final remoteCourse = await stepikRepository.readCourse(courseId);
+      final course = await stepikRepository.updateCourse(remoteCourse, localCourse);
+
+      await sourceRepository.writeCourse(course, courseDir);
+
+      print('--> Course updated. Check https://stepik.org/course/$courseId');
     } else {
       // creating new course
       final course = await stepikRepository.writeCourse(localCourse);

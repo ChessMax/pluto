@@ -110,5 +110,7 @@ class StepikRepository {
     return course;
   }
 
-  Future<void> updateCourse(CourseEntity entity, Course course) async {}
+  Future<Course> updateCourse(CourseEntity entity, Course course) async {
+    throw 'Unimplemented';
+  }
 }
