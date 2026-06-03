@@ -11,7 +11,7 @@ import 'package:pluto/domain/unit.dart';
 
 class InitCourseCommand extends Command<void> {
   @override
-  String get name => 'init';
+  String get name => 'course';
 
   @override
   String get description => 'Initialize course directory';

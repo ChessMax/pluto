@@ -13,7 +13,7 @@ class RawStepikEntity<T> {
 
   Future<T?> create(JsonObject value) async {
     final result = await _api.client.postRequest(
-      data: value,
+      data: {_name: value},
       '/api/$_name',
       (value) => _parseListResponse(value, _name, _parse).items.first,
     );
@@ -32,8 +32,8 @@ class RawStepikEntity<T> {
   Future<List<T>?> fetchByIds(List<int> entityIds) async {
     final result = await _api.client.getRequest(
       '/api/$_name',
-          (value) => _parseListResponse(value, _name, _parse).items,
-      queryParameters: { 'ids[]': entityIds },
+      (value) => _parseListResponse(value, _name, _parse).items,
+      queryParameters: {'ids[]': entityIds},
     );
     return result.toNullable();
   }

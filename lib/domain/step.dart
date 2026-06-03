@@ -12,6 +12,15 @@ class Step {
       'block': block.toJson(),
     };
   }
+
+  Map<String, dynamic> toDto(int lessonId) {
+    return {
+      if (id != null) 'id': id,
+      'position' : position,
+      'block': block.toDto(),
+      'lessonId': lessonId,
+    };
+  }
 }
 
 enum StepBlockType {
@@ -29,6 +38,13 @@ class StepBlock {
   StepBlock({required this.name, required this.text});
 
   Map<String, dynamic> toJson() {
+    return {
+      'name': name.name,
+      'text' : text,
+    };
+  }
+
+  Map<String, dynamic> toDto() {
     return {
       'name': name.name,
       'text' : text,

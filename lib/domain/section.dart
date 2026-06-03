@@ -24,4 +24,19 @@ class Section {
       'description': description,
     };
   }
+
+  Map<String, dynamic> toDto(int courseId) {
+    return {
+      if (id != null) 'id': id,
+      'title': title,
+      'units':[
+        for (final unit in units) {
+          if (unit.id != null) unit.id,
+        }
+      ],
+      'courseId': courseId,
+      'position': position,
+      'description': description,
+    };
+  }
 }

@@ -14,4 +14,15 @@ class Lesson {
       'steps': steps.map((step) => step.toJson()).toList(),
     };
   }
+
+  Map<String, dynamic> toDto() {
+    return {
+      if (id != null) 'id': id,
+      'title': title,
+      'steps': [
+        for (final step in steps)
+          if (step.id != null) step.id,
+      ],
+    };
+  }
 }

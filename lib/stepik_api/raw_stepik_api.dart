@@ -13,12 +13,36 @@ class RawStepikApi {
 
   final Dio _client;
 
-  late final RawStepikEntity<RawLessonDto> lesson = .new(this, 'lesson', RawLessonDto.fromJson);
-  late final RawStepikEntity<RawStepDto> step = .new(this, 'step', RawStepDto.fromJson);
-  late final RawStepikEntity<RawStepSourceDto> stepSource = .new(this, 'step-source', RawStepSourceDto.fromJson);
-  late final RawStepikEntity<RawCourseDto> course = .new(this, 'course', RawCourseDto.fromJson);
-  late final RawStepikEntity<RawSectionDto> section = .new(this, 'section', RawSectionDto.fromJson);
-  late final RawStepikEntity<RawUnitDto> unit = .new(this, 'unit', RawUnitDto.fromJson);
+  late final RawStepikEntity<RawLessonDto> lesson = .new(
+    this,
+    'lesson',
+    RawLessonDto.fromJson,
+  );
+  late final RawStepikEntity<RawStepDto> step = .new(
+    this,
+    'step',
+    RawStepDto.fromJson,
+  );
+  late final RawStepikEntity<RawStepSourceDto> stepSource = .new(
+    this,
+    'step-source',
+    RawStepSourceDto.fromJson,
+  );
+  late final RawStepikEntity<RawCourseDto> course = .new(
+    this,
+    'course',
+    RawCourseDto.fromJson,
+  );
+  late final RawStepikEntity<RawSectionDto> section = .new(
+    this,
+    'section',
+    RawSectionDto.fromJson,
+  );
+  late final RawStepikEntity<RawUnitDto> unit = .new(
+    this,
+    'unit',
+    RawUnitDto.fromJson,
+  );
 
   RawStepikApi(this._client);
 
@@ -44,9 +68,13 @@ extension type RawCourseDto(JsonObject value) implements JsonObject {
 
 extension type RawSectionDto(JsonObject value) implements JsonObject {
   int get id => value['id'] as int;
+
   String get title => value['title'] as String;
+
   List<int> get units => getList('units');
+
   int get position => value['position'] as int;
+
   int get course => value['course'] as int;
 
   static RawSectionDto fromJson(JsonObject value) => RawSectionDto(value);
@@ -54,8 +82,11 @@ extension type RawSectionDto(JsonObject value) implements JsonObject {
 
 extension type RawUnitDto(JsonObject value) implements JsonObject {
   int get id => value['id'] as int;
+
   int get lesson => value['lesson'] as int;
+
   int get position => value['position'] as int;
+
   int get section => value['section'] as int;
 
   static RawUnitDto fromJson(JsonObject value) => RawUnitDto(value);
@@ -68,7 +99,14 @@ extension type RawLessonDto(JsonObject value) implements JsonObject {
   bool get isPublic => value['is_public'] as bool;
   String get language => value['language'] as String;
 
-  static RawLessonDto fromJson(JsonObject value) => RawLessonDto(value);
+  static RawLessonDto fromJson(JsonObject value) {
+    value.readInt('id');
+    value.readBool('is_public');
+    value.readString('title');
+    value.readString('language');
+
+    return RawLessonDto(value);
+  }
 }
 
 extension type RawStepSourceDto(JsonObject value) implements JsonObject {
@@ -89,7 +127,6 @@ extension type RawStepSourceBlockDto(JsonObject value) implements JsonObject {
   static RawStepSourceDto fromJson(JsonObject value) => RawStepSourceDto(value);
 }
 
-
 extension type RawStepDto(JsonObject value) implements JsonObject {
   int get id => value['id'] as int;
 
@@ -97,5 +134,56 @@ extension type RawStepDto(JsonObject value) implements JsonObject {
 }
 
 extension on JsonObject {
+  int readInt(String name) => this[name] as int;
+
+  bool readBool(String name) => this[name] as bool;
+
+  String readString(String name) => this[name] as String;
+
+  // List<T> readList<T>(String name, T Function(JsonObject item) cast) =>
+  //     (this[name] as List<dynamic>).cast().;
   List<int> getList(String name) => (this[name] as List<dynamic>).cast();
+}
+
+class JsonProperty<T> {
+  final String name;
+
+  JsonProperty(this.name);
+
+}
+
+abstract class JsonScheme {
+  final List<JsonProperty<dynamic>> properties = [];
+
+  JsonProperty<T> property<T>(String name) {
+    final property = JsonProperty<T>(name);
+    properties.add(property);
+    return property;
+  }
+
+  JsonProperty<int> intProperty(String name) {
+    final property = JsonProperty<int>(name);
+    properties.add(property);
+    return property;
+  }
+
+  JsonProperty<bool> boolProperty(String name) {
+    final property = JsonProperty<bool>(name);
+    properties.add(property);
+    return property;
+  }
+
+  JsonProperty<String> stringProperty(String name) {
+    final property = JsonProperty<String>(name);
+    properties.add(property);
+    return property;
+  }
+
+
+}
+
+class LessonScheme extends JsonScheme {
+  late final id = property<int?>('id');
+  late final isPublic = property<bool>('is_public');
+  late final language = property<String>('language');
 }

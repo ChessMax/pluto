@@ -16,4 +16,13 @@ class Unit {
       'position': position,
     };
   }
+
+  Map<String, dynamic> toDto(int sectionId, [int? lessonId]) {
+    return {
+      'id': id,
+      'lesson': lessonId ?? lesson.id,
+      'position': position,
+      'section': sectionId,
+    };
+  }
 }

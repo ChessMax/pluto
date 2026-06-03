@@ -72,4 +72,27 @@ class Course {
       'acquiredSkills': acquiredSkills,
     };
   }
+
+  Map<String, dynamic> toDto() {
+    return {
+      'id': id,
+      'is_public': false,
+      'is_enabled': false,
+
+      'title': title,
+      'titleEn': titleEn,
+
+      'sections': [
+        for (final section in sections)
+          if (section.id != null) section.id,
+      ],
+      'summary': summary,
+      'acquiredAssets': acquiredAssets,
+      'description': description,
+      'targetAudience': targetAudience,
+      'requirements': requirements,
+      'learningFormat': learningFormat,
+      'acquiredSkills': acquiredSkills,
+    };
+  }
 }
