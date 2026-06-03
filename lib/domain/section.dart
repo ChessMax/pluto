@@ -15,6 +15,22 @@ class Section {
     required this.title,
   });
 
+  Section copyWith({
+    int? id,
+    int? position,
+    String? title,
+    String? description,
+    List<Unit>? units,
+  }) {
+    return Section(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      units: units ?? this.units,
+      position: position ?? this.position,
+      description: description ?? this.description,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -31,14 +47,14 @@ class Section {
     return {
       if (id != null) 'id': id,
       'title': title,
-      'units':[
-        for (final unit in units) {
-          if (unit.id != null) unit.id,
-        }
-      ],
-      'courseId': courseId,
+      if (units.any((unit) => unit.id != null))
+        'units': [
+          for (final unit in units)
+            if (unit.id != null) unit.id,
+        ],
+      'course': courseId,
       'position': position,
-      'description': description,
+      if (description.isNotEmpty) 'description': description,
     };
   }
 }

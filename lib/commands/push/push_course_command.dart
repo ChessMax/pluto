@@ -35,8 +35,8 @@ class PushCourseCommand extends Command<void> {
       final remoteCourse = await stepikRepository.readCourse(courseId);
     } else {
       // creating new course
-      await stepikRepository.writeCourse(localCourse);
-      print('--> Course created. Check https://stepik.org/course/$courseId');
+      final course = await stepikRepository.writeCourse(localCourse);
+      print('--> Course created. Check https://stepik.org/course/${course.id}');
     }
   }
 }

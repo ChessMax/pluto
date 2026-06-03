@@ -50,26 +50,22 @@ class StepikRepository {
     return entity;
   }
 
-  Future<void> writeCourse(Course course) async {
-    // final c = await _api.course.create({
-    //   'title': 'Test course. Please, ignore it',
-    //   'is_public': false,
-    //   'is_enabled': false,
-    // });
-    // print(c?.id);
-    // return;
+  // TODO: copy with new lists?
+  Future<Course> writeCourse(Course course) async {
     if (course.id != null) {
       throw 'Attempt to create course instead of updating';
     }
 
     final courseDto = course.toDto();
     final courseId = (await _api.course.create(courseDto))?.id;
-    return;
     if (courseId == null) {
       throw 'Failed to create course $courseDto';
     }
 
-    for (final section in course.sections) {
+    course = course.copyWith(id: courseId);
+
+    for (var i = 0; i < course.sections.length; ++i) {
+      final section = course.sections[i];
       final sectionDto = section.toDto(courseId);
 
       final sectionId = (await _api.section.create(sectionDto))?.id;
@@ -77,7 +73,10 @@ class StepikRepository {
         throw 'Failed to create section: $sectionDto';
       }
 
-      for (final unit in section.units) {
+      course.sections[i] = section.copyWith(id: sectionId);
+
+      for (var j = 0; j < section.units.length; ++j) {
+        final unit = section.units[j];
         final lesson = unit.lesson;
         final lessonPayload = lesson.toDto();
 
@@ -86,13 +85,18 @@ class StepikRepository {
           throw 'Failed to create lesson: $lessonPayload';
         }
 
-        for (final stepSource in lesson.steps) {
+        section.units[j] = unit.copyWith(lesson: lesson.copyWith(id: lessonId));
+
+        for (var k = 0; k < lesson.steps.length; ++k) {
+          final stepSource = lesson.steps[k];
           final stepSourceDto = stepSource.toDto(lessonId);
 
           final stepId = (await _api.stepSource.create(stepSourceDto))?.id;
           if (stepId == null) {
             throw 'Failed to create step source: $stepSourceDto}';
           }
+
+          lesson.steps[k] = stepSource.copyWith(id: stepId);
         }
 
         final unitDto = unit.toDto(sectionId, lessonId);
@@ -103,7 +107,7 @@ class StepikRepository {
       }
     }
 
-    for (final section in course.sections) {}
+    return course;
   }
 
   Future<void> updateCourse(CourseEntity entity, Course course) async {}

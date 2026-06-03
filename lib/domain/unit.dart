@@ -9,6 +9,18 @@ class Unit {
 
   Unit({required this.id, required this.position, required this.lesson});
 
+  Unit copyWith({
+    int? id,
+    int? position,
+    Lesson? lesson,
+  }) {
+    return Unit(
+      id: id ?? this.id,
+      lesson: lesson ?? this.lesson,
+      position: position ?? this.position,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -21,7 +33,7 @@ class Unit {
     assert(position > 0);
 
     return {
-      'id': id,
+      if (id != null) 'id': id,
       'lesson': lessonId ?? lesson.id,
       'position': position,
       'section': sectionId,

@@ -7,6 +7,18 @@ class Lesson {
 
   Lesson({required this.id, required this.title, required this.steps});
 
+  Lesson copyWith({
+    int? id,
+    String? title,
+    List<Step>? steps,
+  }) {
+    return Lesson(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      steps: steps ?? this.steps,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -19,10 +31,11 @@ class Lesson {
     return {
       if (id != null) 'id': id,
       'title': title,
-      'steps': [
-        for (final step in steps)
-          if (step.id != null) step.id,
-      ],
+      if (steps.any((step) => step.id != null))
+        'steps': [
+          for (final step in steps)
+            if (step.id != null) step.id,
+        ],
     };
   }
 }

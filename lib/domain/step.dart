@@ -1,3 +1,4 @@
+// TODO: rename to stepSource??
 class Step {
   final int? id;
   final int position;
@@ -5,10 +6,22 @@ class Step {
 
   Step({required this.id, required this.position, required this.block});
 
+  Step copyWith({
+    int? id,
+    int? position,
+    StepBlock? block,
+  }) {
+    return Step(
+      id: id ?? this.id,
+      block: block ?? this.block,
+      position: position ?? this.position,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'position' : position,
+      'position': position,
       'block': block.toJson(),
     };
   }
@@ -18,9 +31,9 @@ class Step {
 
     return {
       if (id != null) 'id': id,
-      'position' : position,
+      'position': position,
       'block': block.toDto(),
-      'lessonId': lessonId,
+      'lesson': lessonId,
     };
   }
 }
@@ -42,14 +55,14 @@ class StepBlock {
   Map<String, dynamic> toJson() {
     return {
       'name': name.name,
-      'text' : text,
+      'text': text,
     };
   }
 
   Map<String, dynamic> toDto() {
     return {
       'name': name.name,
-      'text' : text,
+      'text': text,
     };
   }
 }
