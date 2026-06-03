@@ -87,7 +87,7 @@ class StepikRepository {
           }
         }
 
-        final unitDto = unit.toDto();
+        final unitDto = unit.toDto(sectionId, lessonId);
         final unitId = (await _api.unit.create(unitDto))?.id;
         if (unitId == null) {
           throw 'Failed to create unit: $unitDto';

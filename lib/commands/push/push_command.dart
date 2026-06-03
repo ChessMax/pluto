@@ -1,5 +1,6 @@
 import 'package:args/command_runner.dart';
 import 'package:pluto/commands/init/init_course_command.dart';
+import 'package:pluto/commands/push/push_course_command.dart';
 
 class PushCommand extends Command<void> {
   @override
@@ -9,6 +10,6 @@ class PushCommand extends Command<void> {
   String get description => 'Pushes changes to server.';
 
   PushCommand() {
-    addSubcommand(InitCourseCommand());
+    addSubcommand(PushCourseCommand());
   }
 }
