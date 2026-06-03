@@ -6,24 +6,25 @@ import 'package:pluto/stepik_api/stepik_list_response.dart';
 
 class RawStepikEntity<T> {
   final String _name;
+  final String _pluralName;
   final RawStepikApi _api;
   final T Function(JsonObject value) _parse;
 
-  RawStepikEntity(this._api, String name, this._parse) : _name = '${name}s';
+  RawStepikEntity(this._api, String name, this._parse) : _name = name, _pluralName = '${name}s';
 
   Future<T?> create(JsonObject value) async {
     final result = await _api.client.postRequest(
       data: {_name: value},
-      '/api/$_name',
-      (value) => _parseListResponse(value, _name, _parse).items.first,
+      '/api/$_pluralName',
+      (value) => _parseListResponse(value, _pluralName, _parse).items.first,
     );
     return result.toNullable();
   }
 
   Future<List<T>?> fetch({int? page}) async {
     final result = await _api.client.getRequest(
-      '/api/$_name',
-      (value) => _parseListResponse(value, _name, _parse).items,
+      '/api/$_pluralName',
+      (value) => _parseListResponse(value, _pluralName, _parse).items,
       queryParameters: page != null ? {'page': page} : null,
     );
     return result.toNullable();
@@ -31,8 +32,8 @@ class RawStepikEntity<T> {
 
   Future<List<T>?> fetchByIds(List<int> entityIds) async {
     final result = await _api.client.getRequest(
-      '/api/$_name',
-      (value) => _parseListResponse(value, _name, _parse).items,
+      '/api/$_pluralName',
+      (value) => _parseListResponse(value, _pluralName, _parse).items,
       queryParameters: {'ids[]': entityIds},
     );
     return result.toNullable();
@@ -44,8 +45,8 @@ class RawStepikEntity<T> {
 
   Future<T?> fetchById(int entityId) async {
     final result = await _api.client.getRequest(
-      '/api/$_name/$entityId',
-      (value) => _parseListResponse(value, _name, _parse).items.first,
+      '/api/$_pluralName/$entityId',
+      (value) => _parseListResponse(value, _pluralName, _parse).items.first,
     );
     return result.toNullable();
   }
@@ -53,15 +54,15 @@ class RawStepikEntity<T> {
   Future<T?> update(int entityId, JsonObject entity) async {
     final result = await _api.client.putRequest(
       data: entity,
-      '/api/$_name/$entityId',
-      (value) => _parseListResponse(value, _name, _parse).items.first,
+      '/api/$_pluralName/$entityId',
+      (value) => _parseListResponse(value, _pluralName, _parse).items.first,
     );
     return result.toNullable();
   }
 
   Future<void> delete(int entityId) async {
     final result = await _api.client.deleteRequest<void>(
-      '/api/$_name/$entityId',
+      '/api/$_pluralName/$entityId',
       (value) => value,
     );
     return result.toNullable();

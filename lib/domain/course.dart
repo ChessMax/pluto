@@ -75,24 +75,26 @@ class Course {
 
   Map<String, dynamic> toDto() {
     return {
-      'id': id,
+      if (id != null) 'id': id,
       'is_public': false,
       'is_enabled': false,
 
       'title': title,
-      'titleEn': titleEn,
+      if (titleEn != null) 'title_en': titleEn,
 
-      'sections': [
-        for (final section in sections)
-          if (section.id != null) section.id,
-      ],
-      'summary': summary,
-      'acquiredAssets': acquiredAssets,
-      'description': description,
-      'targetAudience': targetAudience,
-      'requirements': requirements,
-      'learningFormat': learningFormat,
-      'acquiredSkills': acquiredSkills,
+      if (sections.any((section) => section.id != null))
+        'sections': [
+          for (final section in sections)
+            if (section.id != null) section.id,
+        ],
+      // TODO:
+      // 'summary': summary,
+      if (acquiredAssets != null) 'acquired_assets': acquiredAssets,
+      if (description != null) 'description': description,
+      if (targetAudience != null) 'target_audience': targetAudience,
+      if (requirements != null) 'requirements': requirements,
+      if (learningFormat != null) 'learning_format': learningFormat,
+      if (acquiredSkills != null) 'acquired_skills': acquiredSkills,
     };
   }
 }

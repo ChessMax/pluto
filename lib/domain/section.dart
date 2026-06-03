@@ -26,6 +26,8 @@ class Section {
   }
 
   Map<String, dynamic> toDto(int courseId) {
+    assert(position > 0);
+
     return {
       if (id != null) 'id': id,
       'title': title,

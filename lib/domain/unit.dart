@@ -18,6 +18,8 @@ class Unit {
   }
 
   Map<String, dynamic> toDto(int sectionId, [int? lessonId]) {
+    assert(position > 0);
+
     return {
       'id': id,
       'lesson': lessonId ?? lesson.id,

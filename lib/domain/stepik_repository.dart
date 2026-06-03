@@ -51,12 +51,20 @@ class StepikRepository {
   }
 
   Future<void> writeCourse(Course course) async {
+    // final c = await _api.course.create({
+    //   'title': 'Test course. Please, ignore it',
+    //   'is_public': false,
+    //   'is_enabled': false,
+    // });
+    // print(c?.id);
+    // return;
     if (course.id != null) {
       throw 'Attempt to create course instead of updating';
     }
 
     final courseDto = course.toDto();
     final courseId = (await _api.course.create(courseDto))?.id;
+    return;
     if (courseId == null) {
       throw 'Failed to create course $courseDto';
     }
@@ -93,14 +101,9 @@ class StepikRepository {
           throw 'Failed to create unit: $unitDto';
         }
       }
-
     }
 
-
-
-    for (final section in course.sections) {
-
-    }
+    for (final section in course.sections) {}
   }
 
   Future<void> updateCourse(CourseEntity entity, Course course) async {}

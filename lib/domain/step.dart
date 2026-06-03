@@ -14,6 +14,8 @@ class Step {
   }
 
   Map<String, dynamic> toDto(int lessonId) {
+    assert(position > 0);
+
     return {
       if (id != null) 'id': id,
       'position' : position,

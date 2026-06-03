@@ -5,10 +5,13 @@ import 'package:args/command_runner.dart' as args;
 import 'package:dio/dio.dart';
 import 'package:path/path.dart';
 import 'package:pluto/assets/templates/asset_templates.dart';
+import 'package:pluto/commands/add/add_command.dart';
 import 'package:pluto/commands/command.dart';
 import 'package:pluto/commands/copy_command.dart';
 import 'package:pluto/commands/export_course_command.dart';
+import 'package:pluto/commands/init/init_command.dart';
 import 'package:pluto/commands/init/init_course_command.dart';
+import 'package:pluto/commands/push/push_command.dart';
 import 'package:pluto/commands/stepik/stepik_command.dart';
 import 'package:pluto/commands/stepik/stepik_list_command.dart';
 import 'package:pluto/commands/version_command.dart';
@@ -37,8 +40,10 @@ const _commands = <Command>[
 void main(List<String> arguments) async {
   final runner = args.CommandRunner<void>("pluto", "Static course generator for stepik.org.")
     ..addCommand(CopyCommand())
-    ..addCommand(InitCourseCommand())
-    ..addCommand(StepikCommand());
+    ..addCommand(InitCommand())
+    ..addCommand(StepikCommand())
+    ..addCommand(AddCommand())
+    ..addCommand(PushCommand());
   await runner.run(arguments);
 
   return;
