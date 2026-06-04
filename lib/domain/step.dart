@@ -1,4 +1,6 @@
 // TODO: rename to stepSource??
+import 'package:pluto/data/json.dart';
+
 class Step {
   final int? id;
   final int position;
@@ -26,10 +28,11 @@ class Step {
     };
   }
 
-  Map<String, dynamic> toDto(int lessonId) {
+  Map<String, dynamic> toDto(int lessonId, [JsonObject? base]) {
     assert(position > 0);
 
     return {
+      ...?base,
       if (id != null) 'id': id,
       'position': position,
       'block': block.toDto(),

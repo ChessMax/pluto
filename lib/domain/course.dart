@@ -1,3 +1,4 @@
+import 'package:pluto/data/json.dart';
 import 'package:pluto/domain/section.dart';
 
 class Course {
@@ -73,8 +74,9 @@ class Course {
     };
   }
 
-  Map<String, dynamic> toDto() {
+  Map<String, dynamic> toDto([JsonObject? base]) {
     return {
+      ...?base,
       if (id != null) 'id': id,
       'is_public': false,
       'is_enabled': false,

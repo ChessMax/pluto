@@ -1,3 +1,4 @@
+import 'package:pluto/data/json.dart';
 import 'package:pluto/domain/unit.dart';
 
 class Section {
@@ -41,10 +42,11 @@ class Section {
     };
   }
 
-  Map<String, dynamic> toDto(int courseId) {
+  Map<String, dynamic> toDto(int courseId, [JsonObject? base]) {
     assert(position > 0);
 
     return {
+      ...?base,
       if (id != null) 'id': id,
       'title': title,
       if (units.any((unit) => unit.id != null))

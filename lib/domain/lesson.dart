@@ -1,3 +1,4 @@
+import 'package:pluto/data/json.dart';
 import 'package:pluto/domain/step.dart';
 
 class Lesson {
@@ -27,8 +28,9 @@ class Lesson {
     };
   }
 
-  Map<String, dynamic> toDto() {
+  Map<String, dynamic> toDto([JsonObject? base]) {
     return {
+      ...?base,
       if (id != null) 'id': id,
       'title': title,
       if (steps.any((step) => step.id != null))
