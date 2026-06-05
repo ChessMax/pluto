@@ -10,7 +10,9 @@ class RawStepikEntity<T> {
   final RawStepikApi _api;
   final T Function(JsonObject value) _parse;
 
-  RawStepikEntity(this._api, String name, this._parse) : _name = name, _pluralName = '${name}s';
+  RawStepikEntity(this._api, String name, this._parse)
+    : _name = name,
+      _pluralName = '${name}s';
 
   Future<T?> create(JsonObject value) async {
     final result = await _api.client.postRequest(
@@ -39,9 +41,9 @@ class RawStepikEntity<T> {
     return result.toNullable();
   }
 
-  Future<List<T>?> fetchAllByIds(List<int> entityIds) async {
-    // TODO
-  }
+  // Future<List<T>?> fetchAllByIds(List<int> entityIds) async {
+  //   // TODO
+  // }
 
   Future<T?> fetchById(int entityId) async {
     final result = await _api.client.getRequest(
@@ -53,7 +55,7 @@ class RawStepikEntity<T> {
 
   Future<T?> update(int entityId, JsonObject entity) async {
     final result = await _api.client.putRequest(
-      data: entity,
+      data: {_name: entity},
       '/api/$_pluralName/$entityId',
       (value) => _parseListResponse(value, _pluralName, _parse).items.first,
     );

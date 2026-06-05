@@ -71,6 +71,8 @@ extension type RawSectionDto(JsonObject value) implements JsonObject {
 
   String get title => value['title'] as String;
 
+  set title(String title) => value['title'] = title;
+
   List<int> get units => getList('units');
 
   int get position => value['position'] as int;
