@@ -51,7 +51,14 @@ class InitCourseCommand extends Command<void> {
     final step1 = Step(
       id: null,
       position: 1,
-      block: StepBlock(name: .text, text: 'Source of your first step'),
+      block: StepBlock(
+        name: .text,
+        text: 'Source of your first step',
+        options: const TextStepBlockOptions(),
+        source: const TextStepBlockSource(),
+        feedbackCorrect: null,
+        feedbackWrong: null,
+      ),
     );
     final lesson1 = Lesson(id: null, title: 'My lesson', steps: [step1]);
     final unit1 = Unit(id: null, position: 1, lesson: lesson1);
