@@ -30,6 +30,21 @@ class PushCourseCommand extends Command<void> {
     final courseId = localCourse.id;
 
     final rawApi = (await initializeStepikClient()).rawApi;
+
+    // final section = await rawApi.section.fetchById(715026);
+    //
+    // section?.title += ' updated';
+    //
+    // await rawApi.section.update(section!.id, {
+    //   'title': section.title,
+    //   'course': section.course,
+    //   'position': section.position,
+    // });
+    //
+    // await Future<void>.delayed(const Duration(seconds: 5000));
+    //
+    // return;
+
     final stepikRepository = StepikRepository(rawApi);
 
     final remoteCourse = courseId != null ? await stepikRepository.readCourse(courseId) : null;

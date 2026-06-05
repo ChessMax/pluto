@@ -179,7 +179,10 @@ class StepSourceUpdated extends Diff {
   final RawStepSourceDto base;
   final Step stepSource;
 
-  StepSourceUpdated({required this.base, required this.stepSource});
+  StepSourceUpdated({
+    required this.base,
+    required this.stepSource,
+  });
 }
 
 class StepSourceRemoved extends Diff {
@@ -229,7 +232,10 @@ class UnitUpdated extends Diff {
   final RawUnitDto base;
   final Unit unit;
 
-  UnitUpdated({required this.base, required this.unit});
+  UnitUpdated({
+    required this.base,
+    required this.unit,
+  });
 }
 
 class UnitRemove extends Diff {

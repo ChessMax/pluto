@@ -88,7 +88,8 @@ class SourceRepository {
 
     final position = _unitDirRegExp.validateAndParsePosition(dirPath);
     final (frontMatter, content) = await File(
-      join(dirPath, 'lesson_$position.md'),
+      // join(dirPath, 'lesson_$position.md'),
+      join(dirPath, 'lesson_01.md'),
     ).readMd();
 
     final lesson = Lesson(
@@ -163,6 +164,8 @@ class SourceRepository {
       learningFormat: blockFields['learning_format'],
       acquiredSkills: blockFields['acquired_skills'],
     );
+
+    // TODO: validate? check position and other things
 
     return course;
   }

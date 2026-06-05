@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:pluto/domain/course.dart';
 import 'package:pluto/domain/diff.dart';
 import 'package:pluto/domain/remote_course.dart';
@@ -12,7 +14,7 @@ class StepikRepository {
     final course = await _api.course.fetchById(courseId);
     if (course == null) throw 'Failed to fetch course by id';
 
-    final sections = await _api.section.fetchAllByIds(course.sections);
+    final sections = await _api.section.fetchByIds(course.sections);
 
     if (sections == null) throw 'Failed to fetch course sections';
 
@@ -209,12 +211,6 @@ class StepikRepository {
   }
 
   Future<Course> applyDiff(Course course, List<Diff> diffs) async {
-    late int courseId;
-    late int sectionId;
-    late int unitId;
-    late int lessonId;
-    late int stepSourceId;
-
     for (final diff in diffs) {
       switch (diff) {
         case StepSourceAdded(
@@ -223,8 +219,9 @@ class StepikRepository {
           :final unitIndex,
           :final stepSourceIndex,
         ):
+          final lessonId = course.sections[sectionIndex].units[unitIndex].lesson.id!;
           final stepSourceDto = stepSource.toDto(lessonId);
-          stepSourceId = (await _api.stepSource.create(stepSourceDto))!.id;
+          final stepSourceId = (await _api.stepSource.create(stepSourceDto))!.id;
           course = course.copyWithStepSource(
             sectionIndex,
             unitIndex,
@@ -233,15 +230,16 @@ class StepikRepository {
           );
           break;
         case StepSourceUpdated(:final base, :final stepSource):
+          final lessonId = base.id;
           final stepSourceDto = stepSource.toDto(lessonId, base);
-          await _api.stepSource.update(base.id, stepSourceDto);
+          await _api.stepSource.update(lessonId, stepSourceDto);
           break;
         case StepSourceRemoved(:final stepSourceId):
           await _api.stepSource.delete(stepSourceId);
           break;
         case LessonAdded(:final lesson, :final sectionIndex, :final unitIndex):
           final lessonDto = lesson.toDto();
-          lessonId = (await _api.lesson.create(lessonDto))!.id;
+          final lessonId = (await _api.lesson.create(lessonDto))!.id;
           course = course.copyWithLesson(
             sectionIndex,
             unitIndex,
@@ -256,31 +254,33 @@ class StepikRepository {
           await _api.lesson.delete(lessonId);
           break;
         case UnitAdded(:final unit, :final sectionIndex, :final unitIndex):
+          final sectionId = course.sections[sectionIndex].id!;
+          final lessonId = course.sections[sectionIndex].units[unitIndex].lesson.id!;
           final unitDto = unit.toDto(sectionId, lessonId);
-          unitId = (await _api.unit.create(unitDto))!.id;
+          final unitId = (await _api.unit.create(unitDto))!.id;
           course = course.copyWithUnit(
             sectionIndex,
             unitIndex,
             (unit) => unit.copyWith(id: unitId),
           );
           break;
-        case UnitUpdated(:final base, :final unit):
-          final unitDto = unit.toDto(sectionId, lessonId, base);
+        case UnitUpdated(:final base, :final unit ):
+          final unitDto = unit.toDto(base.section, base.lesson, base);
           await _api.unit.update(base.id, unitDto);
           break;
         case UnitRemove(:final unitId):
           await _api.unit.delete(unitId);
           break;
         case SectionAdded(:final section):
-          final sectionDto = section.toDto(courseId);
-          sectionId = (await _api.section.create(sectionDto))!.id;
+          final sectionDto = section.toDto(course.id!);
+          final sectionId = (await _api.section.create(sectionDto))!.id;
           course = course.copyWithSection(
             section,
             (section) => section.copyWith(id: sectionId),
           );
           break;
         case SectionUpdated(:final base, :final section):
-          final sectionDto = section.toDto(courseId, base);
+          final sectionDto = section.toDto(course.id!, base);
           await _api.section.update(base.id, sectionDto);
           break;
         case SectionRemoved(:final sectionId):
@@ -288,7 +288,7 @@ class StepikRepository {
           break;
         case CourseAdded(course: final c):
           final courseDto = c.toDto();
-          courseId = (await _api.course.create(courseDto))!.id;
+          final courseId = (await _api.course.create(courseDto))!.id;
           course = course.copyWith(id: courseId);
           break;
         case CourseUpdated(:final base, :final course):
