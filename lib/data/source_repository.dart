@@ -88,8 +88,7 @@ class SourceRepository {
 
     final position = _unitDirRegExp.validateAndParsePosition(dirPath);
     final (frontMatter, content) = await File(
-      // join(dirPath, 'lesson_$position.md'),
-      join(dirPath, 'lesson_01.md'),
+      join(dirPath, 'lesson_$position.md'),
     ).readMd();
 
     final lesson = Lesson(
