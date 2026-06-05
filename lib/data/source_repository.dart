@@ -227,6 +227,15 @@ class SourceRepository {
     );
   }
 
+  // TODO: difficult to understand structure
+  // maybe should be more visible something like this
+  // [./source/section_%sectionPosition%/unit_%unitPosition%/lesson_%unitPosition%]
+  // or something like that:
+  // [
+  // ./source/section_%sectionPosition%/
+  // unit_%unitPosition%/
+  // unit_%unitPosition%.md
+  // ]
   Future<void> writeCourse(Course course, String dirPath) async {
     final sourceDirPath = join(dirPath, 'source');
 
