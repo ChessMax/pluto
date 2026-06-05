@@ -1,6 +1,5 @@
-import 'package:fpdart/fpdart.dart';
-import 'package:pluto/data/json.dart';
 import 'package:pluto/domain/course.dart';
+import 'package:pluto/domain/diff.dart';
 import 'package:pluto/domain/remote_course.dart';
 import 'package:pluto/stepik_api/raw_stepik_api.dart';
 
@@ -135,9 +134,11 @@ class StepikRepository {
         }
 
         course.sections[i] = section.copyWith(id: sectionId);
-      }
-      else {
-        final sectionDto = section.toDto(courseId, entity.getSectionById(sectionId)!);
+      } else {
+        final sectionDto = section.toDto(
+          courseId,
+          entity.getSectionById(sectionId)!,
+        );
         await _api.section.update(sectionId, sectionDto);
       }
 
@@ -154,7 +155,9 @@ class StepikRepository {
             throw 'Failed to create lesson: $lessonPayload';
           }
 
-          section.units[j] = unit.copyWith(lesson: lesson.copyWith(id: lessonId));
+          section.units[j] = unit.copyWith(
+            lesson: lesson.copyWith(id: lessonId),
+          );
         } else {
           final lessonDto = lesson.toDto(entity.getLessonById(lessonId)!);
           await _api.lesson.update(lessonId, lessonDto);
@@ -173,9 +176,11 @@ class StepikRepository {
             }
 
             lesson.steps[k] = stepSource.copyWith(id: stepId);
-          }
-          else {
-            final stepSourceDto = stepSource.toDto(lessonId, entity.getStepById(stepSourceId));
+          } else {
+            final stepSourceDto = stepSource.toDto(
+              lessonId,
+              entity.getStepById(stepSourceId),
+            );
             await _api.stepSource.update(stepSourceId, stepSourceDto);
           }
         }
@@ -187,7 +192,11 @@ class StepikRepository {
             throw 'Failed to create unit: $unitDto';
           }
         } else {
-          final unitDto = unit.toDto(sectionId, lessonId, entity.getUnitById(unitId));
+          final unitDto = unit.toDto(
+            sectionId,
+            lessonId,
+            entity.getUnitById(unitId),
+          );
           await _api.unit.update(unitId, unitDto);
         }
       }
@@ -196,6 +205,83 @@ class StepikRepository {
     final courseDto = course.toDto(entity.course);
     await _api.course.update(courseId, courseDto);
 
+    return course;
+  }
+
+  Future<Course> applyDiff(Course course, List<Diff> diffs) async {
+    late int courseId;
+    late int sectionId;
+    late int unitId;
+    late int lessonId;
+    late int stepSourceId;
+
+    for (final diff in diffs) {
+      switch (diff) {
+        case StepSourceAdded(:final stepSource):
+          final stepSourceDto = stepSource.toDto(lessonId);
+          stepSourceId = (await _api.stepSource.create(stepSourceDto))!.id;
+          course = course.copyWithStepSource(stepSource, (stepSource) => stepSource.copyWith(id: stepSourceId));
+          break;
+        case StepSourceUpdated(:final base, :final stepSource):
+          final stepSourceDto = stepSource.toDto(lessonId, base);
+          await _api.stepSource.update(base.id, stepSourceDto);
+          break;
+        case StepSourceRemoved(:final stepSourceId):
+          await _api.stepSource.delete(stepSourceId);
+          break;
+        case LessonAdded(:final lesson):
+          final lessonDto = lesson.toDto();
+          lessonId = (await _api.lesson.create(lessonDto))!.id;
+          course = course.copyWithLesson(lesson, (lesson) => lesson.copyWith(id: lessonId));
+          break;
+        case LessonUpdated(:final base, :final lesson):
+          final lessonDto = lesson.toDto(base);
+          await _api.lesson.update(base.id, lessonDto);
+          break;
+        case LessonRemoved(:final lessonId):
+          await _api.lesson.delete(lessonId);
+          break;
+        case UnitAdded(:final unit):
+          final unitDto = unit.toDto(sectionId);
+          unitId = (await _api.unit.create(unitDto))!.id;
+          course = course.copyWithUnit(unit, (unit) => unit.copyWith(id: unitId));
+          break;
+        case UnitUpdated(:final base, :final unit):
+          final unitDto = unit.toDto(sectionId, lessonId, base);
+          await _api.unit.update(base.id, unitDto);
+          break;
+        case UnitRemove(:final unitId):
+          await _api.unit.delete(unitId);
+          break;
+        case SectionAdded(:final section):
+          final sectionDto = section.toDto(courseId);
+          sectionId = (await _api.section.create(sectionDto))!.id;
+          course = course.copyWithSection(
+            section,
+            (section) => section.copyWith(id: sectionId),
+          );
+          break;
+        case SectionUpdated(:final base, :final section):
+          final sectionDto = section.toDto(courseId, base);
+          await _api.section.update(base.id, sectionDto);
+          break;
+        case SectionRemoved(:final sectionId):
+          await _api.section.delete(sectionId);
+          break;
+        case CourseAdded(course: final c):
+          final courseDto = c.toDto();
+          courseId = (await _api.course.create(courseDto))!.id;
+          course = course.copyWith(id: courseId);
+          break;
+        case CourseUpdated(:final base, :final course):
+          final courseDto = course.toDto(base);
+          await _api.course.update(base.id, courseDto);
+          break;
+        case CourseDeleted(:final courseId):
+          await _api.course.delete(courseId);
+          break;
+      }
+    }
     return course;
   }
 }

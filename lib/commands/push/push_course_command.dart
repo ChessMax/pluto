@@ -5,6 +5,7 @@ import 'package:path/path.dart';
 import 'package:pluto/data/initialize_stepik_client.dart';
 import 'package:pluto/data/source_repository.dart';
 import 'package:pluto/domain/course.dart';
+import 'package:pluto/domain/diff.dart';
 import 'package:pluto/domain/lesson.dart';
 import 'package:pluto/domain/section.dart';
 import 'package:pluto/domain/step.dart';
@@ -24,25 +25,30 @@ class PushCourseCommand extends Command<void> {
   Future<void> run() async {
     final courseDir = argResults!.rest[0];
 
-    const sourceRepository =   SourceRepository();
+    const sourceRepository = SourceRepository();
     final localCourse = await sourceRepository.readCourse(courseDir);
     final courseId = localCourse.id;
 
     final rawApi = (await initializeStepikClient()).rawApi;
     final stepikRepository = StepikRepository(rawApi);
 
+    final remoteCourse = courseId != null ? await stepikRepository.readCourse(courseId) : null;
+
+    final diff = Diff.create(remoteCourse, localCourse).toList();
+    diff.dump();
+
     // updating
-    if (courseId != null) {
-      final remoteCourse = await stepikRepository.readCourse(courseId);
-      final course = await stepikRepository.updateCourse(remoteCourse, localCourse);
-
-      await sourceRepository.writeCourse(course, courseDir);
-
-      print('--> Course updated. Check https://stepik.org/course/$courseId');
-    } else {
-      // creating new course
-      final course = await stepikRepository.writeCourse(localCourse);
-      print('--> Course created. Check https://stepik.org/course/${course.id}');
-    }
+    // if (courseId != null) {
+    //   final remoteCourse = await stepikRepository.readCourse(courseId);
+    //   final course = await stepikRepository.updateCourse(remoteCourse, localCourse);
+    //
+    //   await sourceRepository.writeCourse(course, courseDir);
+    //
+    //   print('--> Course updated. Check https://stepik.org/course/$courseId');
+    // } else {
+    //   // creating new course
+    //   final course = await stepikRepository.writeCourse(localCourse);
+    //   print('--> Course created. Check https://stepik.org/course/${course.id}');
+    // }
   }
 }
