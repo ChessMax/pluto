@@ -30,7 +30,7 @@ class Unit {
     };
   }
 
-  Map<String, dynamic> toDto(int sectionId, [int? lessonId, JsonObject? base]) {
+  Map<String, dynamic> toDto(int sectionId, int? lessonId, [JsonObject? base]) {
     assert(position > 0);
 
     return {

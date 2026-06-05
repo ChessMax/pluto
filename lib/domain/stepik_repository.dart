@@ -217,10 +217,20 @@ class StepikRepository {
 
     for (final diff in diffs) {
       switch (diff) {
-        case StepSourceAdded(:final stepSource):
+        case StepSourceAdded(
+          :final stepSource,
+          :final sectionIndex,
+          :final unitIndex,
+          :final stepSourceIndex,
+        ):
           final stepSourceDto = stepSource.toDto(lessonId);
           stepSourceId = (await _api.stepSource.create(stepSourceDto))!.id;
-          course = course.copyWithStepSource(stepSource, (stepSource) => stepSource.copyWith(id: stepSourceId));
+          course = course.copyWithStepSource(
+            sectionIndex,
+            unitIndex,
+            stepSourceIndex,
+            (stepSource) => stepSource.copyWith(id: stepSourceId),
+          );
           break;
         case StepSourceUpdated(:final base, :final stepSource):
           final stepSourceDto = stepSource.toDto(lessonId, base);
@@ -229,10 +239,14 @@ class StepikRepository {
         case StepSourceRemoved(:final stepSourceId):
           await _api.stepSource.delete(stepSourceId);
           break;
-        case LessonAdded(:final lesson):
+        case LessonAdded(:final lesson, :final sectionIndex, :final unitIndex):
           final lessonDto = lesson.toDto();
           lessonId = (await _api.lesson.create(lessonDto))!.id;
-          course = course.copyWithLesson(lesson, (lesson) => lesson.copyWith(id: lessonId));
+          course = course.copyWithLesson(
+            sectionIndex,
+            unitIndex,
+            (lesson) => lesson.copyWith(id: lessonId),
+          );
           break;
         case LessonUpdated(:final base, :final lesson):
           final lessonDto = lesson.toDto(base);
@@ -241,10 +255,14 @@ class StepikRepository {
         case LessonRemoved(:final lessonId):
           await _api.lesson.delete(lessonId);
           break;
-        case UnitAdded(:final unit):
-          final unitDto = unit.toDto(sectionId);
+        case UnitAdded(:final unit, :final sectionIndex, :final unitIndex):
+          final unitDto = unit.toDto(sectionId, lessonId);
           unitId = (await _api.unit.create(unitDto))!.id;
-          course = course.copyWithUnit(unit, (unit) => unit.copyWith(id: unitId));
+          course = course.copyWithUnit(
+            sectionIndex,
+            unitIndex,
+            (unit) => unit.copyWith(id: unitId),
+          );
           break;
         case UnitUpdated(:final base, :final unit):
           final unitDto = unit.toDto(sectionId, lessonId, base);

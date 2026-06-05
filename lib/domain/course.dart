@@ -109,53 +109,13 @@ class Course {
     );
   }
 
-  Section getSectionWithUnit(Unit unit) {
-    for (var i = 0; i < sections.length; ++i) {
-      final section = sections[i];
-      final index = section.units.indexOf(unit);
-      if (index != -1) {
-        return section;
-      }
-    }
-
-    throw 'Expected section not found';
-  }
-
-  (Section, Unit) getSectionAndUnitWithLesson(Lesson lesson) {
-    for (var i = 0; i < sections.length; ++i) {
-      final section = sections[i];
-
-      for (var j = 0; j < section.units.length; ++j) {
-        final unit = section.units[j];
-        if (unit.lesson == lesson) {
-          return (section, unit);
-        }
-      }
-    }
-
-    throw 'Expected section not found';
-  }
-
-  (Section, Unit) getSectionAndUnitWithStepSource(Step stepSource) {
-    for (var i = 0; i < sections.length; ++i) {
-      final section = sections[i];
-
-      for (var j = 0; j < section.units.length; ++j) {
-        final unit = section.units[j];
-        for (var k=0;k<unit.lesson.steps.length;++k) {
-          final step = unit.lesson.steps[k];
-          if (step == stepSource) {
-            return (section, unit);
-          }
-        }
-      }
-    }
-
-    throw 'Expected section not found';
-  }
-
-  Course copyWithUnit(Unit unit, Unit Function(Unit) update) {
-    final section = getSectionWithUnit(unit);
+  Course copyWithUnit(
+    int sectionIndex,
+    int unitIndex,
+    Unit Function(Unit) update,
+  ) {
+    final section = sections[sectionIndex];
+    final unit = section.units[unitIndex];
 
     return copyWithSection(
       section,
@@ -165,23 +125,41 @@ class Course {
     );
   }
 
-  Course copyWithLesson(Lesson lesson, Lesson Function(Lesson) update) {
-    final (section, unit) = getSectionAndUnitWithLesson(lesson);
+  Course copyWithLesson(
+    int sectionIndex,
+    int unitIndex,
+    Lesson Function(Lesson) update,
+  ) {
+    final section = sections[sectionIndex];
+    final unit = section.units[unitIndex];
 
     return copyWithUnit(
-      unit,
+      sectionIndex,
+      unitIndex,
       (unit) => unit.copyWith(
-        lesson: update(lesson),
+        lesson: update(unit.lesson),
       ),
     );
   }
 
-  Course copyWithStepSource(Step stepSource, Step Function(Step) update) {
-    final (section, unit) = getSectionAndUnitWithStepSource(stepSource);
+  Course copyWithStepSource(
+    int sectionIndex,
+    int unitIndex,
+    int stepSourceIndex,
+    Step Function(Step) update,
+  ) {
+    final section = sections[sectionIndex];
+    final unit = section.units[unitIndex];
+    final lesson = unit.lesson;
+    final stepSource = lesson.steps[stepSourceIndex];
 
-    return copyWithLesson(unit.lesson, (lesson) => lesson.copyWith(
-      steps: lesson.steps.replace(stepSource, update),
-    ));
+    return copyWithLesson(
+      sectionIndex,
+      unitIndex,
+      (lesson) => lesson.copyWith(
+        steps: lesson.steps.replace(stepSource, update),
+      ),
+    );
   }
 }
 

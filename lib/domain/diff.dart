@@ -19,12 +19,16 @@ sealed class Diff {
       final stepSourcesToRemove = entity.steps.toList();
       final unitsToRemove = entity.units.toList();
 
-      for (var i = 0; i < course.sections.length; ++i) {
-        final section = course.sections[i];
+      for (
+        var sectionIndex = 0;
+        sectionIndex < course.sections.length;
+        ++sectionIndex
+      ) {
+        final section = course.sections[sectionIndex];
         final sectionId = section.id;
 
         if (sectionId == null) {
-          yield SectionAdded(section: section);
+          yield SectionAdded(section: section, sectionIndex: sectionIndex);
         } else {
           final sectionBase = sectionsToRemove.removeFirstWhere(
             (section) => section.id == sectionId,
@@ -32,35 +36,61 @@ sealed class Diff {
           yield SectionUpdated(base: sectionBase, section: section);
         }
 
-        for (var j = 0; j < section.units.length; ++j) {
-          final unit = section.units[j];
+        for (var unitIndex = 0; unitIndex < section.units.length; ++unitIndex) {
+          final unit = section.units[unitIndex];
           final unitId = unit.id;
           final lesson = unit.lesson;
           final lessonId = lesson.id;
 
           if (lessonId == null) {
-            yield LessonAdded(lesson: lesson);
+            yield LessonAdded(
+              lesson: lesson,
+              sectionIndex: sectionIndex,
+              unitIndex: unitIndex,
+            );
           } else {
-            final lessonBase = lessonsToRemove.removeFirstWhere((lesson) => lesson.id == lessonId);
+            final lessonBase = lessonsToRemove.removeFirstWhere(
+              (lesson) => lesson.id == lessonId,
+            );
             yield LessonUpdated(base: lessonBase, lesson: lesson);
           }
 
-          for (var k = 0; k < lesson.steps.length; ++k) {
-            final stepSource = lesson.steps[k];
+          for (
+            var stepSourceIndex = 0;
+            stepSourceIndex < lesson.steps.length;
+            ++stepSourceIndex
+          ) {
+            final stepSource = lesson.steps[stepSourceIndex];
             final stepSourceId = stepSource.id;
 
             if (stepSourceId == null) {
-              yield StepSourceAdded(stepSource: stepSource);
+              yield StepSourceAdded(
+                stepSource: stepSource,
+                sectionIndex: sectionIndex,
+                unitIndex: unitIndex,
+                stepSourceIndex: stepSourceIndex,
+              );
             } else {
-              final stepSourceBase = stepSourcesToRemove.removeFirstWhere((stepSource) => stepSource.id == stepSourceId);
-              yield StepSourceUpdated(base: stepSourceBase, stepSource: stepSource);
+              final stepSourceBase = stepSourcesToRemove.removeFirstWhere(
+                (stepSource) => stepSource.id == stepSourceId,
+              );
+              yield StepSourceUpdated(
+                base: stepSourceBase,
+                stepSource: stepSource,
+              );
             }
           }
 
           if (unitId == null) {
-            yield UnitAdded(unit: unit);
+            yield UnitAdded(
+              unit: unit,
+              sectionIndex: sectionIndex,
+              unitIndex: unitIndex,
+            );
           } else {
-            final unitBase = unitsToRemove.removeFirstWhere((unit) => unit.id == unitId);
+            final unitBase = unitsToRemove.removeFirstWhere(
+              (unit) => unit.id == unitId,
+            );
             yield UnitUpdated(base: unitBase, unit: unit);
           }
         }
@@ -70,7 +100,7 @@ sealed class Diff {
         yield StepSourceRemoved(stepSourceId: stepSourceToRemove.id);
       }
 
-      for (final lessonToRemove in lessonsToRemove){
+      for (final lessonToRemove in lessonsToRemove) {
         yield LessonRemoved(lessonId: lessonToRemove.id);
       }
 
@@ -78,7 +108,7 @@ sealed class Diff {
         yield UnitRemove(unitId: unitToRemove.id);
       }
 
-      for (final sectionToRemove in sectionsToRemove){
+      for (final sectionToRemove in sectionsToRemove) {
         yield SectionRemoved(sectionId: sectionToRemove.id);
       }
 
@@ -87,27 +117,45 @@ sealed class Diff {
 
     yield CourseAdded(course: course);
 
-    for (var i = 0; i < course.sections.length; ++i) {
-      final section = course.sections[i];
+    for (
+      var sectionIndex = 0;
+      sectionIndex < course.sections.length;
+      ++sectionIndex
+    ) {
+      final section = course.sections[sectionIndex];
 
-      // TODO: courseId
-      yield SectionAdded(section: section);
+      yield SectionAdded(section: section, sectionIndex: sectionIndex);
 
-      for (var j = 0; j < section.units.length; ++j) {
-        final unit = section.units[j];
+      for (var unitIndex = 0; unitIndex < section.units.length; ++unitIndex) {
+        final unit = section.units[unitIndex];
         final lesson = unit.lesson;
 
-        yield LessonAdded(lesson: lesson);
+        yield LessonAdded(
+          lesson: lesson,
+          sectionIndex: sectionIndex,
+          unitIndex: unitIndex,
+        );
 
-        for (var k = 0; k < lesson.steps.length; ++k) {
-          final stepSource = lesson.steps[k];
+        for (
+          var stepSourceIndex = 0;
+          stepSourceIndex < lesson.steps.length;
+          ++stepSourceIndex
+        ) {
+          final stepSource = lesson.steps[stepSourceIndex];
 
-          // TODO: lessonId
-          yield StepSourceAdded(stepSource: stepSource);
+          yield StepSourceAdded(
+            stepSource: stepSource,
+            sectionIndex: sectionIndex,
+            unitIndex: unitIndex,
+            stepSourceIndex: stepSourceIndex,
+          );
         }
 
-        // TODO: sectionId, unitId
-        yield UnitAdded(unit: unit);
+        yield UnitAdded(
+          unit: unit,
+          sectionIndex: sectionIndex,
+          unitIndex: unitIndex,
+        );
       }
     }
   }
@@ -115,8 +163,16 @@ sealed class Diff {
 
 class StepSourceAdded extends Diff {
   final Step stepSource;
+  final int sectionIndex;
+  final int unitIndex;
+  final int stepSourceIndex;
 
-  StepSourceAdded({required this.stepSource});
+  StepSourceAdded({
+    required this.stepSource,
+    required this.sectionIndex,
+    required this.unitIndex,
+    required this.stepSourceIndex,
+  });
 }
 
 class StepSourceUpdated extends Diff {
@@ -134,8 +190,14 @@ class StepSourceRemoved extends Diff {
 
 class LessonAdded extends Diff {
   final Lesson lesson;
+  final int sectionIndex;
+  final int unitIndex;
 
-  LessonAdded({required this.lesson});
+  LessonAdded({
+    required this.lesson,
+    required this.sectionIndex,
+    required this.unitIndex,
+  });
 }
 
 class LessonUpdated extends Diff {
@@ -153,8 +215,14 @@ class LessonRemoved extends Diff {
 
 class UnitAdded extends Diff {
   final Unit unit;
+  final int sectionIndex;
+  final int unitIndex;
 
-  UnitAdded({required this.unit});
+  UnitAdded({
+    required this.unit,
+    required this.sectionIndex,
+    required this.unitIndex,
+  });
 }
 
 class UnitUpdated extends Diff {
@@ -172,8 +240,9 @@ class UnitRemove extends Diff {
 
 class SectionAdded extends Diff {
   final Section section;
+  final int sectionIndex;
 
-  SectionAdded({required this.section});
+  SectionAdded({required this.section, required this.sectionIndex});
 }
 
 class SectionUpdated extends Diff {
@@ -211,14 +280,16 @@ class CourseDeleted extends Diff {
 extension DiffListExt on List<Diff> {
   void dump() {
     final sb = StringBuffer();
-    
+
     for (final diff in this) {
       switch (diff) {
         case StepSourceAdded(:final stepSource):
           sb.writeln('Step source added: ${stepSource.block.text}');
           break;
         case StepSourceUpdated(:final base, :final stepSource):
-          sb.writeln('Step source updated: ${base.block.text} -> ${stepSource.block.text}');
+          sb.writeln(
+            'Step source updated: ${base.block.text} -> ${stepSource.block.text}',
+          );
           break;
         case StepSourceRemoved(:final stepSourceId):
           sb.writeln('Step source removed: $stepSourceId');
@@ -261,7 +332,7 @@ extension DiffListExt on List<Diff> {
           break;
       }
     }
-    
+
     print(sb);
   }
 }

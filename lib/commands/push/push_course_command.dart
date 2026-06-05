@@ -34,8 +34,16 @@ class PushCourseCommand extends Command<void> {
 
     final remoteCourse = courseId != null ? await stepikRepository.readCourse(courseId) : null;
 
-    final diff = Diff.create(remoteCourse, localCourse).toList();
-    diff.dump();
+    final diffs = Diff.create(remoteCourse, localCourse).toList();
+
+    final course = await stepikRepository.applyDiff(localCourse, diffs);
+    await sourceRepository.writeCourse(course, courseDir);
+
+
+
+    print('--> Course created/updated. Check https://stepik.org/course/${course.id}');
+
+    // diff.dump();
 
     // updating
     // if (courseId != null) {
