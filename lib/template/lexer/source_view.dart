@@ -134,12 +134,9 @@ class Tag {
   final String name;
   final TagType type;
   final List<({String key, String value})>? attributes;
+  final String? content;
 
-  Tag({required this.name, required this.type, this.attributes}) {
-    if (name.contains('<')) {
-      print('Error');
-    }
-  }
+  Tag({required this.name, required this.type, this.attributes, this.content});
 
   @override
   String toString() {

@@ -7,6 +7,9 @@ import 'package:pluto/domain/lesson.dart';
 import 'package:pluto/domain/section.dart';
 import 'package:pluto/domain/step_source.dart';
 import 'package:pluto/domain/unit.dart';
+import 'package:pluto/md/md_file.dart';
+import 'package:pluto/md/md_parser.dart';
+import 'package:pluto/template/lexer/source_view.dart';
 import 'package:pluto/template/template.dart';
 import 'package:yaml/yaml.dart';
 import 'package:markdown/markdown.dart' as md;
@@ -66,22 +69,21 @@ class SourceRepository {
   }
 
   Future<StepSource> readStepSource(String filePath, int position) async {
-    final (frontMatter, content) = await File(filePath).readMd();
-
-    final blockFields = _readFields(content);
-
-    final blockName = StepBlockType.parse(frontMatter['type'] as String);
+    final md = await File(filePath).readMdFile();
+    final fm = md.frontMatter;
+    final blocks = md.blocks;
+    final blockName = StepBlockType.parse(fm['type'] as String);
 
     final step = StepSource(
-      id: frontMatter['id'] as int?,
+      id: fm['id'] as int?,
       position: position,
       block: StepBlock(
         name: blockName,
-        text: blockFields['text'] ?? '',
+        text: md.getBlockContent('text') ?? '',
         options: switch (blockName) {
           StepBlockType.text => const TextStepBlockOptions(),
           StepBlockType.choice => ChoiceStepBlockOptions(
-            isMultipleChoice: frontMatter['is_multiple_choice'] as bool,
+            isMultipleChoice: fm['is_multiple_choice'] as bool,
           ),
           // TODO:
           StepBlockType.code => CodeStepBlockOptions(samples: []),
@@ -89,10 +91,10 @@ class SourceRepository {
         source: switch (blockName) {
           StepBlockType.text => const TextStepBlockSource(),
           StepBlockType.choice => ChoiceStepBlockSource(
-            isMultipleChoice: frontMatter['is_multiple_choice'] as bool,
-            isAlwaysCorrect: frontMatter['is_always_correct'] as bool,
-            preserveOrder: frontMatter['preserve_order'] as bool,
-            isHtmlEnabled: frontMatter['is_html_enabled'] as bool,
+            isMultipleChoice: fm['is_multiple_choice'] as bool,
+            isAlwaysCorrect: fm['is_always_correct'] as bool,
+            preserveOrder: fm['preserve_order'] as bool,
+            isHtmlEnabled: fm['is_html_enabled'] as bool,
             // TODO: fill
             options: [],
           ),
@@ -286,6 +288,12 @@ class SourceRepository {
 }
 
 extension FileExtension on File {
+  Future<MdFile> readMdFile() async {
+    final content = await File(path).readAsString();
+    final md = const MdParser().parse(SourceView2(content));
+    return md;
+  }
+
   Future<(dynamic frontMatter, String content)> readMd() async {
     final content = await File(path).readAsString();
 

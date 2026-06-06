@@ -7,26 +7,31 @@ class MdParser {
 
   MdFile parse(SourceView2 source2) {
     if (source2.isEmpty) {
-      return const MdFile(frontMatter: <String, dynamic>{}, blocks: [], content: '');
+      return const MdFile(
+        frontMatter: <String, dynamic>{},
+        blocks: [],
+        content: '',
+      );
     }
 
     String? readText() {
-      final text = source2.readWhile(
-        (source) => switch (source.peak()) {
-          '-' when source.peakNext() == '-' && source.peakNextNext() == '-' => 3,
-          _ => 1,
-        },
-      );
-      return text;
+      final start = source2.position;
+      source2.readUntilAny(const ['---', '```']);
+      final end = source2.position;
+      if (start < end) {
+        final text = source2.substring(-end + start, 0);
+        return text;
+      }
+      return null;
     }
 
     dynamic readFrontMatter() {
-      if (source2.readString('---') != null) {
+      if (source2.readString('---\n') != null) {
         final text = readText();
         if (text == null) {
           throw 'Expected front matter not found';
         }
-        if (source2.readString('---') == null) {
+        if (source2.readString('---\n') == null) {
           throw 'Expected front matter end not found';
         }
         return loadYaml(text);
@@ -35,12 +40,39 @@ class MdParser {
       return null;
     }
 
+    MdCodeBlock? tryReadCodeBlock() {
+      if (source2.readString('```') != null) {
+        final lang = source2.readIdentifier();
+        source2.readChar('\n');
+
+        final content = readText();
+
+        if (content == null) {
+          throw 'Expected code content not found';
+        }
+        if (source2.readString('```') == null) {
+          throw 'Expected front matter end not found';
+        }
+        source2.readChar('\n');
+        return MdCodeBlock(lang, content);
+      }
+      return null;
+    }
+
     final tags = <Tag>[];
     final blocks = <Tag>[];
-    final frontMatter  = readFrontMatter();
+    final codes = <MdCodeBlock>[];
+    final frontMatter = readFrontMatter();
+
+    final content = readText();
 
     loop:
     do {
+      final codeBlock = tryReadCodeBlock();
+      if (codeBlock != null) {
+        codes.add(codeBlock);
+        continue;
+      }
 
       // TODO: could tags parsing be reused?
       final str = source2.readChar('<');
@@ -60,7 +92,7 @@ class MdParser {
                 // if (!topLevel) {
                 //   break loop;
                 // } else {
-                  continue loop;
+                continue loop;
                 // }
               }
             }
@@ -74,9 +106,15 @@ class MdParser {
       }
     } while (!source2.isEmpty);
 
-    final content = source2.isEmpty ? '' : source2.substring(0);
+    // final content = source2.isEmpty ? '' : source2.substring(0);
+    if (!source2.isEmpty) throw 'Content is not empty: ${source2.toString()}';
     print('MdText lexer end: ${source2.toString()}');
-    return MdFile(frontMatter: frontMatter ?? <String, dynamic>{}, blocks: blocks, content: content);
+    return MdFile(
+      frontMatter: frontMatter ?? <String, dynamic>{},
+      codes: codes,
+      blocks: blocks,
+      content: content ?? '',
+    );
   }
 }
 
