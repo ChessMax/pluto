@@ -8,7 +8,7 @@ import 'package:pluto/domain/course.dart';
 import 'package:pluto/domain/diff.dart';
 import 'package:pluto/domain/lesson.dart';
 import 'package:pluto/domain/section.dart';
-import 'package:pluto/domain/step.dart';
+import 'package:pluto/domain/step_source.dart';
 import 'package:pluto/domain/stepik_repository.dart';
 import 'package:pluto/domain/unit.dart';
 

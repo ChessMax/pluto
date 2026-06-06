@@ -1,7 +1,7 @@
 import 'package:pluto/data/json.dart';
 import 'package:pluto/domain/lesson.dart';
 import 'package:pluto/domain/section.dart';
-import 'package:pluto/domain/step.dart';
+import 'package:pluto/domain/step_source.dart';
 import 'package:pluto/domain/unit.dart';
 
 class Course {
@@ -146,7 +146,7 @@ class Course {
     int sectionIndex,
     int unitIndex,
     int stepSourceIndex,
-    Step Function(Step) update,
+    StepSource Function(StepSource) update,
   ) {
     final section = sections[sectionIndex];
     final unit = section.units[unitIndex];

@@ -5,7 +5,7 @@ import 'package:pluto/assets/templates/asset_templates.dart';
 import 'package:pluto/domain/course.dart';
 import 'package:pluto/domain/lesson.dart';
 import 'package:pluto/domain/section.dart';
-import 'package:pluto/domain/step.dart';
+import 'package:pluto/domain/step_source.dart';
 import 'package:pluto/domain/unit.dart';
 import 'package:pluto/template/template.dart';
 import 'package:yaml/yaml.dart';
@@ -65,14 +65,14 @@ class SourceRepository {
     return entities;
   }
 
-  Future<Step> readStep(String filePath, int position) async {
+  Future<StepSource> readStepSource(String filePath, int position) async {
     final (frontMatter, content) = await File(filePath).readMd();
 
     final blockFields = _readFields(content);
 
     final blockName = StepBlockType.parse(frontMatter['type'] as String);
 
-    final step = Step(
+    final step = StepSource(
       id: frontMatter['id'] as int?,
       position: position,
       block: StepBlock(
@@ -111,7 +111,7 @@ class SourceRepository {
   }
 
   Future<Lesson> readLesson(String dirPath, int position) async {
-    final steps = await _readEntities(dirPath, _stepFileRegExp, readStep)
+    final steps = await _readEntities(dirPath, _stepFileRegExp, readStepSource)
       ..sort((a, b) => a.position.compareTo(b.position));
 
     final position = _unitDirRegExp.validateAndParsePosition(dirPath);
@@ -207,7 +207,7 @@ class SourceRepository {
     }
   }
 
-  Future<void> writeStep(Step step, String dirPath) async {
+  Future<void> writeStep(StepSource step, String dirPath) async {
     final stepName = 'step_${step.position.toString().padLeft(2, '0')}';
     final stepPath = join(dirPath, '$stepName.md');
     final model = step.toJson();

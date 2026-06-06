@@ -1,19 +1,19 @@
 // TODO: rename to stepSource??
 import 'package:pluto/data/json.dart';
 
-class Step {
+class StepSource {
   final int? id;
   final int position;
   final StepBlock block;
 
-  Step({required this.id, required this.position, required this.block});
+  StepSource({required this.id, required this.position, required this.block});
 
-  Step copyWith({
+  StepSource copyWith({
     int? id,
     int? position,
     StepBlock? block,
   }) {
-    return Step(
+    return StepSource(
       id: id ?? this.id,
       block: block ?? this.block,
       position: position ?? this.position,

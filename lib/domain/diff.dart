@@ -2,7 +2,7 @@ import 'package:pluto/domain/course.dart';
 import 'package:pluto/domain/lesson.dart';
 import 'package:pluto/domain/remote_course.dart';
 import 'package:pluto/domain/section.dart';
-import 'package:pluto/domain/step.dart';
+import 'package:pluto/domain/step_source.dart';
 import 'package:pluto/domain/unit.dart';
 import 'package:pluto/stepik_api/raw_stepik_api.dart';
 
@@ -162,7 +162,7 @@ sealed class Diff {
 }
 
 class StepSourceAdded extends Diff {
-  final Step stepSource;
+  final StepSource stepSource;
   final int sectionIndex;
   final int unitIndex;
   final int stepSourceIndex;
@@ -177,7 +177,7 @@ class StepSourceAdded extends Diff {
 
 class StepSourceUpdated extends Diff {
   final RawStepSourceDto base;
-  final Step stepSource;
+  final StepSource stepSource;
 
   StepSourceUpdated({
     required this.base,

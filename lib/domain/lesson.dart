@@ -1,17 +1,17 @@
 import 'package:pluto/data/json.dart';
-import 'package:pluto/domain/step.dart';
+import 'package:pluto/domain/step_source.dart';
 
 class Lesson {
   final int? id;
   final String title;
-  final List<Step> steps;
+  final List<StepSource> steps;
 
   Lesson({required this.id, required this.title, required this.steps});
 
   Lesson copyWith({
     int? id,
     String? title,
-    List<Step>? steps,
+    List<StepSource>? steps,
   }) {
     return Lesson(
       id: id ?? this.id,
