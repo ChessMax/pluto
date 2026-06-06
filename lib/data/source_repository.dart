@@ -70,16 +70,14 @@ class SourceRepository {
 
     final blockFields = _readFields(content);
 
-    final blockName = StepBlockType.parse(
-      frontMatter['block']['name'] as String,
-    );
+    final blockName = StepBlockType.parse(frontMatter['type'] as String);
 
     final step = Step(
       id: frontMatter['id'] as int?,
       position: position,
       block: StepBlock(
         name: blockName,
-        text: blockFields['block.text'] ?? '',
+        text: blockFields['text'] ?? '',
         options: switch (blockName) {
           StepBlockType.text => const TextStepBlockOptions(),
           StepBlockType.choice => ChoiceStepBlockOptions(
@@ -98,7 +96,11 @@ class SourceRepository {
             // TODO: fill
             options: [],
           ),
-          StepBlockType.code => throw UnimplementedError(),
+          // TODO: fill test cases
+          StepBlockType.code => CodeStepBlockSource(
+            testCases: [],
+            samplesCount: 1,
+          ),
         },
         feedbackWrong: null,
         feedbackCorrect: null,

@@ -1,9 +1,7 @@
 ---
 id: @model.id
-position: @model.position
-block:
-    name: @model.block.name
+type: @model.block.name
 ---
 
-```block.text
+```text
 @model.block.text```
