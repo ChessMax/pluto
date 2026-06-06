@@ -8,6 +8,7 @@ import 'package:pluto/domain/lesson.dart';
 import 'package:pluto/domain/section.dart';
 import 'package:pluto/domain/step_source.dart';
 import 'package:pluto/domain/unit.dart';
+import 'package:pluto/extensions/string_extensions.dart';
 import 'package:pluto/md/md_file.dart';
 import 'package:pluto/md/md_parser.dart';
 import 'package:pluto/template/lexer/source_view.dart';
@@ -72,12 +73,10 @@ class SourceRepository {
   Future<StepSource> readStepSource(String filePath, int position) async {
     final md = await File(filePath).readMdFile();
     final fm = md.frontMatter;
-    final blocks = md.blocks;
     final blockName = StepBlockType.parse(fm['type'] as String);
 
     List<CodeTestCase> parseTestCases(String tests) {
-      // TODO: splitByLines extension
-      final lines = const LineSplitter().convert(tests);
+      final lines = tests.splitByLines();
       if (lines.length % 2 != 0) throw 'Unbalanced input output tests';
       final result = <CodeTestCase>[];
       for (var i = 0; i < lines.length; i += 2) {
@@ -88,16 +87,73 @@ class SourceRepository {
       return result;
     }
 
+    bool parseIsMultipleChoice() {
+      return switch (fm['type']) {
+        'single_choice' => false,
+        'multiple_choice' => true,
+        _ => throw 'Unexpected step source type: ${fm['type']}',
+      };
+    }
+
+    bool parseIsAlwaysCorrect() {
+      return switch (fm['is_always_correct']) {
+        true => true,
+        false => false,
+        null => false,
+        _ =>
+          throw 'Unexpected step source is always correct value: ${fm['is_always_correct']}',
+      };
+    }
+
+    bool parsePreserveOrder() {
+      return switch (fm['preserve_order']) {
+        true => true,
+        false => false,
+        null => false,
+        _ =>
+          throw 'Unexpected step source preserve order value: ${fm['preserve_order']}',
+      };
+    }
+
+    bool parseIsHtmlEnabled() {
+      return switch (fm['is_html_enabled']) {
+        true => true,
+        false => false,
+        null => true,
+        _ =>
+          throw 'Unexpected step source is html enabled value: ${fm['is_html_enabled']}',
+      };
+    }
+
+    List<ChoiceStepBlockOption> parseChoiceOptions(String options) {
+      final lines = options.splitByLines();
+      if (lines.length % 3 != 0) throw 'Unbalanced step source choice options';
+      final result = <ChoiceStepBlockOption>[];
+      for (var i = 0; i < result.length; i += 3) {
+        final isCorrect = bool.parse(lines[0]);
+        final text = lines[1];
+        final feedback = lines[2];
+        result.add(
+          ChoiceStepBlockOption(
+            text: text,
+            feedback: feedback,
+            isCorrect: isCorrect,
+          ),
+        );
+      }
+      return result;
+    }
+
     final step = StepSource(
       id: fm['id'] as int?,
       position: position,
       block: StepBlock(
         name: blockName,
-        text: md.getBlockContent('text') ?? '',
+        text: md.content,
         options: switch (blockName) {
           StepBlockType.text => const TextStepBlockOptions(),
           StepBlockType.choice => ChoiceStepBlockOptions(
-            isMultipleChoice: fm['is_multiple_choice'] as bool,
+            isMultipleChoice: parseIsMultipleChoice(),
           ),
           StepBlockType.code => CodeStepBlockOptions(
             samples: parseTestCases(md.getCodeContent('samples') ?? ''),
@@ -106,12 +162,11 @@ class SourceRepository {
         source: switch (blockName) {
           StepBlockType.text => const TextStepBlockSource(),
           StepBlockType.choice => ChoiceStepBlockSource(
-            isMultipleChoice: fm['is_multiple_choice'] as bool,
-            isAlwaysCorrect: fm['is_always_correct'] as bool,
-            preserveOrder: fm['preserve_order'] as bool,
-            isHtmlEnabled: fm['is_html_enabled'] as bool,
-            // TODO: fill
-            options: [],
+            isMultipleChoice: parseIsMultipleChoice(),
+            isAlwaysCorrect: parseIsAlwaysCorrect(),
+            preserveOrder: parsePreserveOrder(),
+            isHtmlEnabled: parseIsHtmlEnabled(),
+            options: parseChoiceOptions(md.getCodeContent('options') ?? ''),
           ),
           StepBlockType.code => CodeStepBlockSource(
             testCases: parseTestCases(md.getCodeContent('tests') ?? ''),
