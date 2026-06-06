@@ -3,9 +3,9 @@ import 'package:pluto/template/lexer/source_view.dart';
 
 class MdCodeBlock {
   final String? lang;
-  final String code;
+  final String content;
 
-  MdCodeBlock(this.lang, this.code);
+  MdCodeBlock(this.lang, this.content);
 }
 
 class MdFile {
@@ -20,6 +20,16 @@ class MdFile {
     required this.content,
     this.codes = const [],
   });
+
+  String? getCodeContent(String name) {
+    for (final code in codes) {
+      if (code.lang == name) {
+        return code.content;
+      }
+    }
+
+    return null;
+  }
 
   String? getBlockContent(String name) {
     for (final block in blocks) {

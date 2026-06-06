@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart';
@@ -74,6 +75,19 @@ class SourceRepository {
     final blocks = md.blocks;
     final blockName = StepBlockType.parse(fm['type'] as String);
 
+    List<CodeTestCase> parseTestCases(String tests) {
+      // TODO: splitByLines extension
+      final lines = const LineSplitter().convert(tests);
+      if (lines.length % 2 != 0) throw 'Unbalanced input output tests';
+      final result = <CodeTestCase>[];
+      for (var i = 0; i < lines.length; i += 2) {
+        final input = lines[i];
+        final output = lines[i + 1];
+        result.add(CodeTestCase(input: input, output: output));
+      }
+      return result;
+    }
+
     final step = StepSource(
       id: fm['id'] as int?,
       position: position,
@@ -85,8 +99,9 @@ class SourceRepository {
           StepBlockType.choice => ChoiceStepBlockOptions(
             isMultipleChoice: fm['is_multiple_choice'] as bool,
           ),
-          // TODO:
-          StepBlockType.code => CodeStepBlockOptions(samples: []),
+          StepBlockType.code => CodeStepBlockOptions(
+            samples: parseTestCases(md.getCodeContent('samples') ?? ''),
+          ),
         },
         source: switch (blockName) {
           StepBlockType.text => const TextStepBlockSource(),
@@ -98,10 +113,9 @@ class SourceRepository {
             // TODO: fill
             options: [],
           ),
-          // TODO: fill test cases
           StepBlockType.code => CodeStepBlockSource(
-            testCases: [],
-            samplesCount: 1,
+            testCases: parseTestCases(md.getCodeContent('tests') ?? ''),
+            samplesCount: 1, // TODO:
           ),
         },
         feedbackWrong: null,

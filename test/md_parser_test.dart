@@ -23,6 +23,6 @@ void main() {
     final result = parse('*Hello*\n```tests\n1 2\n3\n```\n');
     expect(result.content, '*Hello*\n');
     expect(result.codes[0].lang, 'tests');
-    expect(result.codes[0].code, '1 2\n3\n');
+    expect(result.codes[0].content, '1 2\n3\n');
   });
 }

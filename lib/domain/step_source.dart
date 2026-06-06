@@ -51,11 +51,11 @@ enum StepBlockType {
       StepBlockType.values.firstWhere((type) => type.name == value);
 }
 
-
 sealed class StepBlockSource {
   const StepBlockSource();
 
   Object toJson();
+
   Object toDto();
 }
 
@@ -63,7 +63,7 @@ class TextStepBlockSource extends StepBlockSource {
   const TextStepBlockSource();
 
   @override
-  Object toJson()  => {};
+  Object toJson() => {};
 
   @override
   Object toDto() => toJson();
@@ -74,13 +74,17 @@ class ChoiceStepBlockOption {
   final String text;
   final String feedback;
 
-  ChoiceStepBlockOption({required this.isCorrect, required this.text, required this.feedback});
+  ChoiceStepBlockOption({
+    required this.isCorrect,
+    required this.text,
+    required this.feedback,
+  });
 
   Object toJson() {
     return {
-      'text':text,
+      'text': text,
       'feedback': feedback,
-      'is_correct':isCorrect,
+      'is_correct': isCorrect,
     };
   }
 }
@@ -92,18 +96,23 @@ class ChoiceStepBlockSource extends StepBlockSource {
   final bool isHtmlEnabled;
   final List<ChoiceStepBlockOption> options;
 
-  const ChoiceStepBlockSource({required this.isMultipleChoice, required this.isAlwaysCorrect, required this.preserveOrder, required this.isHtmlEnabled, required this.options});
+  const ChoiceStepBlockSource({
+    required this.isMultipleChoice,
+    required this.isAlwaysCorrect,
+    required this.preserveOrder,
+    required this.isHtmlEnabled,
+    required this.options,
+  });
 
   @override
   Object toJson() {
     return {
-      'is_multiple_choice':isMultipleChoice,
-      'is_always_correct':isAlwaysCorrect,
-      'preserve_order':preserveOrder,
-      'is_html_enabled':isHtmlEnabled,
-      'options':[
-        for (final option in options)
-          option.toJson(),
+      'is_multiple_choice': isMultipleChoice,
+      'is_always_correct': isAlwaysCorrect,
+      'preserve_order': preserveOrder,
+      'is_html_enabled': isHtmlEnabled,
+      'options': [
+        for (final option in options) option.toJson(),
       ],
     };
   }
@@ -116,15 +125,17 @@ class CodeStepBlockSource extends StepBlockSource {
   final int samplesCount;
   final List<CodeTestCase> testCases;
 
-  const CodeStepBlockSource({required this.testCases, required this.samplesCount});
+  const CodeStepBlockSource({
+    required this.testCases,
+    required this.samplesCount,
+  });
 
   @override
   Object toJson() {
     return {
       'samples_count': samplesCount,
       'test_cases': [
-        for (final tc in testCases)
-          tc.toJson(),
+        for (final tc in testCases) tc.toJson(),
       ],
     };
   }
@@ -134,18 +145,17 @@ class CodeStepBlockSource extends StepBlockSource {
     return {
       'samples_count': samplesCount,
       'test_cases': [
-        for (final tc in testCases)
-          tc.toJson(),
+        for (final tc in testCases) tc.toJson(),
       ],
     };
   }
-
 }
 
 sealed class StepBlockOptions {
   const StepBlockOptions();
 
   Object toJson();
+
   Object toDto();
 }
 
@@ -161,10 +171,11 @@ class TextStepBlockOptions extends StepBlockOptions {
 
 class ChoiceStepBlockOptions extends StepBlockOptions {
   final bool isMultipleChoice;
+
   const ChoiceStepBlockOptions({required this.isMultipleChoice});
 
   @override
-  Object toJson() => {'is_multiple_choice':isMultipleChoice};
+  Object toJson() => {'is_multiple_choice': isMultipleChoice};
 
   @override
   Object toDto() => toJson();
@@ -178,10 +189,9 @@ class CodeStepBlockOptions extends StepBlockOptions {
   @override
   Object toJson() {
     return {
-      'samples':[
-        for (final sample in samples)
-          sample.toJson(),
-      ]
+      'samples': [
+        for (final sample in samples) sample.toJson(),
+      ],
     };
   }
 
@@ -189,10 +199,9 @@ class CodeStepBlockOptions extends StepBlockOptions {
   Object toDto() {
     return {
       'samples': [
-        for (final sample in samples)
-          sample.toDto(),
-      ]
-    } ;
+        for (final sample in samples) sample.toDto(),
+      ],
+    };
   }
 }
 
@@ -227,7 +236,8 @@ class StepBlock {
     required this.text,
     required this.feedbackCorrect,
     required this.feedbackWrong,
-    required this.options, required this.source,
+    required this.options,
+    required this.source,
   });
 
   Map<String, dynamic> toJson() {
@@ -237,7 +247,7 @@ class StepBlock {
       'feedback_correct': feedbackCorrect,
       'feedback_wrong': feedbackWrong,
       'options': options.toJson(),
-      'source':source.toJson(),
+      'source': source.toJson(),
     };
   }
 
@@ -248,8 +258,8 @@ class StepBlock {
       if (feedbackCorrect?.isNotEmpty == true)
         'feedback_correct': feedbackCorrect,
       if (feedbackWrong?.isNotEmpty == true) 'feedback_wrong': feedbackWrong,
-      'options':options.toDto(),
-      'source':source.toDto(),
+      'options': options.toDto(),
+      'source': source.toDto(),
     };
   }
 }
