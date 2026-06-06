@@ -376,6 +376,12 @@ class SourceView2 {
   //   return null;
   // }
 
+  String consumeRest() {
+    final result = toString();
+    consume(result.length);
+    return result;
+  }
+
   String consumeChar(String value) {
     return readChar(value) ?? (throw 'Expected `$value` char');
   }

@@ -16,12 +16,16 @@ class MdParser {
 
     String? readText() {
       final start = source2.position;
-      source2.readUntilAny(const ['---', '```']);
-      final end = source2.position;
-      if (start < end) {
-        final text = source2.substring(-end + start, 0);
-        return text;
+      if (source2.readUntilAny(const ['---', '```']) != null) {
+        final end = source2.position;
+        if (start < end) {
+          final text = source2.substring(-end + start, 0);
+          return text;
+        }
+      } else {
+        return source2.consumeRest();
       }
+
       return null;
     }
 

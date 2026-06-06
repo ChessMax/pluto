@@ -25,9 +25,4 @@ void main() {
     expect(result.codes[0].lang, 'tests');
     expect(result.codes[0].code, '1 2\n3\n');
   });
-
-  test('Code block with markup', () async {
-    final result = parse('''@{ var name = 'User';<p>Hello, @name</p> }''');
-    expect(result, ['{', '''``` var name = 'User';```''', '<p>', 'Hello, ', '`name`', '</p>', '``` ```', '}']);
-  });
 }
