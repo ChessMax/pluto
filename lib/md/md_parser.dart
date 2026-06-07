@@ -57,7 +57,7 @@ class MdParser {
         if (source2.readString('```') == null) {
           throw 'Expected front matter end not found';
         }
-        source2.readChar('\n');
+        source2.readChar('\n');// TODO: consume all ws?
         return MdCodeBlock(lang, content);
       }
       return null;
