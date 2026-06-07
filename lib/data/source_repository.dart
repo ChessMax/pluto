@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart';
@@ -59,12 +58,22 @@ class SourceRepository {
     final dir = Directory(dirPath);
     final entities = <T>[];
 
+    final filesWithPosition = <(String, String)>[];
+
     await for (var file in dir.list()) {
       final position = nameMatcher.validateAndParsePosition(file.path);
       if (position != null) {
-        final entity = await readEntity(file.path, int.parse(position));
-        entities.add(entity);
+        filesWithPosition.add((file.path, position));
       }
+    }
+
+    filesWithPosition.sort((a, b) {
+      return int.parse(a.$2).compareTo(int.parse(b.$2));
+    });
+
+    for (final (filePath, position) in filesWithPosition) {
+      final entity = await readEntity(filePath, int.parse(position));
+      entities.add(entity);
     }
 
     return entities;
@@ -73,7 +82,18 @@ class SourceRepository {
   Future<StepSource> readStepSource(String filePath, int position) async {
     final md = await File(filePath).readMdFile();
     final fm = md.frontMatter;
-    final blockName = StepBlockType.parse(fm['type'] as String);
+
+    StepBlockType parseBlockType() {
+      return switch (fm['type']) {
+        'text' => .text,
+        'code' => .code,
+        'single_choice' => .choice,
+        'multiple_choice' => .choice,
+        _ => throw 'Unexpected step source type: ${fm['type']}',
+      };
+    }
+
+    final blockName = parseBlockType();
 
     List<CodeTestCase> parseTestCases(String tests) {
       final lines = tests.splitByLines();
@@ -359,8 +379,14 @@ class SourceRepository {
 extension FileExtension on File {
   Future<MdFile> readMdFile() async {
     final content = await File(path).readAsString();
-    final md = const MdParser().parse(SourceView2(content));
-    return md;
+    try {
+      final md = const MdParser().parse(SourceView2(content));
+      return md;
+    }
+    catch (e) {
+      print('Failed to parse file `$path` with error: \n$e');
+      rethrow;
+    }
   }
 
   Future<(dynamic frontMatter, String content)> readMd() async {
