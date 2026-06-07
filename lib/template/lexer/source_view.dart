@@ -166,12 +166,15 @@ class SourceView2 {
 
   bool get isEmpty => position >= source.length;
 
+  bool get isNotEmpty => position < source.length;
+
   void consume([int value = 1]) => position += value;
 
   String? peak() => position < source.length ? source[position] : null;
 
   String? peakNext() =>
       position + 1 < source.length ? source[position + 1] : null;
+
   String? peakNextNext() =>
       position + 2 < source.length ? source[position + 2] : null;
 
@@ -253,14 +256,20 @@ class SourceView2 {
   String? readUntilString(String value) {
     final start = position;
 
-    final prefixPosition = readPositionUntilChar(value[0]);
-    if (prefixPosition != null) {
-      if (readString(value) == value) {
-        position = prefixPosition;
-        final result = source.substring(start, prefixPosition);
-        return result;
+    do {
+      final prefixPosition = readPositionUntilChar(value[0]);
+      if (prefixPosition != null) {
+        if (readString(value) == value) {
+          position = prefixPosition;
+          final result = source.substring(start, prefixPosition);
+          return result;
+        } else {
+          position += 1;
+        }
+      } else {
+        break;
       }
-    }
+    } while (isNotEmpty);
 
     position = start;
     return null;

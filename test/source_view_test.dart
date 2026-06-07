@@ -314,5 +314,14 @@ void main() {
       });
     }
   });
-  
+
+  group('readUntilAny should return correct values', (){
+    test('Should return correct', (){
+      final content = "Which variable could have `null` value?```options```";
+      final sv = SourceView2(content);
+      final pos = sv.readUntilAny(const ['---', '```']);
+
+      expect(pos, '```');
+    });
+  });
 }
