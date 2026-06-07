@@ -298,7 +298,7 @@ class SourceRepository {
     }
   }
 
-  Future<void> writeStep(StepSource step, String dirPath) async {
+  Future<void> writeStepSource(StepSource step, String dirPath) async {
     final stepName = 'step_${step.position.toString().padLeft(2, '0')}';
     final stepPath = join(dirPath, '$stepName.md');
     final model = step.toJson();
@@ -311,7 +311,7 @@ class SourceRepository {
   }
 
   Future<void> writeLesson(Lesson lesson, String dirPath, int position) async {
-    await _writeEntities(dirPath, lesson.steps, writeStep);
+    await _writeEntities(dirPath, lesson.steps, writeStepSource);
 
     await renderToFile(
       join(dirPath, 'lesson_${position.toString().padLeft(2, '0')}.md'),
