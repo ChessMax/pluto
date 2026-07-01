@@ -23,6 +23,7 @@ class PushCourseCommand extends Command<void> {
 
   @override
   Future<void> run() async {
+    // TODO: use current dir by default?
     final courseDir = argResults!.rest[0];
     const sourceRepository = SourceRepository();
     //
