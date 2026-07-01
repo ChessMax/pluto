@@ -150,10 +150,10 @@ class SourceRepository {
       final lines = options.splitByLines();
       if (lines.length % 3 != 0) throw 'Unbalanced step source choice options';
       final result = <ChoiceStepBlockOption>[];
-      for (var i = 0; i < result.length; i += 3) {
-        final isCorrect = bool.parse(lines[0]);
-        final text = lines[1];
-        final feedback = lines[2];
+      for (var i = 0; i < lines.length; i += 3) {
+        final isCorrect = bool.parse(lines[i + 0]);
+        final text = lines[i + 1];
+        final feedback = lines[i + 2];
         result.add(
           ChoiceStepBlockOption(
             text: text,

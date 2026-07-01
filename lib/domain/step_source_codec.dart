@@ -55,7 +55,7 @@ class StepSourceCodec {
           sb.writeln(option.text);
           sb.writeln(option.feedback);
         }
-        sb.writeln('```');
+        sb.write('```');
         break;
       case CodeStepBlockSource(:final testCases, :final code):
         sb.writeln('```tests');
