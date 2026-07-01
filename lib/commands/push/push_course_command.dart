@@ -37,6 +37,7 @@ class PushCourseCommand extends Command<void> {
 
     final diffs = Diff.create(remoteCourse, localCourse).toList();
 
+    // creating / updating course on stepik.
     final course = await stepikRepository.applyDiff(localCourse, diffs);
 
     // saving in case ids added.
@@ -45,19 +46,5 @@ class PushCourseCommand extends Command<void> {
     print('--> Course created/updated. Check https://stepik.org/course/${course.id}');
 
     diffs.dump();
-
-    // updating
-    if (courseId != null) {
-      final remoteCourse = await stepikRepository.readCourse(courseId);
-      final course = await stepikRepository.updateCourse(remoteCourse, localCourse);
-
-      await sourceRepository.writeCourse(course, courseDir);
-
-      print('--> Course updated. Check https://stepik.org/course/$courseId');
-    } else {
-      // creating new course
-      final course = await stepikRepository.writeCourse(localCourse);
-      print('--> Course created. Check https://stepik.org/course/${course.id}');
-    }
   }
 }
