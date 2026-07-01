@@ -169,8 +169,8 @@ class CodeStepBlockSource extends StepBlockSource {
       'manual_memory_limits': const <int>[],
       'execution_time_limit': 5,
       'execution_memory_limit': 256,
+      'code': 'def generate():\n    return []\n\ndef check(reply, clue):\n    return reply.strip() == clue.strip()',
       // end required param
-      'code': code,
       // TODO: allow to change?
       'templates_data': '::dart\n\n\n\n\n',
       'samples_count': samplesCount,
