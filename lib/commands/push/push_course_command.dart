@@ -24,7 +24,6 @@ class PushCourseCommand extends Command<void> {
   @override
   Future<void> run() async {
     final courseDir = argResults!.rest[0];
-
     const sourceRepository = SourceRepository();
     //
     // final filePath = './my_other_course/source/section_01/unit_01/step_03.md';
@@ -36,21 +35,6 @@ class PushCourseCommand extends Command<void> {
     final courseId = localCourse.id;
 
     final rawApi = (await initializeStepikClient()).rawApi;
-
-    // final section = await rawApi.section.fetchById(715026);
-    //
-    // section?.title += ' updated';
-    //
-    // await rawApi.section.update(section!.id, {
-    //   'title': section.title,
-    //   'course': section.course,
-    //   'position': section.position,
-    // });
-    //
-    // await Future<void>.delayed(const Duration(seconds: 5000));
-    //
-    // return;
-
     final stepikRepository = StepikRepository(rawApi);
 
     final remoteCourse = courseId != null ? await stepikRepository.readCourse(courseId) : null;
@@ -58,26 +42,26 @@ class PushCourseCommand extends Command<void> {
     final diffs = Diff.create(remoteCourse, localCourse).toList();
 
     final course = await stepikRepository.applyDiff(localCourse, diffs);
+
+    // saving in case ids added.
     await sourceRepository.writeCourse(course, courseDir);
-
-
 
     print('--> Course created/updated. Check https://stepik.org/course/${course.id}');
 
-    // diff.dump();
+    diffs.dump();
 
     // updating
-    // if (courseId != null) {
-    //   final remoteCourse = await stepikRepository.readCourse(courseId);
-    //   final course = await stepikRepository.updateCourse(remoteCourse, localCourse);
-    //
-    //   await sourceRepository.writeCourse(course, courseDir);
-    //
-    //   print('--> Course updated. Check https://stepik.org/course/$courseId');
-    // } else {
-    //   // creating new course
-    //   final course = await stepikRepository.writeCourse(localCourse);
-    //   print('--> Course created. Check https://stepik.org/course/${course.id}');
-    // }
+    if (courseId != null) {
+      final remoteCourse = await stepikRepository.readCourse(courseId);
+      final course = await stepikRepository.updateCourse(remoteCourse, localCourse);
+
+      await sourceRepository.writeCourse(course, courseDir);
+
+      print('--> Course updated. Check https://stepik.org/course/$courseId');
+    } else {
+      // creating new course
+      final course = await stepikRepository.writeCourse(localCourse);
+      print('--> Course created. Check https://stepik.org/course/${course.id}');
+    }
   }
 }
