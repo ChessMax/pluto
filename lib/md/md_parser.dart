@@ -5,8 +5,8 @@ import 'package:yaml/yaml.dart';
 class MdParser {
   const MdParser();
 
-  MdFile parse(SourceView source2) {
-    if (source2.isEmpty) {
+  MdFile parse(SourceView source) {
+    if (source.isEmpty) {
       return const MdFile(
         frontMatter: <String, dynamic>{},
         blocks: [],
@@ -15,27 +15,27 @@ class MdParser {
     }
 
     String? readText() {
-      final start = source2.position;
-      if (source2.readUntilAny(const ['---', '```']) != null) {
-        final end = source2.position;
+      final start = source.position;
+      if (source.readUntilAny(const ['---', '```']) != null) {
+        final end = source.position;
         if (start < end) {
-          final text = source2.substring(-end + start, 0);
+          final text = source.substring(-end + start, 0);
           return text;
         }
       } else {
-        return source2.consumeRest();
+        return source.consumeRest();
       }
 
       return null;
     }
 
     dynamic readFrontMatter() {
-      if (source2.readString('---\n') != null) {
+      if (source.readString('---\n') != null) {
         final text = readText();
         if (text == null) {
           throw 'Expected front matter not found';
         }
-        if (source2.readString('---\n') == null) {
+        if (source.readString('---\n') == null) {
           throw 'Expected front matter end not found';
         }
         return loadYaml(text);
@@ -45,19 +45,19 @@ class MdParser {
     }
 
     MdCodeBlock? tryReadCodeBlock() {
-      if (source2.readString('```') != null) {
-        final lang = source2.readIdentifier();
-        source2.readChar('\n');
+      if (source.readString('```') != null) {
+        final lang = source.readIdentifier();
+        source.readChar('\n');
 
         final content = readText();
 
         if (content == null) {
           throw 'Expected code content not found';
         }
-        if (source2.readString('```') == null) {
+        if (source.readString('```') == null) {
           throw 'Expected front matter end not found';
         }
-        source2.readChar('\n');// TODO: consume all ws?
+        source.readChar('\n'); // TODO: consume all ws?
         return MdCodeBlock(lang, content);
       }
       return null;
@@ -79,10 +79,10 @@ class MdParser {
       }
 
       // TODO: could tags parsing be reused?
-      final str = source2.readChar('<');
+      final str = source.readChar('<');
       switch (str) {
         case '<':
-          final tag = source2.readTag();
+          final tag = source.readTag();
           if (tag != null) {
             blocks.add(tag);
             if (tag.type == .opening) {
@@ -108,11 +108,11 @@ class MdParser {
         default:
           throw 'Unexpected branch ($str)';
       }
-    } while (!source2.isEmpty);
+    } while (source.isNotEmpty);
 
-    // final content = source2.isEmpty ? '' : source2.substring(0);
-    if (!source2.isEmpty) throw 'Content is not empty: ${source2.toString()}';
-    print('MdText lexer end: ${source2.toString()}');
+    // final content = source.isEmpty ? '' : source2.substring(0);
+    if (source.isNotEmpty) throw 'Content is not empty: ${source.toString()}';
+    print('MdText lexer end: ${source.toString()}');
     return MdFile(
       frontMatter: frontMatter ?? <String, dynamic>{},
       codes: codes,
