@@ -11,7 +11,7 @@ class TextLexer {
 
   const TextLexer({required this.topLevel});
 
-  Iterable<Token> tokenize(SourceView2 source2) sync* {
+  Iterable<Token> tokenize(SourceView source2) sync* {
 
     if (source2.isEmpty) {
       yield Token(type: .text, value: '');

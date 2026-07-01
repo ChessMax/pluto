@@ -386,7 +386,7 @@ extension FileExtension on File {
   Future<MdFile> readMdFile() async {
     final content = await File(path).readAsString();
     try {
-      final md = const MdParser().parse(SourceView2(content));
+      final md = const MdParser().parse(SourceView(content));
       return md;
     }
     catch (e) {

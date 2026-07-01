@@ -5,7 +5,7 @@ import 'package:test/test.dart';
 
 void main() {
   MdFile parse(String source) =>
-      const MdParser().parse(SourceView2(source));
+      const MdParser().parse(SourceView(source));
 
   test('FM should be empty if there is no FM', (){
     final result = parse('*Hello*');

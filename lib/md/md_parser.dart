@@ -5,7 +5,7 @@ import 'package:yaml/yaml.dart';
 class MdParser {
   const MdParser();
 
-  MdFile parse(SourceView2 source2) {
+  MdFile parse(SourceView source2) {
     if (source2.isEmpty) {
       return const MdFile(
         frontMatter: <String, dynamic>{},

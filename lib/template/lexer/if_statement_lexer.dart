@@ -6,7 +6,7 @@ import 'package:pluto/template/token.dart';
 class IfStatementLexer {
   const IfStatementLexer();
 
-  Iterable<Token> tokenize(SourceView2 source) sync* {
+  Iterable<Token> tokenize(SourceView source) sync* {
     // @if consumed
 
     Iterable<Token> consumeBlock() sync* {
