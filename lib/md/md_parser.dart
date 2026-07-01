@@ -112,7 +112,6 @@ class MdParser {
 
     // final content = source.isEmpty ? '' : source2.substring(0);
     if (source.isNotEmpty) throw 'Content is not empty: ${source.toString()}';
-    print('MdText lexer end: ${source.toString()}');
     return MdFile(
       frontMatter: frontMatter ?? <String, dynamic>{},
       codes: codes,
