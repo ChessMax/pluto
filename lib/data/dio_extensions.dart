@@ -1,12 +1,36 @@
 import 'package:dio/dio.dart';
 import 'package:fpdart/fpdart.dart';
+import 'package:pluto/data/json.dart';
 import 'package:pluto/data/result.dart';
 
-typedef ResponseParser<T> = T Function(Map<String, dynamic> value);
+typedef ResponseParser<T> = T Function(dynamic value);
+typedef ResponseObjectParser<T> = T Function(Map<String, dynamic> value);
 
 enum HttpMethod { get, put, post, delete, head, options }
 
 extension DioExtensions on Dio {
+  Result<T> safeObjectRequest<T>(
+    HttpMethod method,
+    String path,
+    ResponseObjectParser<T> parser, {
+    String? url,
+    Object? data,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? queryParameters,
+    String? contentType,
+  }) {
+    return safeRequest(
+      method,
+      path,
+      (value) => parser(value as JsonObject),
+      url: url,
+      data: data,
+      headers: headers,
+      queryParameters: queryParameters,
+      contentType: contentType,
+    );
+  }
+
   Result<T> safeRequest<T>(
     HttpMethod method,
     String path,
@@ -18,18 +42,18 @@ extension DioExtensions on Dio {
     String? contentType,
   }) async {
     // try {
-      final response = await request<dynamic>(
-        '${url ?? options.baseUrl}$path',
-        data: data,
-        queryParameters: queryParameters,
-        options: Options(
-          method: method.name,
-          headers: headers,
-          contentType: contentType,
-        ),
-      );
-      final parsedResponse = parser(response.data as Map<String, dynamic>);
-      return right(parsedResponse);
+    final response = await request<dynamic>(
+      '${url ?? options.baseUrl}$path',
+      data: data,
+      queryParameters: queryParameters,
+      options: Options(
+        method: method.name,
+        headers: headers,
+        contentType: contentType,
+      ),
+    );
+    final parsedResponse = parser(response.data);
+    return right(parsedResponse);
     // } on DioException catch (e) {
     //   return left(e);
     // } catch (e) {
@@ -39,14 +63,14 @@ extension DioExtensions on Dio {
 
   Result<T> getRequest<T>(
     String path,
-    ResponseParser<T> parser, {
+    ResponseObjectParser<T> parser, {
     String? url,
     Object? data,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? queryParameters,
     String? contentType,
   }) async {
-    return safeRequest(
+    return safeObjectRequest(
       HttpMethod.get,
       path,
       parser,
@@ -58,14 +82,14 @@ extension DioExtensions on Dio {
 
   Result<T> postRequest<T>(
     String path,
-    ResponseParser<T> parser, {
+    ResponseObjectParser<T> parser, {
     String? url,
     Object? data,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? queryParameters,
     String? contentType,
   }) async {
-    return safeRequest(
+    return safeObjectRequest(
       HttpMethod.post,
       path,
       parser,
@@ -78,14 +102,14 @@ extension DioExtensions on Dio {
 
   Result<T> putRequest<T>(
     String path,
-    ResponseParser<T> parser, {
+    ResponseObjectParser<T> parser, {
     String? url,
     Object? data,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? queryParameters,
     String? contentType,
   }) async {
-    return safeRequest(
+    return safeObjectRequest(
       HttpMethod.put,
       path,
       parser,

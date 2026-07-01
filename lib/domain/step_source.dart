@@ -49,6 +49,15 @@ enum StepBlockType {
 
   static StepBlockType parse(String value) =>
       StepBlockType.values.firstWhere((type) => type.name == value);
+
+  String toDto() {
+    return switch (this) {
+      .code => 'code',
+      .text => 'text',
+      .singleChoice => 'choice',
+      .multipleChoice => 'choice',
+    };
+  }
 }
 
 sealed class StepBlockSource {
@@ -118,7 +127,13 @@ class ChoiceStepBlockSource extends StepBlockSource {
   }
 
   @override
-  Object toDto() => toJson();
+  Object toDto() => {
+    ...(toJson() as JsonObject),
+    // TODO: it should be able to manipulate this parameter.
+    'sample_size': options.length,
+    // required params
+    'is_options_feedback': false,
+  };
 }
 
 class CodeStepBlockSource extends StepBlockSource {
@@ -145,9 +160,22 @@ class CodeStepBlockSource extends StepBlockSource {
   @override
   Object toDto() {
     return {
+      // TODO: when updating? this overrides?
+      // required param
+      'test_archive': const <int>[],
+      'is_time_limit_scaled': true,
+      'is_memory_limit_scaled': true,
+      'manual_time_limits': const <int>[],
+      'manual_memory_limits': const <int>[],
+      'execution_time_limit': 5,
+      'execution_memory_limit': 256,
+      // end required param
+      'code': code,
+      // TODO: allow to change?
+      'templates_data': '::dart\n\n\n\n\n',
       'samples_count': samplesCount,
       'test_cases': [
-        for (final tc in testCases) tc.toJson(),
+        for (final tc in testCases) tc.toDto(),
       ],
     };
   }
@@ -255,7 +283,7 @@ class StepBlock {
 
   Map<String, dynamic> toDto() {
     return {
-      'name': name.name,
+      'name': name.toDto(),
       'text': text,
       if (feedbackCorrect?.isNotEmpty == true)
         'feedback_correct': feedbackCorrect,

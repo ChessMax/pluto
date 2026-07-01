@@ -43,8 +43,8 @@ class PushCourseCommand extends Command<void> {
     // saving in case ids added.
     await sourceRepository.writeCourse(course, courseDir);
 
-    print('--> Course created/updated. Check https://stepik.org/course/${course.id}');
-
     diffs.dump();
+
+    print('--> Course created/updated. Check https://stepik.org/course/${course.id}');
   }
 }
