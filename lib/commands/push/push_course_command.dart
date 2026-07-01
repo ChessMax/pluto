@@ -26,6 +26,12 @@ class PushCourseCommand extends Command<void> {
     final courseDir = argResults!.rest[0];
 
     const sourceRepository = SourceRepository();
+
+    final filePath = './my_other_course/source/section_01/unit_01/step_03.md';
+    final content = await File(filePath).readMdFile();
+
+    return;
+
     final localCourse = await sourceRepository.readCourse(courseDir);
     final courseId = localCourse.id;
 

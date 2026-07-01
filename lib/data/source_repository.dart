@@ -6,6 +6,7 @@ import 'package:pluto/domain/course.dart';
 import 'package:pluto/domain/lesson.dart';
 import 'package:pluto/domain/section.dart';
 import 'package:pluto/domain/step_source.dart';
+import 'package:pluto/domain/step_source_codec.dart';
 import 'package:pluto/domain/unit.dart';
 import 'package:pluto/extensions/string_extensions.dart';
 import 'package:pluto/md/md_file.dart';
@@ -87,8 +88,8 @@ class SourceRepository {
       return switch (fm['type']) {
         'text' => .text,
         'code' => .code,
-        'single_choice' => .choice,
-        'multiple_choice' => .choice,
+        'single_choice' => .singleChoice,
+        'multiple_choice' => .multipleChoice,
         _ => throw 'Unexpected step source type: ${fm['type']}',
       };
     }
@@ -171,24 +172,25 @@ class SourceRepository {
         name: blockName,
         text: md.content,
         options: switch (blockName) {
-          StepBlockType.text => const TextStepBlockOptions(),
-          StepBlockType.choice => ChoiceStepBlockOptions(
-            isMultipleChoice: parseIsMultipleChoice(),
+          .text => const TextStepBlockOptions(),
+          .singleChoice || .multipleChoice => ChoiceStepBlockOptions(
+            isMultipleChoice: blockName == .multipleChoice,
           ),
-          StepBlockType.code => CodeStepBlockOptions(
+          .code => CodeStepBlockOptions(
             samples: parseTestCases(md.getCodeContent('samples') ?? ''),
           ),
         },
         source: switch (blockName) {
-          StepBlockType.text => const TextStepBlockSource(),
-          StepBlockType.choice => ChoiceStepBlockSource(
+          .text => const TextStepBlockSource(),
+          .singleChoice || .multipleChoice => ChoiceStepBlockSource(
             isMultipleChoice: parseIsMultipleChoice(),
             isAlwaysCorrect: parseIsAlwaysCorrect(),
             preserveOrder: parsePreserveOrder(),
             isHtmlEnabled: parseIsHtmlEnabled(),
             options: parseChoiceOptions(md.getCodeContent('options') ?? ''),
           ),
-          StepBlockType.code => CodeStepBlockSource(
+          .code => CodeStepBlockSource(
+            code: md.getCodeContent('dart') ?? '',
             testCases: parseTestCases(md.getCodeContent('tests') ?? ''),
             samplesCount: 1, // TODO:
           ),
@@ -301,13 +303,17 @@ class SourceRepository {
   Future<void> writeStepSource(StepSource step, String dirPath) async {
     final stepName = 'step_${step.position.toString().padLeft(2, '0')}';
     final stepPath = join(dirPath, '$stepName.md');
-    final model = step.toJson();
-
-    await renderToFile(
-      stepPath,
-      AssetTemplates.step,
-      model,
-    );
+    final md = const StepSourceCodec().write(step);
+    final dir = dirname(stepPath);
+    Directory(dir).createSync(recursive: true);
+    await File(stepPath).writeAsString(md);
+    // final model = step.toJson();
+    //
+    // await renderToFile(
+    //   stepPath,
+    //   AssetTemplates.step,
+    //   model,
+    // );
   }
 
   Future<void> writeLesson(Lesson lesson, String dirPath, int position) async {

@@ -43,7 +43,8 @@ class StepSource {
 
 enum StepBlockType {
   text,
-  choice,
+  singleChoice,
+  multipleChoice,
   code,
   ;
 
@@ -124,8 +125,10 @@ class ChoiceStepBlockSource extends StepBlockSource {
 class CodeStepBlockSource extends StepBlockSource {
   final int samplesCount;
   final List<CodeTestCase> testCases;
+  final String code;
 
   const CodeStepBlockSource({
+    required this.code,
     required this.testCases,
     required this.samplesCount,
   });
