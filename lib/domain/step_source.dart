@@ -257,6 +257,7 @@ class CodeTestCase {
 class StepBlock {
   final StepBlockType name;
   final String text;
+  final String? textRendered;
   final String? feedbackCorrect;
   final String? feedbackWrong;
   final StepBlockOptions options;
@@ -265,6 +266,7 @@ class StepBlock {
   StepBlock({
     required this.name,
     required this.text,
+    this.textRendered,
     required this.feedbackCorrect,
     required this.feedbackWrong,
     required this.options,
@@ -274,6 +276,7 @@ class StepBlock {
   StepBlock copyWith({
     StepBlockType? name,
     String? text,
+    String? textRendered,
     String? feedbackCorrect,
     String? feedbackWrong,
     StepBlockOptions? options,
@@ -282,6 +285,7 @@ class StepBlock {
     return StepBlock(
       name: name ?? this.name,
       text: text ?? this.text,
+      textRendered: textRendered ?? this.textRendered,
       feedbackCorrect: feedbackCorrect ?? this.feedbackCorrect,
       feedbackWrong: feedbackWrong ?? this.feedbackWrong,
       options: options ?? this.options,
@@ -303,7 +307,7 @@ class StepBlock {
   Map<String, dynamic> toDto() {
     return {
       'name': name.toDto(),
-      'text': text,
+      'text': textRendered ?? (throw 'Rendered text is expected'),
       if (feedbackCorrect?.isNotEmpty == true)
         'feedback_correct': feedbackCorrect,
       if (feedbackWrong?.isNotEmpty == true) 'feedback_wrong': feedbackWrong,

@@ -1,11 +1,30 @@
+import 'dart:io';
+
 import 'package:markdown/markdown.dart';
 import 'package:pluto/domain/course.dart';
 
 // TODO: is it OK that's it a repository?
 class RenderRepository {
+  static final _nlRegEx = RegExp(r'\n+');
+
   const RenderRepository();
 
-  String renderText(String text) {
+  String renderMultiLineText(String text) {
+    String replaceLineBreaks(String input) {
+      return input.replaceAllMapped(_nlRegEx, (match) {
+        final newlines = match.group(0)!;
+        if (newlines.length == 1) {
+          return '';
+        } else {
+          return '\n' * (newlines.length ~/ 2);
+        }
+      });
+    }
+
+    return replaceLineBreaks(text);
+  }
+
+  String renderMdText(String text) {
     final result =
     markdownToHtml(
       text,
@@ -29,9 +48,9 @@ class RenderRepository {
         for (int k = 0; k < steps.length; ++k) {
           final step = steps[k];
 
-          final renderedText = renderText(step.block.text);
+          final renderedText = renderMdText(step.block.text);
           final renderedStep = step.copyWith(
-            block: step.block.copyWith(text: renderedText),
+            block: step.block.copyWith(textRendered: renderedText),
           );
           steps[k] = renderedStep;
         }
@@ -45,9 +64,14 @@ class RenderRepository {
       final renderedSection = section.copyWith(units: units);
       sections[i] = renderedSection;
     }
+
+    final summary = course.summary;
     final renderedCourse = course.copyWith(
+      summaryRendered: summary != null && summary.isNotEmpty ? renderMultiLineText(summary) : summary,
       sections: sections,
     );
+    print('Rendered summary: ');
+    print(renderedCourse.summaryRendered);
     return renderedCourse;
   }
 }

@@ -12,6 +12,8 @@ class Course {
   final List<Section> sections;
 
   final String? summary;
+  final String? summaryRendered;
+
   final String? acquiredAssets;
 
   final String? description;
@@ -26,6 +28,7 @@ class Course {
     this.titleEn,
     this.sections = const [],
     this.summary,
+    this.summaryRendered,
     this.acquiredAssets,
     this.description,
     this.targetAudience,
@@ -40,6 +43,7 @@ class Course {
     String? titleEn,
     List<Section>? sections,
     String? summary,
+    String? summaryRendered,
     String? acquiredAssets,
     String? description,
     String? targetAudience,
@@ -53,6 +57,7 @@ class Course {
       titleEn: titleEn ?? this.titleEn,
       sections: sections ?? this.sections,
       summary: summary ?? this.summary,
+      summaryRendered: summaryRendered ?? this.summaryRendered,
       acquiredAssets: acquiredAssets ?? this.acquiredAssets,
       description: description ?? this.description,
       targetAudience: targetAudience ?? this.targetAudience,
@@ -94,7 +99,7 @@ class Course {
             if (section.id != null) section.id,
         ],
       // TODO: use markdown to eliminate extra line breaks?
-      'summary': summary,
+      'summary': summaryRendered ?? '',
       if (acquiredAssets != null) 'acquired_assets': acquiredAssets,
       if (description != null) 'description': description,
       if (targetAudience != null) 'target_audience': targetAudience,
