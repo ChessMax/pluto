@@ -4,6 +4,7 @@ import 'package:pluto/domain/section.dart';
 import 'package:pluto/domain/step_source.dart';
 import 'package:pluto/domain/unit.dart';
 
+// TODO: additional class like CourseSource & Course or Course & RenderedCourse?
 class Course {
   final int? id;
   final String title;
