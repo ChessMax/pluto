@@ -6,6 +6,7 @@ import 'package:pluto/domain/step_source.dart';
 import 'package:pluto/domain/unit.dart';
 import 'package:pluto/stepik_api/raw_stepik_api.dart';
 
+// TODO: check if something really changed, not just added/removed.
 sealed class Diff {
   static Iterable<Diff> create(CourseEntity? entity, Course course) sync* {
     if ((course.id != null) != (entity != null)) {
