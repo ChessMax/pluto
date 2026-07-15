@@ -22,8 +22,12 @@ class InitCourseCommand extends Command<void> {
 
   @override
   Future<void> run() async {
-    // final name = argResults!.option('name')!;
-    final name = argResults!.rest[0];
+    final argResults = this.argResults;
+    if (argResults == null || argResults.rest.isEmpty) {
+      print('Expected course name not found. See help for details.');
+      exit(-1);
+    }
+    final name = argResults.rest[0];
 
     print('Initialize $name course:');
 
