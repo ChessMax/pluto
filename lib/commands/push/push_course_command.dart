@@ -7,6 +7,7 @@ import 'package:pluto/data/source_repository.dart';
 import 'package:pluto/domain/course.dart';
 import 'package:pluto/domain/diff.dart';
 import 'package:pluto/domain/lesson.dart';
+import 'package:pluto/domain/render_repository.dart';
 import 'package:pluto/domain/section.dart';
 import 'package:pluto/domain/step_source.dart';
 import 'package:pluto/domain/stepik_repository.dart';
@@ -27,8 +28,10 @@ class PushCourseCommand extends Command<void> {
     final courseDir = argResults!.rest[0];
     const sourceRepository = SourceRepository();
 
-    final localCourse = await sourceRepository.readCourse(courseDir);
-    final courseId = localCourse.id;
+    final localCourseSource = await sourceRepository.readCourse(courseDir);
+    final courseId = localCourseSource.id;
+
+    final localCourse = const RenderRepository().render(localCourseSource);
 
     final rawApi = (await initializeStepikClient()).rawApi;
     final stepikRepository = StepikRepository(rawApi);

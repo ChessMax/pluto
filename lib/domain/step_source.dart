@@ -169,7 +169,8 @@ class CodeStepBlockSource extends StepBlockSource {
       'manual_memory_limits': const <int>[],
       'execution_time_limit': 5,
       'execution_memory_limit': 256,
-      'code': 'def generate():\n    return []\n\ndef check(reply, clue):\n    return reply.strip() == clue.strip()',
+      'code':
+          'def generate():\n    return []\n\ndef check(reply, clue):\n    return reply.strip() == clue.strip()',
       // end required param
       // TODO: allow to change?
       'templates_data': '::dart\n\n\n\n\n',
@@ -269,6 +270,24 @@ class StepBlock {
     required this.options,
     required this.source,
   });
+
+  StepBlock copyWith({
+    StepBlockType? name,
+    String? text,
+    String? feedbackCorrect,
+    String? feedbackWrong,
+    StepBlockOptions? options,
+    StepBlockSource? source,
+  }) {
+    return StepBlock(
+      name: name ?? this.name,
+      text: text ?? this.text,
+      feedbackCorrect: feedbackCorrect ?? this.feedbackCorrect,
+      feedbackWrong: feedbackWrong ?? this.feedbackWrong,
+      options: options ?? this.options,
+      source: source ?? this.source,
+    );
+  }
 
   Map<String, dynamic> toJson() {
     return {
