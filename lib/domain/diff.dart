@@ -112,6 +112,8 @@ sealed class Diff {
         yield SectionRemoved(sectionId: sectionToRemove.id);
       }
 
+      yield CourseUpdated(base: entity.course, course: course);
+
       return;
     }
 

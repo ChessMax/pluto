@@ -92,8 +92,7 @@ class Course {
           for (final section in sections)
             if (section.id != null) section.id,
         ],
-      // TODO:
-      // 'summary': summary,
+      'summary': summary,
       if (acquiredAssets != null) 'acquired_assets': acquiredAssets,
       if (description != null) 'description': description,
       if (targetAudience != null) 'target_audience': targetAudience,
