@@ -1,4 +1,0 @@
----
-id: @model.id
-position: @model.position
----

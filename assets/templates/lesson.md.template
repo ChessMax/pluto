@@ -1,4 +1,0 @@
----
-id: @model.id
-title: @model.title
----

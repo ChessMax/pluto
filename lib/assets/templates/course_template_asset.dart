@@ -1,3 +1,4 @@
+const String courseTemplateAsset = '''
 ---
 id: @model.id
 # title max 64 chars
@@ -33,3 +34,4 @@ title_en: @model.titleEn
 <!-- Что вы получаете -->
 ```acquired_skills
 @(model.acquiredSkills ?? '')```
+''';

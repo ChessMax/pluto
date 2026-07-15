@@ -1,6 +1,11 @@
 import 'dart:io';
 
 import 'package:path/path.dart';
+import 'package:pluto/assets/templates/course_template_asset.dart';
+import 'package:pluto/assets/templates/lesson_template_asset.dart';
+import 'package:pluto/assets/templates/section_template_asset.dart';
+import 'package:pluto/assets/templates/step_template_asset.dart';
+import 'package:pluto/assets/templates/unit_template_asset.dart';
 import 'package:pluto/template/code_generator.dart';
 import 'package:pluto/template/lexer/lexer.dart';
 import 'package:pluto/template/node.dart';
@@ -8,21 +13,14 @@ import 'package:pluto/template/parser.dart';
 import 'package:pluto/template/template.dart';
 
 abstract final class AssetTemplates {
-  // TODO: package relative paths and reading?
-  static const coursePath = 'assets/templates/course.md.template';
-  static const sectionPath = 'assets/templates/section.md.template';
-  static const lessonPath = 'assets/templates/lesson.md.template';
-  static const unitPath = 'assets/templates/unit.md.template';
-  static const stepPath = 'assets/templates/step.md.template';
+  static final Future<Template> course = _getTemplate(courseTemplateAsset);
+  static final Future<Template> section = _getTemplate(sectionTemplateAsset);
+  static final Future<Template> unit = _getTemplate(unitTemplateAsset);
+  static final Future<Template> lesson = _getTemplate(lessonTemplateAsset);
+  static final Future<Template> step = _getTemplate(stepTemplateAsset);
 
-  static final Future<Template> course = _getTemplate(coursePath);
-  static final Future<Template> section = _getTemplate(sectionPath);
-  static final Future<Template> unit = _getTemplate(unitPath);
-  static final Future<Template> lesson = _getTemplate(lessonPath);
-  static final Future<Template> step = _getTemplate(stepPath);
-
-  static Future<Template> _getTemplate(String path) async {
-    final source = await readTextFile(path);
+  static Future<Template> _getTemplate(String source) async {
+    // final source = await readTextFile(path);
     final tokens = const Lexer().tokenize(source).toList();
     final node = const Parser().parse(tokens);
     final code = const CodeGenerator().generate(DocumentNode(node.toList()));
