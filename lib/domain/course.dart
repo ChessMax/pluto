@@ -92,6 +92,7 @@ class Course {
           for (final section in sections)
             if (section.id != null) section.id,
         ],
+      // TODO: use markdown to eliminate extra line breaks?
       'summary': summary,
       if (acquiredAssets != null) 'acquired_assets': acquiredAssets,
       if (description != null) 'description': description,
