@@ -29,7 +29,7 @@ class TagRewriteTransformer extends NodeTransformer {
 /// Centers headings and appends an empty paragraph after them, so a title is
 /// always centered and keeps a line of spacing before the following content.
 ///
-/// Produces e.g. `<h1 style="text-align:center">Title</h1><p></p>`.
+/// Produces e.g. `<h1 style="text-align:center">Title</h1><p>&nbsp;</p>`.
 class CenteredHeadingTransformer extends NodeTransformer {
   final Set<String> tags;
 
@@ -39,6 +39,6 @@ class CenteredHeadingTransformer extends NodeTransformer {
   List<Node> apply(Element element) {
     if (!tags.contains(element.tag)) return [element];
     element.attributes['style'] = 'text-align:center';
-    return [element, Element('p', <Node>[])];
+    return [element, Element('p', <Node>[Text('&nbsp;')])];
   }
 }
