@@ -41,6 +41,9 @@ class RenderRepository {
           final step = steps[k];
 
           final renderedText = renderMdText(step.block.text);
+          print('Rendered text: =======================');
+          print(renderedText);
+          print('======================================');
           final renderedStep = step.copyWith(
             block: step.block.copyWith(textRendered: renderedText),
           );
