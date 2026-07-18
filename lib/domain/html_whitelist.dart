@@ -12,6 +12,10 @@ class TagRule {
 const Set<String> globalAttributes = {};
 const Set<String> allowedUrlSchemes = {'http', 'https', 'mailto'};
 
+// TODO: it would be nice if we could use strike tag from allowedTags table somehow.
+// In that case we would some have compile time safety
+const Map<String, String> tagRewrites = {'del': 'strike'};
+
 /// The stepik.org HTML whitelist, keyed by lower-case tag name.
 ///
 /// A tag absent from this map is not allowed. An attribute absent from a tag's

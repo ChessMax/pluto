@@ -1,7 +1,5 @@
-import 'dart:io';
-
-import 'package:markdown/markdown.dart';
 import 'package:pluto/domain/course.dart';
+import 'package:pluto/domain/stepik_markdown_renderer.dart';
 
 // TODO: is it OK that's it a repository?
 class RenderRepository {
@@ -25,13 +23,7 @@ class RenderRepository {
   }
 
   String renderMdText(String text) {
-    final result =
-    markdownToHtml(
-      text,
-      extensionSet: ExtensionSet.gitHubWeb,
-    );
-
-    return result;
+    return const StepikMarkdownRenderer().render(text);
   }
 
   Course render(Course course) {
