@@ -1,6 +1,6 @@
 import 'package:markdown/markdown.dart';
 import 'package:pluto/domain/html_whitelist.dart';
-import 'package:pluto/domain/node_transformer.dart';
+import 'package:pluto/markdown/node_transformer.dart';
 
 /// Renders Markdown to HTML constrained by the Stepik tags whitelist.
 ///

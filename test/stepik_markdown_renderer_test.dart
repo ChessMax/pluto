@@ -1,5 +1,5 @@
 import 'package:markdown/markdown.dart';
-import 'package:pluto/domain/stepik_markdown_renderer.dart';
+import 'package:pluto/markdown/stepik_markdown_renderer.dart';
 import 'package:pluto/domain/validation_repository.dart';
 import 'package:test/test.dart';
 

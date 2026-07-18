@@ -7,7 +7,7 @@ import 'package:pluto/data/source_repository.dart';
 import 'package:pluto/domain/course.dart';
 import 'package:pluto/domain/diff.dart';
 import 'package:pluto/domain/lesson.dart';
-import 'package:pluto/domain/render_repository.dart';
+import 'package:pluto/markdown/render_repository.dart';
 import 'package:pluto/domain/section.dart';
 import 'package:pluto/domain/step_source.dart';
 import 'package:pluto/domain/stepik_repository.dart';

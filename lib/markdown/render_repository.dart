@@ -1,5 +1,5 @@
 import 'package:pluto/domain/course.dart';
-import 'package:pluto/domain/stepik_markdown_renderer.dart';
+import 'package:pluto/markdown/stepik_markdown_renderer.dart';
 
 // TODO: is it OK that's it a repository?
 class RenderRepository {
