@@ -1,0 +1,44 @@
+import 'package:markdown/markdown.dart';
+
+/// Transforms a single Markdown AST [Element] into its replacement node(s).
+abstract class NodeTransformer {
+  const NodeTransformer();
+
+  List<Node> apply(Element element);
+}
+
+/// Renames tags according to [rewrites] (e.g. `del` -> `strike`), preserving
+/// children, attributes and generated id.
+class TagRewriteTransformer extends NodeTransformer {
+  final Map<String, String> rewrites;
+
+  const TagRewriteTransformer(this.rewrites);
+
+  @override
+  List<Node> apply(Element element) {
+    final tag = rewrites[element.tag];
+    if (tag == null) return [element];
+    return [
+      Element(tag, element.children)
+        ..attributes.addAll(element.attributes)
+        ..generatedId = element.generatedId,
+    ];
+  }
+}
+
+/// Centers headings and appends an empty paragraph after them, so a title is
+/// always centered and keeps a line of spacing before the following content.
+///
+/// Produces e.g. `<h1 style="text-align:center">Title</h1><p></p>`.
+class CenteredHeadingTransformer extends NodeTransformer {
+  final Set<String> tags;
+
+  const CenteredHeadingTransformer({this.tags = const {'h1', 'h2', 'h3'}});
+
+  @override
+  List<Node> apply(Element element) {
+    if (!tags.contains(element.tag)) return [element];
+    element.attributes['style'] = 'text-align:center';
+    return [element, Element('p', <Node>[])];
+  }
+}

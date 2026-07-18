@@ -1,11 +1,18 @@
 import 'package:markdown/markdown.dart';
 import 'package:pluto/domain/html_whitelist.dart';
+import 'package:pluto/domain/node_transformer.dart';
 
 /// Renders Markdown to HTML constrained by the Stepik tags whitelist.
 ///
-/// See also [allowedTags] and [tagRewrites].
+/// See also [allowedTags] and [_transformers].
 class StepikMarkdownRenderer {
   const StepikMarkdownRenderer();
+
+  /// Ordered styling rules applied to the parsed AST before rendering.
+  static const List<NodeTransformer> _transformers = [
+    TagRewriteTransformer(tagRewrites),
+    CenteredHeadingTransformer(),
+  ];
 
   static final gitHubWeb = ExtensionSet(
     List<BlockSyntax>.unmodifiable(<BlockSyntax>[
@@ -30,16 +37,25 @@ class StepikMarkdownRenderer {
   String render(String markdown) {
     final document = Document(extensionSet: gitHubWeb);
     final nodes = document.parse(markdown);
-    final rewritten = nodes.map(_rewrite).toList();
+    final rewritten = nodes.expand(_rewrite).toList();
     return '${renderToHtml(rewritten)}\n';
   }
 
-  Node _rewrite(Node node) {
-    if (node is! Element) return node;
-    final children = node.children?.map(_rewrite).toList();
-    final tag = tagRewrites[node.tag] ?? node.tag;
-    return Element(tag, children)
+  List<Node> _rewrite(Node node) {
+    if (node is! Element) return [node];
+
+    final children = node.children?.expand(_rewrite).toList();
+    final rebuilt = Element(node.tag, children)
       ..attributes.addAll(node.attributes)
       ..generatedId = node.generatedId;
+
+    var result = <Node>[rebuilt];
+    for (final transformer in _transformers) {
+      result = [
+        for (final n in result)
+          if (n is Element) ...transformer.apply(n) else n,
+      ];
+    }
+    return result;
   }
 }
