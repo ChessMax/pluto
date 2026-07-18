@@ -138,6 +138,7 @@ class ChoiceStepBlockSource extends StepBlockSource {
   };
 }
 
+// TODO: add command to get all always correct answers.
 /// A free-form text answer step. With [manualScoring] `false` Stepik
 /// auto-accepts any submission, which makes it usable as a survey question
 /// (no "wrong answer", answers still recorded and retrievable via submissions).
