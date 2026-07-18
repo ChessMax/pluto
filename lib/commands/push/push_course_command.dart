@@ -44,6 +44,16 @@ class PushCourseCommand extends Command<void> {
     final diffs = Diff.create(remoteCourse, localCourse).toList();
 
     final validation = const ValidationRepository().validate(localCourse);
+
+    // TODO: put somewhere else to reuse code. Extension or validation result.
+    // TODOs are author reminders: warn, but don't block the push.
+    if (validation.todos.isNotEmpty) {
+      stderr.writeln('Warning: ${validation.todos.length} unresolved TODO(s):');
+      for (final todo in validation.todos) {
+        stderr.writeln('  - $todo');
+      }
+    }
+
     if (!validation.isValid) {
       stderr.writeln(
         'Course HTML validation failed (${validation.violations.length} issue(s)):',

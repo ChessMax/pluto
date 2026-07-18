@@ -92,6 +92,58 @@ void main() {
     });
   });
 
+  group('todo marker', () {
+    test('renders as a styled yellow span with bold label', () {
+      final html = renderer.render('[[TODO: add a screenshot here]]');
+      expect(
+        html,
+        contains(
+          '<span style="background-color:#fff3cd;color:#856404;'
+          'padding:2px 4px;border-radius:3px;">'
+          '⚠️ <strong>TODO: add a screenshot here</strong></span>',
+        ),
+      );
+    });
+
+    test('todo mid-sentence keeps surrounding text', () {
+      final html = renderer.render('before [[TODO: fix]] after');
+      expect(html, contains('<strong>TODO: fix</strong>'));
+      expect(html, contains('before'));
+      expect(html, contains('after'));
+    });
+
+    test('two todos on one line are matched independently', () {
+      final html = renderer.render('[[TODO: one]] and [[TODO: two]]');
+      expect(html, contains('<strong>TODO: one</strong>'));
+      expect(html, contains('<strong>TODO: two</strong>'));
+    });
+
+    test('message is html-escaped', () {
+      final html = renderer.render('[[TODO: use <div> & <span>]]');
+      expect(
+        html,
+        contains('<strong>TODO: use &lt;div&gt; &amp; &lt;span&gt;</strong>'),
+      );
+    });
+
+    test('malformed marker without colon is not treated as a todo', () {
+      final html = renderer.render('[[TODO no colon]]');
+      expect(html, isNot(contains('<strong>TODO')));
+      expect(html, isNot(contains('background-color:#fff3cd')));
+      expect(html, contains('[['));
+      expect(html, contains(']]'));
+    });
+
+    test('rendered todo passes the whitelist validator', () {
+      final html = renderer.render('[[TODO: fix this]]');
+      final violations = const ValidationRepository().validateHtml(
+        html,
+        location: 'test',
+      );
+      expect(violations, isEmpty);
+    });
+  });
+
   group('validator cross-check', () {
     const validator = ValidationRepository();
 

@@ -2,6 +2,7 @@ import 'package:markdown/markdown.dart';
 import 'package:pluto/domain/html_whitelist.dart';
 import 'package:pluto/markdown/auto_emphasize_transformer.dart';
 import 'package:pluto/markdown/node_transformer.dart';
+import 'package:pluto/markdown/todo_syntax.dart';
 
 /// Renders Markdown to HTML constrained by the Stepik tags whitelist.
 ///
@@ -43,6 +44,7 @@ class StepikMarkdownRenderer {
       const AlertBlockSyntax(),
     ]),
     List<InlineSyntax>.unmodifiable(<InlineSyntax>[
+      TodoInlineSyntax(),
       InlineHtmlSyntax(),
       StrikethroughSyntax(),
       EmojiSyntax(),

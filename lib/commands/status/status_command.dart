@@ -59,5 +59,16 @@ class StatusCommand extends Command<void> {
         print('  - $violation');
       }
     }
+
+    // report TODOs (warnings)
+    final todos = validation.todos;
+    if (todos.isEmpty) {
+      print('TODOs: none');
+    } else {
+      print('TODOs: ${todos.length} found:');
+      for (final todo in todos) {
+        print('  - $todo');
+      }
+    }
   }
 }

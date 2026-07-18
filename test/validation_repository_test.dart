@@ -141,16 +141,53 @@ void main() {
         isTrue,
       );
     });
+
+    test('todos are collected as warnings without affecting validity', () {
+      final course = _course(
+        summary: 'intro [[TODO: write summary]]',
+        summaryRendered: '<p>ok</p>',
+        stepText: 'a step [[TODO: one]] and [[TODO: two]]',
+        stepHtml: '<p>ok</p>',
+      );
+      final result = repo.validate(course);
+
+      expect(result.isValid, isTrue);
+      expect(result.violations, isEmpty);
+
+      expect(result.todos.map((t) => t.message), [
+        'write summary',
+        'one',
+        'two',
+      ]);
+      expect(
+        result.todos.first.location,
+        'course summary',
+      );
+      expect(
+        result.todos.last.location,
+        'section "Sec" > unit 1 > step 1',
+      );
+    });
+
+    test('valid course with no todos reports empty todos', () {
+      final course = _course(summaryRendered: '<p>ok</p>', stepHtml: '<p>ok</p>');
+      expect(repo.validate(course).todos, isEmpty);
+    });
   });
 }
 
-Course _course({String? summaryRendered, String? stepHtml}) {
+Course _course({
+  String? summary,
+  String? summaryRendered,
+  String stepText = '',
+  String? stepHtml,
+}) {
   final step = StepSource(
     id: null,
     position: 1,
     block: StepBlock(
       name: StepBlockType.text,
-      text: '',
+      text: stepText,
       textRendered: stepHtml,
       feedbackCorrect: null,
       feedbackWrong: null,
@@ -176,6 +213,7 @@ Course _course({String? summaryRendered, String? stepHtml}) {
   return Course(
     id: 1,
     title: 'Course',
+    summary: summary,
     summaryRendered: summaryRendered,
     sections: [section],
   );

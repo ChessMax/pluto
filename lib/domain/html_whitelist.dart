@@ -53,7 +53,9 @@ const Map<String, TagRule> allowedTags = {
   'ol': TagRule(),
   'ul': TagRule(),
   'p': TagRule(attributes: {'style'}),
-  'span': TagRule(),
+  // `style` departs from Stepik's documented whitelist; enabled so inline
+  // `[[TODO: ...]]` markers can render as a coloured span. See todo_syntax.dart.
+  'span': TagRule(attributes: {'style'}),
   'strike': TagRule(),
   'details': TagRule(),
   'summary': TagRule(),
