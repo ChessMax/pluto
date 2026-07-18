@@ -12,6 +12,7 @@ import 'package:pluto/domain/section.dart';
 import 'package:pluto/domain/step_source.dart';
 import 'package:pluto/domain/stepik_repository.dart';
 import 'package:pluto/domain/unit.dart';
+import 'package:pluto/domain/validation_repository.dart';
 
 class PushCourseCommand extends Command<void> {
   @override
@@ -36,9 +37,22 @@ class PushCourseCommand extends Command<void> {
     final rawApi = (await initializeStepikClient()).rawApi;
     final stepikRepository = StepikRepository(rawApi);
 
-    final remoteCourse = courseId != null ? await stepikRepository.readCourse(courseId) : null;
+    final remoteCourse = courseId != null
+        ? await stepikRepository.readCourse(courseId)
+        : null;
 
     final diffs = Diff.create(remoteCourse, localCourse).toList();
+
+    final validation = const ValidationRepository().validate(localCourse);
+    if (!validation.isValid) {
+      stderr.writeln(
+        'Course HTML validation failed (${validation.violations.length} issue(s)):',
+      );
+      for (final violation in validation.violations) {
+        stderr.writeln('  - $violation');
+      }
+      exit(1);
+    }
 
     // creating / updating course on stepik.
     final course = await stepikRepository.applyDiff(localCourse, diffs);
@@ -48,6 +62,8 @@ class PushCourseCommand extends Command<void> {
 
     diffs.dump();
 
-    print('--> Course created/updated. Check https://stepik.org/course/${course.id}');
+    print(
+      '--> Course created/updated. Check https://stepik.org/course/${course.id}',
+    );
   }
 }
