@@ -1,3 +1,4 @@
+import 'package:fpdart/fpdart.dart';
 import 'package:markdown/markdown.dart';
 import 'package:pluto/domain/html_whitelist.dart';
 import 'package:pluto/markdown/node_transformer.dart';
@@ -37,14 +38,14 @@ class StepikMarkdownRenderer {
   String render(String markdown) {
     final document = Document(extensionSet: gitHubWeb);
     final nodes = document.parse(markdown);
-    final rewritten = nodes.expand(_rewrite).toList();
+    final rewritten = nodes.expand(_transform).toList();
     return '${renderToHtml(rewritten)}\n';
   }
 
-  List<Node> _rewrite(Node node) {
+  List<Node> _transform(Node node) {
     if (node is! Element) return [node];
 
-    final children = node.children?.expand(_rewrite).toList();
+    final children = node.children?.expand(_transform).toList();
     final rebuilt = Element(node.tag, children)
       ..attributes.addAll(node.attributes)
       ..generatedId = node.generatedId;
