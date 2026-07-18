@@ -85,7 +85,7 @@ class AddFreeAnswerCommand extends Command<void> {
         source: FreeAnswerStepBlockSource(
           manualScoring: manualScoring,
           isAttachmentsEnabled: false,
-          isHtmlEnabled: true,
+          isHtmlEnabled: false,
         ),
       ),
     );
