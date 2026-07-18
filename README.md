@@ -144,8 +144,6 @@ Run `./build_runner.sh` after editing any `@JsonSerializable` DTO in `lib/data/`
 | `lib/md/` | Markdown parsing (front matter + fenced blocks). |
 | `test/` | Unit tests for the lexer, parser, and template engine. |
 
-For a deeper architectural overview, see [`CLAUDE.md`](CLAUDE.md).
-
 ## 📄 License
 
 Released under the [MIT License](LICENSE).
