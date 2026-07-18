@@ -76,7 +76,7 @@ class AddFreeAnswerCommand extends Command<void> {
       id: null,
       position: lesson.steps.length + 1,
       block: StepBlock(
-        name: StepBlockType.freeAnswer,
+        name: .freeAnswer,
         text: text,
         textRendered: null,
         feedbackCorrect: null,

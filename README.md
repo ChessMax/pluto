@@ -56,6 +56,9 @@ Pluto is organized as a set of subcommands. Most operate on a **course directory
 | --- | --- |
 | `init course <name>` | Scaffold a new course directory. |
 | `add section` | Add a new section to an existing course. |
+| `add free-answer` | Add a free-answer (survey) step to a lesson. |
+| `add single-choice` | Add a single-choice quiz step to a lesson. |
+| `add multiple-choice` | Add a multiple-choice quiz step to a lesson. |
 | `copy` | Copy a course from one directory to another. |
 | `status` | Show the diff between your local course and the remote one. |
 | `push course <dir>` | Push (create/update) the course to Stepik. |
@@ -69,6 +72,16 @@ dart run bin/pluto.dart init course my_course
 
 # Add a section (options: -p path, -t title, -d description)
 dart run bin/pluto.dart add section -p my_course -t "Getting Started"
+
+# Add a free-answer (survey) step to section 1, unit 1
+# (-p path, -s section, -u unit, -t question text)
+dart run bin/pluto.dart add free-answer -p my_course -s 1 -u 1 -t "What did you learn?"
+
+# Add a single-choice quiz step (scaffolds template answer options to edit)
+dart run bin/pluto.dart add single-choice -p my_course -s 1 -u 1 -t "What is 2 + 2?"
+
+# Add a multiple-choice quiz step; --is-always-correct accepts any answer
+dart run bin/pluto.dart add multiple-choice -p my_course -s 1 -u 1 -t "Pick the primes" --is-always-correct
 
 # See what would change before pushing
 dart run bin/pluto.dart status my_course

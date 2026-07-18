@@ -9,8 +9,8 @@ abstract class AddChoiceCommand extends Command<void> {
   bool get isMultipleChoice;
 
   StepBlockType get blockType => isMultipleChoice
-      ? StepBlockType.multipleChoice
-      : StepBlockType.singleChoice;
+      ? .multipleChoice
+      : .singleChoice;
 
   AddChoiceCommand() {
     argParser
