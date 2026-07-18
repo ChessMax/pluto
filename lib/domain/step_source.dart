@@ -80,6 +80,7 @@ class TextStepBlockSource extends StepBlockSource {
   Object toDto() => toJson();
 }
 
+// TODO: for always correct answers we could use simple syntax, should we?
 class ChoiceStepBlockOption {
   final bool isCorrect;
   final String text;
