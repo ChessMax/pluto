@@ -2,6 +2,7 @@ import 'package:args/command_runner.dart';
 import 'package:pluto/commands/add/add_choice_command.dart';
 import 'package:pluto/commands/add/add_free_answer_command.dart';
 import 'package:pluto/commands/add/add_section_command.dart';
+import 'package:pluto/commands/add/add_unit_command.dart';
 
 class AddCommand extends Command<void> {
   @override
@@ -13,6 +14,7 @@ class AddCommand extends Command<void> {
 
   AddCommand() {
     addSubcommand(AddSectionCommand());
+    addSubcommand(AddUnitCommand());
     addSubcommand(AddFreeAnswerCommand());
     addSubcommand(AddSingleChoiceCommand());
     addSubcommand(AddMultipleChoiceCommand());
