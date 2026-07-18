@@ -1,5 +1,6 @@
 import 'package:markdown/markdown.dart';
 import 'package:pluto/domain/html_whitelist.dart';
+import 'package:pluto/markdown/auto_emphasize_transformer.dart';
 import 'package:pluto/markdown/node_transformer.dart';
 
 /// Renders Markdown to HTML constrained by the Stepik tags whitelist.
@@ -13,6 +14,22 @@ class StepikMarkdownRenderer {
     TagRewriteTransformer(tagRewrites),
     CenteredHeadingTransformer(),
   ];
+
+  /// Rules applied to [Text] leaves, unless inside [_noWrapTags].
+  static const List<TextTransformer> _textTransformers = [
+    AutoItalicTransformer(),
+  ];
+
+  /// Tags whose text content must not be auto-wrapped: code (literal) and
+  /// already-emphasized text.
+  static const Set<String> _noWrapTags = {
+    'code',
+    'pre',
+    'em',
+    'i',
+    'strong',
+    'b',
+  };
 
   static final gitHubWeb = ExtensionSet(
     List<BlockSyntax>.unmodifiable(<BlockSyntax>[
@@ -38,16 +55,26 @@ class StepikMarkdownRenderer {
     final document = Document(extensionSet: gitHubWeb);
     final nodes = document.parse(markdown);
 
-    List<Node> transform(Node node) => _transform(nodes, node);
+    List<Node> transform(Node node) => _transform(nodes, node, insideNoWrap: false);
 
     final rewritten = nodes.expand(transform).toList();
     return '${renderToHtml(rewritten)}\n';
   }
 
-  List<Node> _transform(List<Node> nodes, Node node) {
+  List<Node> _transform(List<Node> nodes, Node node, {required bool insideNoWrap}) {
+    if (node is Text) {
+      if (insideNoWrap) return [node];
+      return _textTransformers.fold(<Node>[node], (acc, transformer) => [
+        for (final n in acc)
+          if (n is Text) ...transformer.apply(n) else n,
+      ]);
+    }
+
     if (node is! Element) return [node];
 
-    List<Node> transform(Node node) => _transform(nodes, node);
+    final childInsideNoWrap = insideNoWrap || _noWrapTags.contains(node.tag);
+    List<Node> transform(Node node) =>
+        _transform(nodes, node, insideNoWrap: childInsideNoWrap);
 
     final isFirstNode = nodes.firstOrNull == node;
 

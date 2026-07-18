@@ -7,6 +7,14 @@ abstract class NodeTransformer {
   List<Node> apply(Element element, {required bool isFirstNode});
 }
 
+/// Transforms a single Markdown AST [Text] leaf into its replacement node(s),
+/// e.g. splitting text and wrapping parts in inline elements.
+abstract class TextTransformer {
+  const TextTransformer();
+
+  List<Node> apply(Text text);
+}
+
 /// Renames tags according to [rewrites] (e.g. `del` -> `strike`), preserving
 /// children, attributes and generated id.
 class TagRewriteTransformer extends NodeTransformer {
