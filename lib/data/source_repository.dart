@@ -90,6 +90,7 @@ class SourceRepository {
         'code' => .code,
         'single_choice' => .singleChoice,
         'multiple_choice' => .multipleChoice,
+        'free_answer' => .freeAnswer,
         _ => throw 'Unexpected step source type: ${fm['type']}',
       };
     }
@@ -146,6 +147,26 @@ class SourceRepository {
       };
     }
 
+    bool parseManualScoring() {
+      return switch (fm['manual_scoring']) {
+        true => true,
+        false => false,
+        null => false,
+        _ =>
+          throw 'Unexpected step source manual scoring value: ${fm['manual_scoring']}',
+      };
+    }
+
+    bool parseIsAttachmentsEnabled() {
+      return switch (fm['is_attachments_enabled']) {
+        true => true,
+        false => false,
+        null => false,
+        _ =>
+          throw 'Unexpected step source is attachments enabled value: ${fm['is_attachments_enabled']}',
+      };
+    }
+
     List<ChoiceStepBlockOption> parseChoiceOptions(String options) {
       final lines = options.splitByLines();
       if (lines.length % 3 != 0) throw 'Unbalanced step source choice options';
@@ -179,6 +200,7 @@ class SourceRepository {
           .code => CodeStepBlockOptions(
             samples: parseTestCases(md.getCodeContent('samples') ?? ''),
           ),
+          .freeAnswer => const FreeAnswerStepBlockOptions(),
         },
         source: switch (blockName) {
           .text => const TextStepBlockSource(),
@@ -193,6 +215,11 @@ class SourceRepository {
             code: md.getCodeContent('dart') ?? '',
             testCases: parseTestCases(md.getCodeContent('tests') ?? ''),
             samplesCount: 1, // TODO:
+          ),
+          .freeAnswer => FreeAnswerStepBlockSource(
+            manualScoring: parseManualScoring(),
+            isAttachmentsEnabled: parseIsAttachmentsEnabled(),
+            isHtmlEnabled: parseIsHtmlEnabled(),
           ),
         },
         feedbackWrong: null,

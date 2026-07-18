@@ -1,4 +1,5 @@
 import 'package:args/command_runner.dart';
+import 'package:pluto/commands/add/add_free_answer_command.dart';
 import 'package:pluto/commands/add/add_section_command.dart';
 
 class AddCommand extends Command<void> {
@@ -10,5 +11,6 @@ class AddCommand extends Command<void> {
 
   AddCommand() {
     addSubcommand(AddSectionCommand());
+    addSubcommand(AddFreeAnswerCommand());
   }
 }

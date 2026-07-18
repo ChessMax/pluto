@@ -46,7 +46,12 @@ void main(List<String> arguments) async {
     ..addCommand(AddCommand())
     ..addCommand(PushCommand())
     ..addCommand(StatusCommand());
-  await runner.run(arguments);
+  try {
+    await runner.run(arguments);
+  } on args.UsageException catch (e) {
+    stderr.writeln(e);
+    exit(64);
+  }
 
   return;
   final c = await const SourceRepository().readCourse(join('.', 'my_second_course'));

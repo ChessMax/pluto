@@ -1,6 +1,9 @@
 import 'package:pluto/data/json.dart';
 import 'package:pluto/domain/step_source.dart';
 
+// TODO: move somewhere and add check to validation process that it's correct
+const maxStepsPerLesson = 16;
+
 class Lesson {
   final int? id;
   final String title;

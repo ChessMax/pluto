@@ -45,6 +45,7 @@ enum StepBlockType {
   singleChoice,
   multipleChoice,
   code,
+  freeAnswer,
   ;
 
   static StepBlockType parse(String value) =>
@@ -56,6 +57,7 @@ enum StepBlockType {
       .text => 'text',
       .singleChoice => 'choice',
       .multipleChoice => 'choice',
+      .freeAnswer => 'free-answer',
     };
   }
 }
@@ -136,6 +138,33 @@ class ChoiceStepBlockSource extends StepBlockSource {
   };
 }
 
+/// A free-form text answer step. With [manualScoring] `false` Stepik
+/// auto-accepts any submission, which makes it usable as a survey question
+/// (no "wrong answer", answers still recorded and retrievable via submissions).
+class FreeAnswerStepBlockSource extends StepBlockSource {
+  final bool manualScoring;
+  final bool isAttachmentsEnabled;
+  final bool isHtmlEnabled;
+
+  const FreeAnswerStepBlockSource({
+    required this.manualScoring,
+    required this.isAttachmentsEnabled,
+    required this.isHtmlEnabled,
+  });
+
+  @override
+  Object toJson() {
+    return {
+      'manual_scoring': manualScoring,
+      'is_attachments_enabled': isAttachmentsEnabled,
+      'is_html_enabled': isHtmlEnabled,
+    };
+  }
+
+  @override
+  Object toDto() => toJson();
+}
+
 class CodeStepBlockSource extends StepBlockSource {
   final int samplesCount;
   final List<CodeTestCase> testCases;
@@ -207,6 +236,16 @@ class ChoiceStepBlockOptions extends StepBlockOptions {
 
   @override
   Object toJson() => {'is_multiple_choice': isMultipleChoice};
+
+  @override
+  Object toDto() => toJson();
+}
+
+class FreeAnswerStepBlockOptions extends StepBlockOptions {
+  const FreeAnswerStepBlockOptions();
+
+  @override
+  Object toJson() => {};
 
   @override
   Object toDto() => toJson();

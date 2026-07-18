@@ -17,12 +17,17 @@ class StepSourceCodec {
         .text => 'text',
         .singleChoice => 'single_choice',
         .multipleChoice => 'multiple_choice',
+        .freeAnswer => 'free_answer',
       }}',
     );
 
     if (source is ChoiceStepBlockSource) {
       sb.writeln('is_always_correct: ${source.isAlwaysCorrect}');
       sb.writeln('preserve_order: ${source.preserveOrder}');
+      sb.writeln('is_html_enabled: ${source.isHtmlEnabled}');
+    } else if (source is FreeAnswerStepBlockSource) {
+      sb.writeln('manual_scoring: ${source.manualScoring}');
+      sb.writeln('is_attachments_enabled: ${source.isAttachmentsEnabled}');
       sb.writeln('is_html_enabled: ${source.isHtmlEnabled}');
     }
 
@@ -34,6 +39,8 @@ class StepSourceCodec {
       case TextStepBlockOptions():
         break;
       case ChoiceStepBlockOptions():
+        break;
+      case FreeAnswerStepBlockOptions():
         break;
       case CodeStepBlockOptions(:final samples):
         sb.writeln('```samples');
@@ -47,6 +54,8 @@ class StepSourceCodec {
 
     switch (source) {
       case TextStepBlockSource():
+        break;
+      case FreeAnswerStepBlockSource():
         break;
       case ChoiceStepBlockSource():
         sb.writeln('```options');
