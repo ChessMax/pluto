@@ -34,9 +34,14 @@ class SourceRepository {
 
   /// Reads [path]'s full raw text and records it as a [SourceFile], so callers
   /// know exactly which files the course read (and can locate findings in them).
+  ///
+  /// The recorded path is absolute: IDE consoles (IntelliJ, VS Code) only turn
+  /// `path:line:column` output into a clickable link when the path is absolute
+  /// or resolvable against their own base dir, which is not the cwd `pluto` ran
+  /// from.
   Future<String> _readAndRecord(String path, List<SourceFile> sources) async {
     final content = await File(path).readAsString();
-    sources.add(SourceFile(path: path, content: content));
+    sources.add(SourceFile(path: normalize(absolute(path)), content: content));
     return content;
   }
 
