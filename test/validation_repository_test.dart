@@ -1,6 +1,8 @@
 import 'package:pluto/domain/course.dart';
 import 'package:pluto/domain/lesson.dart';
+import 'package:pluto/domain/marker_scanner.dart';
 import 'package:pluto/domain/section.dart';
+import 'package:pluto/domain/source_file.dart';
 import 'package:pluto/domain/step_source.dart';
 import 'package:pluto/domain/unit.dart';
 import 'package:pluto/domain/validation_repository.dart';
@@ -141,37 +143,39 @@ void main() {
         isTrue,
       );
     });
+  });
 
-    test('todos are collected as warnings without affecting validity', () {
-      final course = _course(
-        summary: 'intro [[TODO: write summary]]',
-        summaryRendered: '<p>ok</p>',
-        stepText: 'a step [[TODO: one]] and [[TODO: two]]',
-        stepHtml: '<p>ok</p>',
+  group('validate(Course) — markers', () {
+    final course = _course(summaryRendered: '<p>ok</p>', stepHtml: '<p>ok</p>');
+
+    test('no sources means no markers', () {
+      expect(repo.validate(course).markers, isEmpty);
+    });
+
+    test('scans provided sources with exact file:line:column', () {
+      const source = SourceFile(
+        path: 'source/section_01/unit_01/step_01.md',
+        content: 'intro\ntext [[TODO: fix wording]] more\n',
       );
-      final result = repo.validate(course);
+      final result = repo.validate(course, sources: [source]);
 
-      expect(result.isValid, isTrue);
-      expect(result.violations, isEmpty);
-
-      expect(result.todos.map((t) => t.message), [
-        'write summary',
-        'one',
-        'two',
-      ]);
+      expect(result.isValid, isTrue); // markers never affect HTML validity
+      expect(result.markers, hasLength(1));
+      final marker = result.markers.single;
+      expect(marker.kind.keyword, 'TODO');
+      expect(marker.severity, MarkerSeverity.warning);
+      expect(marker.message, 'fix wording');
       expect(
-        result.todos.first.location,
-        'course summary',
-      );
-      expect(
-        result.todos.last.location,
-        'section "Sec" > unit 1 > step 1',
+        marker.location.toString(),
+        'source/section_01/unit_01/step_01.md:2:6',
       );
     });
 
-    test('valid course with no todos reports empty todos', () {
-      final course = _course(summaryRendered: '<p>ok</p>', stepHtml: '<p>ok</p>');
-      expect(repo.validate(course).todos, isEmpty);
+    test('TODO markers are warnings and do not block a push', () {
+      const source = SourceFile(path: 'a.md', content: '[[TODO: later]]');
+      final result = repo.validate(course, sources: [source]);
+      expect(result.markers, hasLength(1));
+      expect(result.hasBlockingMarkers, isFalse);
     });
   });
 }

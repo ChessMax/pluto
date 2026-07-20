@@ -1,17 +1,11 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-import 'package:path/path.dart';
 import 'package:pluto/data/initialize_stepik_client.dart';
 import 'package:pluto/data/source_repository.dart';
-import 'package:pluto/domain/course.dart';
 import 'package:pluto/domain/diff.dart';
-import 'package:pluto/domain/lesson.dart';
 import 'package:pluto/markdown/render_repository.dart';
-import 'package:pluto/domain/section.dart';
-import 'package:pluto/domain/step_source.dart';
 import 'package:pluto/domain/stepik_repository.dart';
-import 'package:pluto/domain/unit.dart';
 import 'package:pluto/domain/validation_repository.dart';
 
 class PushCourseCommand extends Command<void> {
@@ -29,7 +23,8 @@ class PushCourseCommand extends Command<void> {
     final courseDir = argResults!.rest[0];
     const sourceRepository = SourceRepository();
 
-    final localCourseSource = await sourceRepository.readCourse(courseDir);
+    final source = await sourceRepository.readCourseSource(courseDir);
+    final localCourseSource = source.course;
     final courseId = localCourseSource.id;
 
     final localCourse = const RenderRepository().render(localCourseSource);
@@ -43,15 +38,23 @@ class PushCourseCommand extends Command<void> {
 
     final diffs = Diff.create(remoteCourse, localCourse).toList();
 
-    final validation = const ValidationRepository().validate(localCourse);
+    final validation = const ValidationRepository().validate(
+      localCourse,
+      sources: source.files,
+    );
 
-    // TODO: put somewhere else to reuse code. Extension or validation result.
-    // TODOs are author reminders: warn, but don't block the push.
-    if (validation.todos.isNotEmpty) {
-      stderr.writeln('Warning: ${validation.todos.length} unresolved TODO(s):');
-      for (final todo in validation.todos) {
-        stderr.writeln('  - $todo');
+    // Markers (TODO/FIXME) with precise file:line:column locations. Warnings
+    // (TODO) are reported but don't block; errors (FIXME) abort the push.
+    final markers = validation.markers;
+    if (markers.isNotEmpty) {
+      stderr.writeln('${markers.length} marker(s) found:');
+      for (final marker in markers) {
+        stderr.writeln('  $marker');
       }
+    }
+    if (validation.hasBlockingMarkers) {
+      stderr.writeln('Push aborted: unresolved marker(s) must be resolved.');
+      exit(1);
     }
 
     if (!validation.isValid) {

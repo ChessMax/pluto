@@ -2,7 +2,8 @@ import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'package:pluto/domain/course.dart';
 import 'package:pluto/domain/html_whitelist.dart';
-import 'package:pluto/markdown/todo_syntax.dart';
+import 'package:pluto/domain/marker_scanner.dart';
+import 'package:pluto/domain/source_file.dart';
 
 enum ViolationKind {
   disallowedTag,
@@ -32,41 +33,23 @@ class HtmlViolation {
   }
 }
 
-/// A `[[TODO: ...]]` marker found in the course source. Reported as a
-/// *warning* (unlike [HtmlViolation], it never makes a course invalid).
-class TodoOccurrence {
-  final String message;
-  final String location;
-
-  const TodoOccurrence({required this.message, required this.location});
-
-  @override
-  String toString() => '$location: TODO: $message';
-}
-
 class ValidationResult {
   final List<HtmlViolation> violations;
-  final List<TodoOccurrence> todos;
 
-  const ValidationResult({this.violations = const [], this.todos = const []});
+  /// Reminder markers (TODO/FIXME) found in the source, with exact locations.
+  final List<MarkerFinding> markers;
+
+  const ValidationResult(this.violations, {this.markers = const []});
 
   bool get isValid => violations.isEmpty;
+
+  /// Whether any error-severity marker (e.g. FIXME) should abort a push.
+  bool get hasBlockingMarkers =>
+      markers.any((m) => m.severity == .error);
 }
 
 class ValidationRepository {
-  static final _todo = RegExp(todoPattern);
-
   const ValidationRepository();
-
-  /// Scans *raw Markdown source* (not rendered HTML) for `[[TODO: ...]]`, so
-  /// messages stay clean and locations are precise.
-  List<TodoOccurrence> scanTodos(String? source, {required String location}) {
-    if (source == null || source.isEmpty) return const [];
-    return [
-      for (final match in _todo.allMatches(source))
-        TodoOccurrence(message: match[1]!.trim(), location: location),
-    ];
-  }
 
   // https://help.stepik.org/article/54794
   List<HtmlViolation> validateHtml(String? html, {required String location}) {
@@ -146,15 +129,18 @@ class ValidationRepository {
     });
   }
 
-  /// Validates course. Can generate error that abort or warnings.
-  ValidationResult validate(Course course) {
+  /// Validates the course. HTML violations come from the rendered [course];
+  /// reminder markers (TODO/FIXME) are scanned from the raw [sources] the course
+  /// was read from, so each marker gets a precise file:line:column location.
+  ValidationResult validate(
+    Course course, {
+    List<SourceFile> sources = const [],
+  }) {
     final violations = <HtmlViolation>[];
-    final todos = <TodoOccurrence>[];
 
     violations.addAll(
       validateHtml(course.summaryRendered, location: 'course summary'),
     );
-    todos.addAll(scanTodos(course.summary, location: 'course summary'));
 
     final sections = course.sections;
     for (var i = 0; i < sections.length; ++i) {
@@ -173,7 +159,6 @@ class ValidationRepository {
           violations.addAll(
             validateHtml(step.block.textRendered, location: location),
           );
-          todos.addAll(scanTodos(step.block.text, location: location));
 
           // TODO: choice option text/feedback and step feedbackCorrect/Wrong
           // are not rendered to HTML yet — validate them once they are.
@@ -181,6 +166,12 @@ class ValidationRepository {
       }
     }
 
-    return ValidationResult(violations: violations, todos: todos);
+    const scanner = MarkerScanner();
+    final markers = <MarkerFinding>[
+      for (final source in sources)
+        ...scanner.scanText(source.content, source.path),
+    ];
+
+    return ValidationResult(violations, markers: markers);
   }
 }

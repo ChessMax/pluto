@@ -1,17 +1,11 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-import 'package:path/path.dart';
 import 'package:pluto/data/initialize_stepik_client.dart';
 import 'package:pluto/data/source_repository.dart';
-import 'package:pluto/domain/course.dart';
 import 'package:pluto/domain/diff.dart';
-import 'package:pluto/domain/lesson.dart';
 import 'package:pluto/markdown/render_repository.dart';
-import 'package:pluto/domain/section.dart';
-import 'package:pluto/domain/step_source.dart';
 import 'package:pluto/domain/stepik_repository.dart';
-import 'package:pluto/domain/unit.dart';
 import 'package:pluto/domain/validation_repository.dart';
 
 class StatusCommand extends Command<void> {
@@ -33,7 +27,8 @@ class StatusCommand extends Command<void> {
 
     const sourceRepository = SourceRepository();
 
-    final localCourse = await sourceRepository.readCourse(courseDir);
+    final courseSource = await sourceRepository.readCourseSource(courseDir);
+    final localCourse = courseSource.course;
     final courseId = localCourse.id;
 
     final rawApi = (await initializeStepikClient()).rawApi;
@@ -50,7 +45,10 @@ class StatusCommand extends Command<void> {
 
     // report validation
     final renderedCourse = const RenderRepository().render(localCourse);
-    final validation = const ValidationRepository().validate(renderedCourse);
+    final validation = const ValidationRepository().validate(
+      renderedCourse,
+      sources: courseSource.files,
+    );
     if (validation.isValid) {
       print('HTML validation: OK');
     } else {
@@ -60,14 +58,14 @@ class StatusCommand extends Command<void> {
       }
     }
 
-    // report TODOs (warnings)
-    final todos = validation.todos;
-    if (todos.isEmpty) {
-      print('TODOs: none');
+    // report markers (TODO/FIXME) with precise file:line:column locations.
+    final markers = validation.markers;
+    if (markers.isEmpty) {
+      print('Markers: none');
     } else {
-      print('TODOs: ${todos.length} found:');
-      for (final todo in todos) {
-        print('  - $todo');
+      print('Markers: ${markers.length} found:');
+      for (final marker in markers) {
+        print('  $marker');
       }
     }
   }

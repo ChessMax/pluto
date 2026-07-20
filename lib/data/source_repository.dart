@@ -5,6 +5,7 @@ import 'package:pluto/assets/templates/asset_templates.dart';
 import 'package:pluto/domain/course.dart';
 import 'package:pluto/domain/lesson.dart';
 import 'package:pluto/domain/section.dart';
+import 'package:pluto/domain/source_file.dart';
 import 'package:pluto/domain/step_source.dart';
 import 'package:pluto/domain/step_source_codec.dart';
 import 'package:pluto/domain/unit.dart';
@@ -16,12 +17,47 @@ import 'package:pluto/template/template.dart';
 import 'package:yaml/yaml.dart';
 import 'package:markdown/markdown.dart' as md;
 
+/// A course together with the source files it was read from.
+class CourseSource {
+  final Course course;
+  final List<SourceFile> files;
+
+  const CourseSource({required this.course, required this.files});
+}
+
 class SourceRepository {
   static final _sectionDirRegExp = RegExp(r'^section_(\d+)$');
   static final _unitDirRegExp = RegExp(r'^unit_(\d+)$');
   static final _stepFileRegExp = RegExp(r'^step_(\d+).md$');
 
   const SourceRepository();
+
+  /// Reads [path]'s full raw text and records it as a [SourceFile], so callers
+  /// know exactly which files the course read (and can locate findings in them).
+  Future<String> _readAndRecord(String path, List<SourceFile> sources) async {
+    final content = await File(path).readAsString();
+    sources.add(SourceFile(path: path, content: content));
+    return content;
+  }
+
+  (dynamic frontMatter, String content) _splitFrontMatter(String raw) {
+    if (raw.startsWith('---')) {
+      final end = raw.indexOf('---', 3);
+      if (end != -1) {
+        return (loadYaml(raw.substring(3, end)), raw.substring(end + 3));
+      }
+    }
+    return (null, raw);
+  }
+
+  MdFile _parseMd(String path, String raw) {
+    try {
+      return const MdParser().parse(SourceView(raw));
+    } catch (e) {
+      print('Failed to parse file `$path` with error: \n$e');
+      rethrow;
+    }
+  }
 
   Map<String, String?> _readFields(String content) {
     final result = <String, String?>{};
@@ -80,8 +116,13 @@ class SourceRepository {
     return entities;
   }
 
-  Future<StepSource> readStepSource(String filePath, int position) async {
-    final md = await File(filePath).readMdFile();
+  Future<StepSource> readStepSource(
+    String filePath,
+    int position,
+    List<SourceFile> sources,
+  ) async {
+    final raw = await _readAndRecord(filePath, sources);
+    final md = _parseMd(filePath, raw);
     final fm = md.frontMatter;
 
     StepBlockType parseBlockType() {
@@ -230,14 +271,25 @@ class SourceRepository {
     return step;
   }
 
-  Future<Lesson> readLesson(String dirPath, int position) async {
-    final steps = await _readEntities(dirPath, _stepFileRegExp, readStepSource)
-      ..sort((a, b) => a.position.compareTo(b.position));
+  Future<Lesson> readLesson(
+    String dirPath,
+    int position,
+    List<SourceFile> sources,
+  ) async {
+    final steps =
+        await _readEntities(
+            dirPath,
+            _stepFileRegExp,
+            (path, pos) => readStepSource(path, pos, sources),
+          )
+          ..sort((a, b) => a.position.compareTo(b.position));
 
     final position = _unitDirRegExp.validateAndParsePosition(dirPath);
-    final (frontMatter, content) = await File(
+    final raw = await _readAndRecord(
       join(dirPath, 'lesson_$position.md'),
-    ).readMd();
+      sources,
+    );
+    final (frontMatter, _) = _splitFrontMatter(raw);
 
     final lesson = Lesson(
       steps: steps,
@@ -248,12 +300,18 @@ class SourceRepository {
     return lesson;
   }
 
-  Future<Unit> readUnit(String dirPath, int position) async {
-    final lesson = await readLesson(dirPath, position);
+  Future<Unit> readUnit(
+    String dirPath,
+    int position,
+    List<SourceFile> sources,
+  ) async {
+    final lesson = await readLesson(dirPath, position, sources);
 
-    final (frontMatter, content) = await File(
+    final raw = await _readAndRecord(
       join(dirPath, '${basename(dirPath)}.md'),
-    ).readMd();
+      sources,
+    );
+    final (frontMatter, _) = _splitFrontMatter(raw);
 
     final unit = Unit(
       id: frontMatter['id'] as int?,
@@ -263,13 +321,24 @@ class SourceRepository {
     return unit;
   }
 
-  Future<Section> readSection(String dirPath, int position) async {
-    final units = await _readEntities(dirPath, _unitDirRegExp, readUnit)
-      ..sort((a, b) => a.position.compareTo(b.position));
+  Future<Section> readSection(
+    String dirPath,
+    int position,
+    List<SourceFile> sources,
+  ) async {
+    final units =
+        await _readEntities(
+            dirPath,
+            _unitDirRegExp,
+            (path, pos) => readUnit(path, pos, sources),
+          )
+          ..sort((a, b) => a.position.compareTo(b.position));
 
-    final (frontMatter, content) = await File(
+    final raw = await _readAndRecord(
       join(dirPath, '${basename(dirPath)}.md'),
-    ).readMd();
+      sources,
+    );
+    final (frontMatter, _) = _splitFrontMatter(raw);
 
     final section = Section(
       id: frontMatter['id'] as int?,
@@ -281,20 +350,30 @@ class SourceRepository {
     return section;
   }
 
+  /// Reads a course and the raw source files it was read from.
+  Future<CourseSource> readCourseSource(String dirPath) async {
+    final sources = <SourceFile>[];
+    final course = await _readCourse(dirPath, sources);
+    return CourseSource(course: course, files: sources);
+  }
+
   Future<Course> readCourse(String dirPath) async {
+    return _readCourse(dirPath, <SourceFile>[]);
+  }
+
+  Future<Course> _readCourse(String dirPath, List<SourceFile> sources) async {
     dirPath = join(dirPath, 'source');
 
     final sections =
         await _readEntities(
             dirPath,
             _sectionDirRegExp,
-            readSection,
+            (path, pos) => readSection(path, pos, sources),
           )
           ..sort((a, b) => a.position.compareTo(b.position));
 
-    final (frontMatter, content) = await File(
-      join(dirPath, 'course.md'),
-    ).readMd();
+    final raw = await _readAndRecord(join(dirPath, 'course.md'), sources);
+    final (frontMatter, content) = _splitFrontMatter(raw);
 
     final blockFields = _readFields(content);
 
@@ -406,34 +485,6 @@ class SourceRepository {
   ) async {
     print('Creating `$path` ...');
     await template.renderToFile(path, model);
-  }
-}
-
-extension FileExtension on File {
-  Future<MdFile> readMdFile() async {
-    final content = await File(path).readAsString();
-    try {
-      final md = const MdParser().parse(SourceView(content));
-      return md;
-    }
-    catch (e) {
-      print('Failed to parse file `$path` with error: \n$e');
-      rethrow;
-    }
-  }
-
-  Future<(dynamic frontMatter, String content)> readMd() async {
-    final content = await File(path).readAsString();
-
-    if (content.startsWith('---')) {
-      final frontMatterEndIndex = content.indexOf('---', 3);
-      if (frontMatterEndIndex != -1) {
-        final frontMatter = loadYaml(content.substring(3, frontMatterEndIndex));
-        return (frontMatter, content.substring(frontMatterEndIndex + 3));
-      }
-    }
-
-    return (null, content);
   }
 }
 
