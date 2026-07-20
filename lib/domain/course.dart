@@ -174,9 +174,6 @@ class Course {
     int unitIndex,
     Lesson Function(Lesson) update,
   ) {
-    final section = sections[sectionIndex];
-    final unit = section.units[unitIndex];
-
     return copyWithUnit(
       sectionIndex,
       unitIndex,
