@@ -80,7 +80,7 @@ class CourseConfig {
 /// Replaces every resolvable `{{config.<key>}}` in [input].
 ///
 /// An unknown key is left exactly as written rather than blanked: a visible
-/// `{{config.support_emial}}` is a typo an author can see and validation can
+/// `{{config.support_email}}` is a typo an author can see and validation can
 /// report, whereas a silently empty support address is not.
 String substituteConfig(String input, CourseConfig? config) {
   if (config == null || config.isEmpty) return input;

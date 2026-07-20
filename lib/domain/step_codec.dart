@@ -1,4 +1,5 @@
 import 'package:pluto/domain/step.dart';
+import 'package:pluto/extensions/string_extensions.dart';
 
 class StepCodec {
   const StepCodec();
@@ -44,13 +45,25 @@ class StepCodec {
       case FreeAnswerStep():
         break;
       case ChoiceStep(:final options):
-        sb.writeln('```options');
+        sb.writeln();
+        sb.writeln();
+        sb.writeln('## options');
+        sb.writeln();
         for (final option in options) {
-          sb.writeln(option.isCorrect);
-          sb.writeln(option.text);
-          sb.writeln(option.feedback);
+          final lines = option.text.splitByLines();
+          sb.writeln(
+            '- [${option.isCorrect ? 'x' : ' '}] ${lines.firstOrNull ?? ''}',
+          );
+          // Continuation lines carry the two-space indent that keeps them part
+          // of the item; blank lines stay blank so trailing whitespace is not
+          // written into the file.
+          for (final line in lines.skip(1)) {
+            sb.writeln(line.isEmpty ? '' : '  $line');
+          }
+          for (final line in option.feedback.splitByLines()) {
+            sb.writeln('  > $line');
+          }
         }
-        sb.write('```');
       case CodeStep(:final samples, :final tests, :final code):
         sb.writeln('```samples');
         for (final sample in samples) {

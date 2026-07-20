@@ -13,6 +13,7 @@ import 'package:pluto/domain/unit.dart';
 import 'package:pluto/extensions/string_extensions.dart';
 import 'package:pluto/md/md_file.dart';
 import 'package:pluto/md/md_parser.dart';
+import 'package:pluto/md/options_parser.dart';
 import 'package:pluto/template/lexer/source_view.dart';
 import 'package:pluto/template/template.dart';
 import 'package:yaml/yaml.dart';
@@ -91,6 +92,41 @@ class SourceRepository {
     }
 
     return result;
+  }
+
+  /// The course's long-form fields. Each is prose, so each gets its own
+  /// markdown file under `source/course/` — editors preview it, and it needs
+  /// no escaping.
+  static const _courseFields = <String>[
+    'summary',
+    'acquired_assets',
+    'description',
+    'target_audience',
+    'requirements',
+    'learning_format',
+    'acquired_skills',
+  ];
+
+  /// Reads the course's prose fields, preferring `source/course/<field>.md` and
+  /// falling back to the legacy fenced block of the same name in `course.md`.
+  Future<Map<String, String?>> _readCourseFields(
+    String dirPath,
+    String content,
+    List<SourceFile> sources,
+  ) async {
+    final fenced = _readFields(content);
+    final fields = <String, String?>{};
+
+    for (final field in _courseFields) {
+      final path = join(dirPath, 'course', '$field.md');
+      if (File(path).existsSync()) {
+        fields[field] = (await _readAndRecord(path, sources)).trim();
+      } else {
+        fields[field] = fenced[field];
+      }
+    }
+
+    return fields;
   }
 
   Future<List<T>> _readEntities<T>(
@@ -193,6 +229,9 @@ class SourceRepository {
       };
     }
 
+    /// Legacy ```` ```options ```` fence: three positional lines per option.
+    /// Kept so courses authored before the `## options` section still read;
+    /// new courses should use the section.
     List<ChoiceOption> parseChoiceOptions(String options) {
       final lines = options.splitByLines();
       if (lines.length % 3 != 0) throw 'Unbalanced step source choice options';
@@ -216,6 +255,22 @@ class SourceRepository {
     final label = fm['label'] as String?;
     final text = md.content;
 
+    /// The `## options` section, lifted out of [text] so the answers are not
+    /// rendered as part of the question.
+    final choice = const OptionsParser().parse(text);
+    final parsed = choice.options;
+
+    final choiceOptions = parsed == null
+        ? parseChoiceOptions(md.getCodeContent('options') ?? '')
+        : [
+            for (final option in parsed)
+              ChoiceOption(
+                text: option.text,
+                feedback: option.feedback,
+                isCorrect: option.isCorrect,
+              ),
+          ];
+
     return switch (fm['type']) {
       'text' => TextStep(
         id: id,
@@ -226,13 +281,13 @@ class SourceRepository {
       'single_choice' || 'multiple_choice' => ChoiceStep(
         id: id,
         position: position,
-        text: text,
+        text: choice.content,
         label: label,
         isMultipleChoice: fm['type'] == 'multiple_choice',
         isAlwaysCorrect: parseIsAlwaysCorrect(),
         preserveOrder: parsePreserveOrder(),
         isHtmlEnabled: parseIsHtmlEnabled(),
-        options: parseChoiceOptions(md.getCodeContent('options') ?? ''),
+        options: choiceOptions,
       ),
       'code' => CodeStep(
         id: id,
@@ -361,7 +416,7 @@ class SourceRepository {
     final raw = await _readAndRecord(join(dirPath, 'course.md'), sources);
     final (frontMatter, content) = _splitFrontMatter(raw);
 
-    final blockFields = _readFields(content);
+    final blockFields = await _readCourseFields(dirPath, content, sources);
 
     final course = Course(
       id: frontMatter['id'] as int?,
