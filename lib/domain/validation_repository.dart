@@ -14,6 +14,12 @@ enum ViolationKind {
   unresolvedLink,
   duplicateLabel,
 
+  /// Two entities of the same kind claiming the same Stepik id — usually a step
+  /// file copy-pasted with its front matter left intact. Blocks a push: the
+  /// diff matches local entities to remote ones by id, so a repeated id makes
+  /// that mapping ambiguous.
+  duplicateId,
+
   /// A ref whose target step exists in the source but has never been pushed, so
   /// it currently resolves only to a synthetic id. Warning-only — see
   /// [ValidationResult.warnings].
@@ -42,6 +48,7 @@ class HtmlViolation {
       ViolationKind.disallowedUrlScheme => 'disallowed URL scheme $detail',
       ViolationKind.unresolvedLink => 'link to unknown step $detail',
       ViolationKind.duplicateLabel => 'label $detail is used by several steps',
+      ViolationKind.duplicateId => 'duplicate $detail',
       ViolationKind.unpushedLink =>
         'link to $detail, a step that has not been pushed yet',
       // Backticks live here rather than in `detail` so the reference stays bare
@@ -198,6 +205,8 @@ class ValidationRepository {
       );
     }
 
+    violations.addAll(validateIds(course));
+
     final sections = course.sections;
     for (var i = 0; i < sections.length; ++i) {
       final section = sections[i];
@@ -240,6 +249,68 @@ class ValidationRepository {
 
     return ValidationResult(violations, warnings: warnings, markers: markers);
   }
+
+  /// Stepik ids repeated within one kind of entity.
+  ///
+  /// Runs on the unrendered course, since `push` has to clear this before it
+  /// can diff: `Diff.create` matches each local entity to a remote one by id
+  /// and consumes it, so a second claim on the same id finds nothing left.
+  ///
+  /// Locations are on-disk paths rather than titles — a duplicate is fixed by
+  /// editing one specific file's front matter.
+  List<HtmlViolation> validateIds(Course course) {
+    final violations = <HtmlViolation>[];
+
+    // One namespace per kind: a section and a step may legitimately share a
+    // number, two sections may not.
+    final seen = <String, Map<int, String>>{};
+
+    void check(String kind, int? id, String location) {
+      if (id == null) return;
+
+      final locations = seen[kind] ??= {};
+      final first = locations[id];
+      if (first == null) {
+        locations[id] = location;
+        return;
+      }
+
+      violations.add(
+        HtmlViolation(
+          kind: ViolationKind.duplicateId,
+          detail: '$kind id $id, already used by $first',
+          location: location,
+        ),
+      );
+    }
+
+    for (final section in course.sections) {
+      final sectionName = 'section_${_pad(section.position)}';
+      check('section', section.id, '$sectionName/$sectionName.md');
+
+      for (final unit in section.units) {
+        final unitName = 'unit_${_pad(unit.position)}';
+        final unitDir = '$sectionName/$unitName';
+
+        check('unit', unit.id, '$unitDir/$unitName.md');
+        check(
+          'lesson',
+          unit.lesson.id,
+          '$unitDir/lesson_${_pad(unit.position)}.md',
+        );
+
+        for (final step in unit.lesson.steps) {
+          check('step', step.id, '$unitDir/step_${_pad(step.position)}.md');
+        }
+      }
+    }
+
+    return violations;
+  }
+
+  /// Mirrors the zero-padding `SourceRepository` uses for file and directory
+  /// names, so reported locations can be opened as-is.
+  static String _pad(int position) => position.toString().padLeft(2, '0');
 
   /// Refs pointing at a step that exists in the source but carries no Stepik id
   /// yet, so it resolved only to a synthetic stand-in.

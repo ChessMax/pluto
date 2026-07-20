@@ -67,6 +67,7 @@ sealed class Diff {
         } else {
           final sectionBase = sectionsToRemove.removeFirstWhere(
             (section) => section.id == sectionId,
+            'section with id $sectionId',
           );
           yield SectionUpdated(base: sectionBase, section: section);
         }
@@ -86,6 +87,7 @@ sealed class Diff {
           } else {
             final lessonBase = lessonsToRemove.removeFirstWhere(
               (lesson) => lesson.id == lessonId,
+              'lesson with id $lessonId',
             );
             yield LessonUpdated(base: lessonBase, lesson: lesson);
           }
@@ -108,6 +110,7 @@ sealed class Diff {
             } else {
               final stepBase = stepsToRemove.removeFirstWhere(
                 (step) => step.id == stepId,
+                'step with id $stepId',
               );
               yield StepUpdated(
                 base: stepBase,
@@ -128,6 +131,7 @@ sealed class Diff {
           } else {
             final unitBase = unitsToRemove.removeFirstWhere(
               (unit) => unit.id == unitId,
+              'unit with id $unitId',
             );
             yield UnitUpdated(base: unitBase, unit: unit);
           }
@@ -386,7 +390,13 @@ extension DiffListExt on List<Diff> {
 }
 
 extension<T> on List<T> {
-  T removeFirstWhere(bool Function(T) predicate) {
+  /// Claims the remote entity a local one maps to, removing it so no second
+  /// local entity can claim it too.
+  ///
+  /// [what] describes the entity for the failure message: reaching the end
+  /// means the local source names a remote id that is gone — either the entity
+  /// was deleted on Stepik, or two local files carry the same id.
+  T removeFirstWhere(bool Function(T) predicate, String what) {
     for (var i = 0; i < length; ++i) {
       final item = this[i];
       if (predicate(item)) {
@@ -395,6 +405,7 @@ extension<T> on List<T> {
       }
     }
 
-    throw 'Failed to find item';
+    throw 'No remote $what: it was deleted on Stepik, or another local file '
+        'already claimed that id. Clear the id to push it as a new entity.';
   }
 }

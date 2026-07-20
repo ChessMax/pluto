@@ -35,6 +35,24 @@ class PushCourseCommand extends Command<void> {
         ? await stepikRepository.readCourse(courseId)
         : null;
 
+    // Duplicate ids are checked ahead of the diff rather than with the rest of
+    // validation below: the diff consumes a remote entity per local id, so a
+    // repeated id makes it fail on the second claim before we ever get there.
+    final duplicateIds = const ValidationRepository().validateIds(
+      localCourseSource,
+    );
+    if (duplicateIds.isNotEmpty) {
+      stderr.writeln('${duplicateIds.length} duplicate id(s) found:');
+      for (final duplicate in duplicateIds) {
+        stderr.writeln('  - $duplicate');
+      }
+      stderr.writeln(
+        'Push aborted: clear the id of every copy but one, so those steps are '
+        'created fresh.',
+      );
+      exit(1);
+    }
+
     // Diffs are computed before rendering: they only compare ids and structure,
     // and the content phase reads its payload back out of the rendered course.
     final diffs = Diff.create(remoteCourse, localCourseSource).toList();

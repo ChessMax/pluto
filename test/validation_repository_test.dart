@@ -178,6 +178,103 @@ void main() {
       expect(result.hasBlockingMarkers, isFalse);
     });
   });
+
+  group('validateIds', () {
+    test('distinct ids pass', () {
+      expect(repo.validateIds(_courseWithStepIds([1, 2, 3])), isEmpty);
+    });
+
+    test('null ids are ignored, however many', () {
+      expect(repo.validateIds(_courseWithStepIds([null, null, null])), isEmpty);
+    });
+
+    test('a repeated step id is reported against the later file', () {
+      final v = repo.validateIds(_courseWithStepIds([10, 20, 10]));
+
+      expect(v, hasLength(1));
+      expect(v.single.kind, ViolationKind.duplicateId);
+      expect(v.single.location, 'section_01/unit_01/step_03.md');
+      expect(
+        v.single.detail,
+        'step id 10, already used by '
+        'section_01/unit_01/step_01.md',
+      );
+    });
+
+    test('every repeat past the first is reported', () {
+      final v = repo.validateIds(_courseWithStepIds([7, 7, 7]));
+
+      expect(v, hasLength(2));
+      expect(
+        v.map((violation) => violation.location),
+        ['section_01/unit_01/step_02.md', 'section_01/unit_01/step_03.md'],
+      );
+    });
+
+    test('ids of different kinds may coincide', () {
+      final step = TextStep(id: 5, position: 1, text: '');
+      final course = Course(
+        id: 5,
+        title: 'Course',
+        sections: [
+          Section(
+            id: 5,
+            position: 1,
+            title: 'Sec',
+            description: '',
+            units: [
+              Unit(
+                id: 5,
+                position: 1,
+                lesson: Lesson(id: 5, title: 'Lesson', steps: [step]),
+              ),
+            ],
+          ),
+        ],
+      );
+
+      expect(repo.validateIds(course), isEmpty);
+    });
+
+    test('duplicate ids surface through validate() as violations', () {
+      final result = repo.validate(_courseWithStepIds([1, 1]));
+
+      expect(result.isValid, isFalse);
+      expect(
+        result.violations.map((violation) => violation.kind),
+        contains(ViolationKind.duplicateId),
+      );
+    });
+  });
+}
+
+/// A one-section, one-unit course whose steps carry [ids], positioned in order
+/// so each maps to `step_NN.md`.
+Course _courseWithStepIds(List<int?> ids) {
+  final steps = [
+    for (var i = 0; i < ids.length; ++i)
+      TextStep(id: ids[i], position: i + 1, text: ''),
+  ];
+
+  return Course(
+    id: 1,
+    title: 'Course',
+    sections: [
+      Section(
+        id: null,
+        position: 1,
+        title: 'Sec',
+        description: '',
+        units: [
+          Unit(
+            id: null,
+            position: 1,
+            lesson: Lesson(id: null, title: 'Lesson', steps: steps),
+          ),
+        ],
+      ),
+    ],
+  );
 }
 
 Course _course({
