@@ -20,6 +20,15 @@ abstract class TextTransformer {
   List<Node> apply(Text text);
 }
 
+/// A [Text] node's content is already HTML-escaped and may carry raw inline
+/// HTML, so the letters inside HTML character entities (`&quot;`, `&amp;`) and
+/// tag names (`<em>`) are not free text. A [TextTransformer] rewriting words
+/// must pass these spans through untouched and only work on what lies between
+/// them.
+final RegExp htmlProtectedSpans = RegExp(
+  r'&(?:#\d+|#[xX][0-9a-fA-F]+|[A-Za-z][A-Za-z0-9]*);|<[^>]*>',
+);
+
 /// Renames tags according to [rewrites] (e.g. `del` -> `strike`), preserving
 /// children, attributes and generated id.
 class TagRewriteTransformer extends NodeTransformer {

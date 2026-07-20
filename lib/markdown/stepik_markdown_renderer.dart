@@ -1,7 +1,9 @@
 import 'package:markdown/markdown.dart';
+import 'package:pluto/domain/abbreviations.dart';
 import 'package:pluto/domain/course_config.dart';
 import 'package:pluto/domain/html_whitelist.dart';
 import 'package:pluto/domain/link_index.dart';
+import 'package:pluto/markdown/abbreviation_transformer.dart';
 import 'package:pluto/markdown/auto_emphasize_transformer.dart';
 import 'package:pluto/markdown/config_link_transformer.dart';
 import 'package:pluto/markdown/config_syntax.dart';
@@ -20,7 +22,11 @@ class StepikMarkdownRenderer {
   /// Expands `{{config.<key>}}` references. Without it they are left as written.
   final CourseConfig? config;
 
-  const StepikMarkdownRenderer({this.links, this.config});
+  /// Marks the first use of each declared acronym with `<abbr>`. Without it no
+  /// text is marked.
+  final Abbreviations? abbreviations;
+
+  const StepikMarkdownRenderer({this.links, this.config, this.abbreviations});
 
   /// Ordered styling rules applied to the parsed AST before rendering.
   List<NodeTransformer> get _transformers => [
@@ -33,8 +39,15 @@ class StepikMarkdownRenderer {
   ];
 
   /// Rules applied to [Text] leaves, unless inside [_noWrapTags].
-  static const List<TextTransformer> _textTransformers = [
-    AutoItalicTransformer(),
+  ///
+  /// Built per render: [AbbreviationTransformer] tracks which terms it has
+  /// already marked, and "first use" means first in the step being rendered.
+  List<TextTransformer> _buildTextTransformers() => [
+    // Before [AutoItalicTransformer], which would otherwise wrap an
+    // abbreviation in `<em>` and hide it: the fold in [_transform] only
+    // re-applies later transformers to nodes that are still [Text].
+    AbbreviationTransformer(abbreviations ?? Abbreviations.empty),
+    const AutoItalicTransformer(),
   ];
 
   /// Tags whose text content must not be auto-wrapped: code (literal) and
@@ -75,6 +88,7 @@ class StepikMarkdownRenderer {
   String render(String markdown) {
     final document = Document(extensionSet: _extensionSet);
     final nodes = document.parse(markdown);
+    final textTransformers = _buildTextTransformers();
 
     final rewritten = <Node>[
       for (final (index, node) in nodes.indexed)
@@ -83,6 +97,7 @@ class StepikMarkdownRenderer {
           isFirstNode: index == 0,
           isTopLevel: true,
           insideNoWrap: false,
+          textTransformers: textTransformers,
         ),
     ];
     return '${renderToHtml(rewritten)}\n';
@@ -93,10 +108,11 @@ class StepikMarkdownRenderer {
     required bool isFirstNode,
     required bool isTopLevel,
     required bool insideNoWrap,
+    required List<TextTransformer> textTransformers,
   }) {
     if (node is Text) {
       if (insideNoWrap) return [node];
-      return _textTransformers.fold(
+      return textTransformers.fold(
         <Node>[node],
         (acc, transformer) => [
           for (final n in acc)
@@ -113,6 +129,7 @@ class StepikMarkdownRenderer {
       isFirstNode: false,
       isTopLevel: false,
       insideNoWrap: childInsideNoWrap,
+      textTransformers: textTransformers,
     );
 
     final children = node.children?.expand(transform).toList();

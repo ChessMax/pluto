@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:path/path.dart';
 import 'package:pluto/assets/templates/asset_templates.dart';
+import 'package:pluto/domain/abbreviations.dart';
 import 'package:pluto/domain/course.dart';
 import 'package:pluto/domain/course_config.dart';
 import 'package:pluto/domain/lesson.dart';
@@ -127,6 +128,20 @@ class SourceRepository {
     }
 
     return fields;
+  }
+
+  /// Reads `source/abbreviations.md`, a file of front matter only. It is
+  /// optional: a course that declares no acronyms simply has no such file.
+  Future<Abbreviations> _readAbbreviations(
+    String dirPath,
+    List<SourceFile> sources,
+  ) async {
+    final path = join(dirPath, 'abbreviations.md');
+    if (!File(path).existsSync()) return Abbreviations.empty;
+
+    final raw = await _readAndRecord(path, sources);
+    final (frontMatter, _) = _splitFrontMatter(raw);
+    return Abbreviations.fromYaml(frontMatter);
   }
 
   Future<List<T>> _readEntities<T>(
@@ -430,6 +445,7 @@ class SourceRepository {
       learningFormat: blockFields['learning_format'],
       acquiredSkills: blockFields['acquired_skills'],
       config: CourseConfig.fromYaml(frontMatter['config']),
+      abbreviations: await _readAbbreviations(dirPath, sources),
     );
 
     // TODO: validate? check position and other things

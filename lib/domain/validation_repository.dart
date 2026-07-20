@@ -27,6 +27,10 @@ enum ViolationKind {
 
   /// A `{{config.<key>}}` reference naming a key `course.md` does not declare.
   unknownConfigVar,
+
+  /// A term `abbreviations.md` declares that no step uses. Warning-only — see
+  /// [ValidationResult.warnings].
+  unusedAbbreviation,
 }
 
 class HtmlViolation {
@@ -55,6 +59,8 @@ class HtmlViolation {
       // for callers that mark it up themselves (the preview wraps it in <code>).
       ViolationKind.unknownConfigVar =>
         'reference to undeclared config variable `$detail`',
+      ViolationKind.unusedAbbreviation =>
+        'declared abbreviation `$detail` is never used',
     };
     return '$location: $message';
   }
@@ -64,7 +70,7 @@ class ValidationResult {
   final List<HtmlViolation> violations;
 
   /// Problems worth reporting that must not block a push — see
-  /// [ViolationKind.unpushedLink], the only one so far.
+  /// [ViolationKind.unpushedLink] and [ViolationKind.unusedAbbreviation].
   final List<HtmlViolation> warnings;
 
   /// Reminder markers (TODO/FIXME) found in the source, with exact locations.
@@ -241,6 +247,8 @@ class ValidationRepository {
       }
     }
 
+    warnings.addAll(validateAbbreviations(course));
+
     const scanner = MarkerScanner();
     final markers = <MarkerFinding>[
       for (final source in sources)
@@ -369,6 +377,42 @@ class ValidationRepository {
           detail: '{{$configNamespace.$key}}',
           location: location,
         ),
+    ];
+  }
+
+  /// Terms `abbreviations.md` declares that no step mentions.
+  ///
+  /// Course-wide rather than per-step: an abbreviation is meant to be declared
+  /// once and used wherever it fits, so only its total absence is worth
+  /// reporting. Code is blanked out first, matching the renderer, which never
+  /// marks a term inside a code span — a term that appears only in sample code
+  /// would never produce an `<abbr>` and so is still unused.
+  ///
+  /// The location is the declaring file rather than a step: the fix is either to
+  /// use the term or to delete the line that declares it.
+  List<HtmlViolation> validateAbbreviations(Course course) {
+    final pattern = course.abbreviations.pattern;
+    if (pattern == null) return const [];
+
+    final used = <String>{};
+    for (final section in course.sections) {
+      for (final unit in section.units) {
+        for (final step in unit.lesson.steps) {
+          for (final match in pattern.allMatches(_blankCode(step.text))) {
+            if (match[0] case final term?) used.add(term);
+          }
+        }
+      }
+    }
+
+    return [
+      for (final term in course.abbreviations.values.keys)
+        if (!used.contains(term))
+          HtmlViolation(
+            kind: ViolationKind.unusedAbbreviation,
+            detail: term,
+            location: 'abbreviations.md',
+          ),
     ];
   }
 

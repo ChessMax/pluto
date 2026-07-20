@@ -1,3 +1,4 @@
+import 'package:pluto/domain/abbreviations.dart';
 import 'package:pluto/domain/course.dart';
 import 'package:pluto/domain/course_config.dart';
 import 'package:pluto/domain/link_index.dart';
@@ -24,8 +25,17 @@ class RenderRepository {
     return replaceLineBreaks(text);
   }
 
-  String renderMdText(String text, {LinkIndex? links, CourseConfig? config}) {
-    return StepikMarkdownRenderer(links: links, config: config).render(text);
+  String renderMdText(
+    String text, {
+    LinkIndex? links,
+    CourseConfig? config,
+    Abbreviations? abbreviations,
+  }) {
+    return StepikMarkdownRenderer(
+      links: links,
+      config: config,
+      abbreviations: abbreviations,
+    ).render(text);
   }
 
   /// Renders every step's Markdown to HTML.
@@ -51,6 +61,7 @@ class RenderRepository {
               step.text,
               links: links,
               config: course.config,
+              abbreviations: course.abbreviations,
             ),
           );
         }

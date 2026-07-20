@@ -25,13 +25,7 @@ class AutoItalicTransformer implements TextTransformer {
     r'[A-Za-z0-9]+(?:[./\-][A-Za-z0-9]+)*(?: [A-Za-z0-9]+(?:[./\-][A-Za-z0-9]+)*)*',
   );
 
-  /// A [Text] node's content is already HTML-escaped and may carry raw inline
-  /// HTML, so the Latin letters inside HTML character entities (`&quot;`,
-  /// `&amp;`) and tag names (`<em>`) must not be wrapped. These spans are
-  /// passed through untouched; only the free text between them is wrapped.
-  static final _protected = RegExp(
-    r'&(?:#\d+|#[xX][0-9a-fA-F]+|[A-Za-z][A-Za-z0-9]*);|<[^>]*>',
-  );
+  static final _protected = htmlProtectedSpans;
 
   @override
   List<Node> apply(Text text) {

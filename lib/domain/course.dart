@@ -1,4 +1,5 @@
 import 'package:pluto/data/json.dart';
+import 'package:pluto/domain/abbreviations.dart';
 import 'package:pluto/domain/course_config.dart';
 import 'package:pluto/domain/lesson.dart';
 import 'package:pluto/domain/section.dart';
@@ -27,12 +28,17 @@ class Course {
   /// `{{config.<key>}}`. Local to the source; never pushed to Stepik.
   final CourseConfig config;
 
+  /// Acronyms expanded to `<abbr>` when a step is rendered. Local to the
+  /// source; never pushed to Stepik.
+  final Abbreviations abbreviations;
+
   Course({
     required this.id,
     required this.title,
     this.titleEn,
     this.sections = const [],
     this.config = CourseConfig.empty,
+    this.abbreviations = Abbreviations.empty,
     this.summary,
     this.summaryRendered,
     this.acquiredAssets,
@@ -57,6 +63,7 @@ class Course {
     String? learningFormat,
     String? acquiredSkills,
     CourseConfig? config,
+    Abbreviations? abbreviations,
   }) {
     return Course(
       id: id ?? this.id,
@@ -72,6 +79,7 @@ class Course {
       learningFormat: learningFormat ?? this.learningFormat,
       acquiredSkills: acquiredSkills ?? this.acquiredSkills,
       config: config ?? this.config,
+      abbreviations: abbreviations ?? this.abbreviations,
     );
   }
 

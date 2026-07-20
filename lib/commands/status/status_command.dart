@@ -69,9 +69,9 @@ class StatusCommand extends Command<void> {
       }
     }
 
-    // Links that only resolve because status allows synthetic ids: they work in
-    // preview but would fail the next push, so they are worth knowing about
-    // ahead of it without being errors here.
+    // Not errors here, but worth knowing about ahead of a push: links that only
+    // resolve because status allows synthetic ids, and abbreviations declared
+    // but never used.
     final warnings = validation.warnings;
     if (warnings.isNotEmpty) {
       print('Warnings: ${warnings.length}:');
