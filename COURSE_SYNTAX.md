@@ -14,8 +14,9 @@ uploads what changed.
 - [5. Marks — TODO / FIXME / NOTE](#5-marks--todo--fixme--note)
 - [6. In-course links (`ref:`)](#6-in-course-links-ref)
 - [7. Config variables](#7-config-variables)
-- [8. Rendering quirks worth knowing](#8-rendering-quirks-worth-knowing)
-- [9. A complete step, end to end](#9-a-complete-step-end-to-end)
+- [8. Abbreviations](#8-abbreviations)
+- [9. Rendering quirks worth knowing](#9-rendering-quirks-worth-knowing)
+- [10. A complete step, end to end](#10-a-complete-step-end-to-end)
 
 ## 1. Directory layout
 
@@ -23,6 +24,7 @@ uploads what changed.
 my_course/
 └── source/
     ├── course.md              # course front matter + config
+    ├── abbreviations.md       # optional: acronym → expansion
     ├── summary.md             # long-form course fields, one file each
     ├── description.md
     ├── requirements.md
@@ -77,6 +79,21 @@ editor previews them and nothing needs escaping:
 A missing file leaves the field unset. Older courses put these in fenced blocks
 inside `course.md` (```` ```summary ````); that still reads, but the file wins
 when both exist.
+
+### `abbreviations.md`
+
+Optional, and unusual in having no body at all — just front matter, one term per
+line:
+
+```md
+---
+ЯП: язык программирования
+PL: Programming Language
+---
+```
+
+Each term is marked up with `<abbr>` where it appears in step text. Full rules in
+[§8](#8-abbreviations).
 
 ### `section_NN.md`
 
@@ -318,7 +335,63 @@ Rules:
 - Spaces inside a link destination break Markdown's link parsing, so write
   `[x]({{config.url}})`, never `[x]({{ config.url }})`.
 
-## 8. Rendering quirks worth knowing
+## 8. Abbreviations
+
+Acronyms declared once in `abbreviations.md`, marked up wherever they appear in
+step text — you write `ЯП`, the reader gets the full wording on hover:
+
+```md
+---
+ЯП: язык программирования
+ПО: программное обеспечение
+PL: Programming Language
+HTTP/2: вторая версия протокола
+---
+```
+
+Nothing is written in the step itself. This:
+
+```md
+Каждый ЯП решает свои задачи. Второй ЯП учить проще.
+```
+
+renders as:
+
+```html
+<p>Каждый <abbr title="язык программирования">ЯП</abbr> решает свои задачи.
+Второй ЯП учить проще.</p>
+```
+
+Note the second `ЯП` is left plain — see the first rule below.
+
+Rules:
+
+- **Only the first use in a step is marked.** A page where every `ЯП` carries a
+  tooltip is noisier than it is helpful. "First" is per step, so each step marks
+  its own first occurrence.
+- **Matching is case-sensitive and whole-word.** `PL` is marked, `pl` is not, and
+  neither `ЯПы` nor `вЯП` counts — a term has to stand alone. Case-sensitivity
+  keeps a term like `IT` from swallowing every ordinary "it".
+- **Any script works.** `ЯП` and `PL` are marked the same way.
+- **The longest matching term wins**, so declaring both `HTTP` and `HTTPS` marks
+  `HTTPS` as itself rather than as `HTTP` with a stray `S`.
+- **Terms in code are never marked**, in fenced blocks and inline spans alike —
+  and a term appearing in code does not consume the step's first use, so
+  ``` `ЯП` — это язык, и ЯП бывают разные ``` still marks the prose one.
+- Text that is already emphasised (`**жирный**`, `*курсив*`) is left alone.
+- A term is letters and digits of any script, optionally joined by `.`, `/`, `-`
+  or `_` — so `HTTP/2` and `well-known` work, while `C++` and multi-word terms
+  are **rejected with an error** when the file is read. They could never match on
+  a word boundary, and failing loudly beats a term that silently never fires.
+- Expansions must be scalars; a term with no value is dropped rather than
+  rendered as the text "null".
+- A Latin term is italicised inside the tag
+  (`<abbr title="…"><em>PL</em></abbr>`), a Cyrillic one is not — see
+  [§9](#9-rendering-quirks-worth-knowing).
+- **A declared term that no step uses is reported** by `pluto status` as a
+  warning. It never blocks a push: an unused abbreviation is untidy, not broken.
+
+## 9. Rendering quirks worth knowing
 
 Two transformations happen that you did not write, and both surprise people the
 first time:
@@ -329,12 +402,17 @@ Russian-language course without any markup: `HTTP/2`, `v2.0`, `well-known` and
 `3.14` each stay in one piece. Cyrillic is never wrapped, and nothing inside
 `code`, `pre`, `em`, `i`, `strong` or `b` is touched.
 
+This is why an abbreviation ([§8](#8-abbreviations)) comes out italic in one
+script and not the other: `<abbr title="…"><em>PL</em></abbr>` but
+`<abbr title="…">ЯП</abbr>`. The tag follows whatever the surrounding text does,
+so a Cyrillic term is not made the only italic Cyrillic on the page.
+
 **Headings are centred and spaced.** A first-line `h1` renders as
 `<h1 style="text-align:center">…</h1>` followed by a spacer paragraph; later
 headings get the spacer before them instead. Headings nested in a blockquote or
 list item are left alone — they title a fragment, not the step.
 
-## 9. A complete step, end to end
+## 10. A complete step, end to end
 
 ```md
 ---
