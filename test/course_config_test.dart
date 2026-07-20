@@ -5,6 +5,7 @@ import 'package:pluto/domain/section.dart';
 import 'package:pluto/domain/step.dart';
 import 'package:pluto/domain/unit.dart';
 import 'package:pluto/domain/validation_repository.dart';
+import 'package:pluto/markdown/diagnostic_styles.dart';
 import 'package:pluto/markdown/stepik_markdown_renderer.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
@@ -111,6 +112,16 @@ void main() {
       expect(textOf(html), contains('{{config.support_emial}}'));
     });
 
+    test('an unknown key is badged so it cannot be read past', () {
+      final html = renderer.render('Write to {{config.support_emial}}.');
+      expect(html, contains('<span style="$errorStyle">'));
+    });
+
+    test('a resolved key is plain text, with no badge', () {
+      final html = renderer.render('Write to {{config.support_email}}.');
+      expect(html, isNot(contains(errorStyle)));
+    });
+
     /// Unlike a literally typed address, a substituted one is not re-scanned for
     /// autolinks — write `[text](mailto:{{config.support_email}})` for a link.
     test('a substituted value is inserted as plain text, not autolinked', () {
@@ -193,6 +204,13 @@ void main() {
       final result = unknowns('Write to {{config.support_emial}}.');
       expect(result, hasLength(1));
       expect(result.single.detail, contains('support_emial'));
+    });
+
+    test('a key repeated in a step is reported once', () {
+      expect(
+        unknowns('{{config.nope}} and {{config.nope}} and {{config.nope}}'),
+        hasLength(1),
+      );
     });
 
     test('a reference inside code is not reported', () {

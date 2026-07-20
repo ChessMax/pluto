@@ -44,8 +44,10 @@ class HtmlViolation {
       ViolationKind.duplicateLabel => 'label $detail is used by several steps',
       ViolationKind.unpushedLink =>
         'link to $detail, a step that has not been pushed yet',
+      // Backticks live here rather than in `detail` so the reference stays bare
+      // for callers that mark it up themselves (the preview wraps it in <code>).
       ViolationKind.unknownConfigVar =>
-        'reference to undeclared config variable $detail',
+        'reference to undeclared config variable `$detail`',
     };
     return '$location: $message';
   }
@@ -217,7 +219,7 @@ class ValidationRepository {
             _unpushedLinks(step.text, location: location, links: links),
           );
           violations.addAll(
-            _unknownConfigVars(
+            validateConfigVars(
               step.text,
               location: location,
               config: course.config,
@@ -273,21 +275,27 @@ class ValidationRepository {
 
   /// `{{config.<key>}}` references the course does not declare.
   ///
-  /// Read from the raw Markdown, since rendering leaves an unknown reference as
-  /// ordinary text indistinguishable from an author writing the braces on
-  /// purpose. Code is blanked out first: rendering never expands references
-  /// there, and a course about programming is full of `{{ }}` in Vue, Jinja and
-  /// Handlebars samples that must not be reported.
-  List<HtmlViolation> _unknownConfigVars(
+  /// Read from the raw Markdown rather than the rendered HTML: recovering the
+  /// references from the badges rendering wraps them in would mean parsing HTML
+  /// to learn what the source already says plainly. Code is blanked out first,
+  /// matching the renderer, which never expands references there — a course
+  /// about programming is full of `{{ }}` in Vue, Jinja and Handlebars samples
+  /// that must not be reported.
+  ///
+  /// One violation per distinct key, not per occurrence: a key repeated through
+  /// a step is a single typo to fix, and listing it a dozen times buries the
+  /// other diagnostics beside it.
+  List<HtmlViolation> validateConfigVars(
     String markdown, {
     required String location,
     required CourseConfig config,
   }) {
+    final keys = unknownConfigKeys(_blankCode(markdown), config).toSet();
     return [
-      for (final key in unknownConfigKeys(_blankCode(markdown), config))
+      for (final key in keys)
         HtmlViolation(
           kind: ViolationKind.unknownConfigVar,
-          detail: '`{{$configNamespace.$key}}`',
+          detail: '{{$configNamespace.$key}}',
           location: location,
         ),
     ];

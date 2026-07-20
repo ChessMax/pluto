@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:markdown/markdown.dart';
 import 'package:pluto/domain/course_config.dart';
+import 'package:pluto/markdown/diagnostic_styles.dart';
 
 // The markdown renderer writes Text content verbatim; inline syntaxes are
 // expected to pre-escape (see MarkerInlineSyntax).
@@ -25,13 +26,23 @@ class ConfigInlineSyntax extends InlineSyntax {
 
   @override
   bool onMatch(InlineParser parser, Match match) {
-    // Unknown key: re-emit the reference verbatim for validation to report.
-    //
     // Never `return false` here: the pattern has already matched, and declining
     // leaves the parser's position unchanged, so it matches again forever.
-    final value = config?.resolve(match[1]!) ?? match[0]!;
+    final value = config?.resolve(match[1]!);
+    if (value != null) {
+      parser.addNode(Text(parser.encodeHtml ? _escape.convert(value) : value));
+      return true;
+    }
 
-    parser.addNode(Text(parser.encodeHtml ? _escape.convert(value) : value));
+    // Unknown key: re-emit the reference verbatim, badged so it is impossible to
+    // read past. Validation reports it too, and that report aborts a push, so
+    // this never reaches students.
+    final reference = match[0]!;
+    parser.addNode(
+      Element('span', [
+        Text(parser.encodeHtml ? _escape.convert(reference) : reference),
+      ])..attributes['style'] = errorStyle,
+    );
     return true;
   }
 }

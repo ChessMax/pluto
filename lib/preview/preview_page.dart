@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:pluto/domain/course_config.dart';
 import 'package:pluto/domain/link_index.dart';
 import 'package:pluto/domain/marker_scanner.dart';
 import 'package:pluto/domain/step.dart';
@@ -29,7 +30,7 @@ class PreviewPage {
         _lessonHead(lesson),
         _stepTabs(lesson, stepNumber),
         '<div class="card">',
-        _diagnostics(step),
+        _diagnostics(step, course.config),
         _stepBody(step),
         '</div>',
         _pager(index, lesson, stepNumber),
@@ -227,7 +228,7 @@ class PreviewPage {
 
   /// HTML violations and reminder markers for this step, surfaced inline so
   /// they are caught while authoring rather than at push time.
-  String _diagnostics(Step step) {
+  String _diagnostics(Step step, CourseConfig config) {
     final buffer = StringBuffer();
 
     final violations = _validation.validateHtml(
@@ -263,6 +264,28 @@ class PreviewPage {
           'error',
           'Stepik will reject this HTML',
           htmlViolations.map((v) => _escape(v.toString())),
+        ),
+      );
+    }
+
+    // Not part of validateHtml: an unknown reference is diagnosed from the raw
+    // Markdown and the course's config, neither of which the rendered HTML
+    // carries.
+    final unknownVars = _validation.validateConfigVars(
+      step.text,
+      location: 'step ${step.position}',
+      config: config,
+    );
+    if (unknownVars.isNotEmpty) {
+      buffer.write(
+        _banner(
+          'error',
+          'Unknown config variables',
+          unknownVars.map(
+            (v) =>
+                '<code>${_escape(v.detail)}</code> '
+                'is not declared in <code>course.md</code>',
+          ),
         ),
       );
     }
