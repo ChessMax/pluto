@@ -1,4 +1,5 @@
 import 'package:pluto/domain/course.dart';
+import 'package:pluto/domain/course_ids.dart';
 import 'package:pluto/domain/lesson.dart';
 import 'package:pluto/domain/section.dart';
 import 'package:pluto/domain/step_source.dart';
@@ -92,8 +93,9 @@ class PreviewIndex {
 
   static PreviewIndex build(Course course) {
     final lessons = <PreviewLesson>[];
-    final taken = <int>{};
+    final ids = assignUnitIds(course);
 
+    var flatIndex = 0;
     final sections = course.sections;
     for (var i = 0; i < sections.length; ++i) {
       final section = sections[i];
@@ -101,16 +103,12 @@ class PreviewIndex {
 
       for (var j = 0; j < units.length; ++j) {
         final unit = units[j];
-
-        // `Section.position` and `Unit.position` come from the source directory
-        // names (`section_NN`, `unit_NN`), so this key identifies the lesson's
-        // location on disk without the model having to carry its path.
-        final key = 'section_${section.position}/unit_${unit.position}';
+        final unitIds = ids[flatIndex++];
 
         lessons.add(
           PreviewLesson(
-            lessonId: unit.lesson.id ?? _syntheticId('lesson:$key', taken),
-            unitId: unit.id ?? _syntheticId('unit:$key', taken),
+            lessonId: unitIds.lessonId,
+            unitId: unitIds.unitId,
             sectionIndex: i,
             unitIndex: j,
             section: section,
@@ -127,29 +125,4 @@ class PreviewIndex {
 
     return PreviewIndex._(course, lessons, byLessonId);
   }
-}
-
-/// A stable 7-digit id derived from [key], so preview URLs keep Stepik's shape
-/// before the course has ever been pushed (ids in the source are null until a
-/// push writes them back).
-///
-/// Deriving it from the source location rather than an ordinal keeps URLs
-/// valid across edits and across inserting new sections; only renaming a
-/// directory moves a lesson's URL, which is a real change of identity.
-int _syntheticId(String key, Set<int> taken) {
-  var id = _fnv1a(key);
-  for (var salt = 0; !taken.add(id); ++salt) {
-    id = _fnv1a('$key#$salt');
-  }
-  return id;
-}
-
-int _fnv1a(String value) {
-  var hash = 0x811c9dc5;
-  for (final unit in value.codeUnits) {
-    hash ^= unit;
-    hash = (hash * 0x01000193) & 0xFFFFFFFF;
-  }
-  // Keep it in Stepik's visual range: a 7-digit number.
-  return 1000000 + hash % 9000000;
 }

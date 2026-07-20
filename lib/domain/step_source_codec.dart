@@ -11,6 +11,10 @@ class StepSourceCodec {
 
     final sb = StringBuffer('---\n');
     sb.writeln('id: ${stepSource.id ?? ''}');
+    final label = stepSource.label;
+    if (label != null && label.isNotEmpty) {
+      sb.writeln('label: $label');
+    }
     sb.writeln(
       'type: ${switch (type) {
         .code => 'code',

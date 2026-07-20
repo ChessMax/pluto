@@ -1,4 +1,5 @@
 import 'package:pluto/domain/course.dart';
+import 'package:pluto/domain/link_index.dart';
 import 'package:pluto/markdown/stepik_markdown_renderer.dart';
 
 // TODO: is it OK that's it a repository?
@@ -22,11 +23,15 @@ class RenderRepository {
     return replaceLineBreaks(text);
   }
 
-  String renderMdText(String text) {
-    return const StepikMarkdownRenderer().render(text);
+  String renderMdText(String text, {LinkIndex? links}) {
+    return StepikMarkdownRenderer(links: links).render(text);
   }
 
-  Course render(Course course) {
+  /// Renders every step's Markdown to HTML.
+  ///
+  /// [links] resolves `ref:` links to other steps; it is built from the course
+  /// *before* rendering, since a link's target only needs ids and positions.
+  Course render(Course course, {LinkIndex? links}) {
     final sections = course.sections.toList();
 
     for (int i = 0; i < sections.length; ++i) {
@@ -40,10 +45,7 @@ class RenderRepository {
         for (int k = 0; k < steps.length; ++k) {
           final step = steps[k];
 
-          final renderedText = renderMdText(step.block.text);
-          print('Rendered text: =======================');
-          print(renderedText);
-          print('======================================');
+          final renderedText = renderMdText(step.block.text, links: links);
           final renderedStep = step.copyWith(
             block: step.block.copyWith(textRendered: renderedText),
           );
@@ -65,8 +67,6 @@ class RenderRepository {
       summaryRendered: summary != null && summary.isNotEmpty ? renderMultiLineText(summary) : summary,
       sections: sections,
     );
-    print('Rendered summary: ');
-    print(renderedCourse.summaryRendered);
     return renderedCourse;
   }
 }

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:path/path.dart';
 import 'package:pluto/data/source_repository.dart';
+import 'package:pluto/domain/link_index.dart';
 import 'package:pluto/markdown/render_repository.dart';
 import 'package:pluto/preview/preview_assets.dart';
 import 'package:pluto/preview/preview_index.dart';
@@ -89,7 +90,12 @@ class PreviewServer {
   Future<void> _rebuild() async {
     try {
       final source = await _sourceRepository.readCourseSource(courseDir);
-      final rendered = _renderRepository.render(source.course);
+      // The link index only needs ids and positions, so it is built from the
+      // unrendered course and fed back into the render that consumes it.
+      // Synthetic ids are allowed here: a preview link should work before the
+      // course has ever been pushed.
+      final links = LinkIndex.build(source.course, allowSynthetic: true);
+      final rendered = _renderRepository.render(source.course, links: links);
       _snapshot = PreviewReady(PreviewIndex.build(rendered));
     } catch (e) {
       // A half-saved file is a normal intermediate state while editing, so a

@@ -235,6 +235,7 @@ class SourceRepository {
     final step = StepSource(
       id: fm['id'] as int?,
       position: position,
+      label: fm['label'] as String?,
       block: StepBlock(
         name: blockName,
         text: md.content,

@@ -4,6 +4,7 @@ import 'package:args/command_runner.dart';
 import 'package:pluto/data/initialize_stepik_client.dart';
 import 'package:pluto/data/source_repository.dart';
 import 'package:pluto/domain/diff.dart';
+import 'package:pluto/domain/link_index.dart';
 import 'package:pluto/markdown/render_repository.dart';
 import 'package:pluto/domain/stepik_repository.dart';
 import 'package:pluto/domain/validation_repository.dart';
@@ -27,8 +28,6 @@ class PushCourseCommand extends Command<void> {
     final localCourseSource = source.course;
     final courseId = localCourseSource.id;
 
-    final localCourse = const RenderRepository().render(localCourseSource);
-
     final rawApi = (await initializeStepikClient()).rawApi;
     final stepikRepository = StepikRepository(rawApi);
 
@@ -36,30 +35,50 @@ class PushCourseCommand extends Command<void> {
         ? await stepikRepository.readCourse(courseId)
         : null;
 
-    final diffs = Diff.create(remoteCourse, localCourse).toList();
+    // Diffs are computed before rendering: they only compare ids and structure,
+    // and the content phase reads its payload back out of the rendered course.
+    final diffs = Diff.create(remoteCourse, localCourseSource).toList();
 
-    final validation = const ValidationRepository().validate(
-      localCourse,
-      sources: source.files,
-    );
-
-    // Markers (TODO/FIXME) with precise file:line:column locations. Warnings
+    // Markers (TODO/FIXME) with precise file:line:column locations, scanned
+    // from the raw source, so they can abort before anything is sent. Warnings
     // (TODO) are reported but don't block; errors (FIXME) abort the push.
-    final markers = validation.markers;
+    final markers = const ValidationRepository()
+        .validate(localCourseSource, sources: source.files)
+        .markers;
     if (markers.isNotEmpty) {
       stderr.writeln('${markers.length} marker(s) found:');
       for (final marker in markers) {
         stderr.writeln('  $marker');
       }
-    }
-    if (validation.hasBlockingMarkers) {
-      stderr.writeln('Push aborted: unresolved marker(s) must be resolved.');
-      exit(1);
+      if (markers.any((marker) => marker.severity == .error)) {
+        stderr.writeln('Push aborted: unresolved marker(s) must be resolved.');
+        exit(1);
+      }
     }
 
+    // Structure first: this is what mints the lesson ids that `ref:` links in
+    // step text resolve against.
+    var course = await stepikRepository.applyDiff(
+      localCourseSource,
+      diffs.where((diff) => diff.phase == .structure).toList(),
+    );
+
+    // Persisted before the content phase so an abort below can't lose the ids
+    // just created — without this a re-run would create duplicates.
+    await sourceRepository.writeCourse(course, courseDir);
+
+    // Synthetic ids are refused here: every target exists remotely by now, and
+    // a stand-in id would publish a link into somebody else's lesson.
+    final links = LinkIndex.build(course);
+    course = const RenderRepository().render(course, links: links);
+
+    final validation = const ValidationRepository().validate(
+      course,
+      links: links,
+    );
     if (!validation.isValid) {
       stderr.writeln(
-        'Course HTML validation failed (${validation.violations.length} issue(s)):',
+        'Course validation failed (${validation.violations.length} issue(s)):',
       );
       for (final violation in validation.violations) {
         stderr.writeln('  - $violation');
@@ -67,8 +86,12 @@ class PushCourseCommand extends Command<void> {
       exit(1);
     }
 
-    // creating / updating course on stepik.
-    final course = await stepikRepository.applyDiff(localCourse, diffs);
+    course = await stepikRepository.applyDiff(
+      course,
+      diffs
+          .where((diff) => diff.phase == .content || diff.phase == .removal)
+          .toList(),
+    );
 
     // saving in case ids added.
     await sourceRepository.writeCourse(course, courseDir);

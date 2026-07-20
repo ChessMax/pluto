@@ -1,19 +1,26 @@
 import 'package:markdown/markdown.dart';
 import 'package:pluto/domain/html_whitelist.dart';
+import 'package:pluto/domain/link_index.dart';
 import 'package:pluto/markdown/auto_emphasize_transformer.dart';
 import 'package:pluto/markdown/node_transformer.dart';
 import 'package:pluto/markdown/marker_syntax.dart';
+import 'package:pluto/markdown/ref_link_transformer.dart';
 
 /// Renders Markdown to HTML constrained by the Stepik tags whitelist.
 ///
 /// See also [allowedTags] and [_transformers].
 class StepikMarkdownRenderer {
-  const StepikMarkdownRenderer();
+  /// Resolves `ref:` links to other steps. Without it such links are left as
+  /// written, for validation to report.
+  final LinkIndex? links;
+
+  const StepikMarkdownRenderer({this.links});
 
   /// Ordered styling rules applied to the parsed AST before rendering.
-  static const List<NodeTransformer> _transformers = [
-    TagRewriteTransformer(tagRewrites),
-    CenteredHeadingTransformer(),
+  List<NodeTransformer> get _transformers => [
+    const TagRewriteTransformer(tagRewrites),
+    const CenteredHeadingTransformer(),
+    RefLinkTransformer(links),
   ];
 
   /// Rules applied to [Text] leaves, unless inside [_noWrapTags].

@@ -6,8 +6,42 @@ import 'package:pluto/domain/step_source.dart';
 import 'package:pluto/domain/unit.dart';
 import 'package:pluto/stepik_api/raw_stepik_api.dart';
 
+/// When a [Diff] can be applied, relative to rendering.
+///
+/// Step text may contain `ref:` links to other steps, and resolving one needs
+/// the target lesson's real id — which only exists once the lesson has been
+/// created. So structure is pushed first, the course is rendered against the
+/// ids that came back, and only then is any text sent.
+enum DiffPhase {
+  /// Creates/updates course, sections, lessons and units: everything that mints
+  /// an id. Carries no rendered Markdown.
+  structure,
+
+  /// Sends rendered text: step sources, and the course summary.
+  content,
+
+  /// Deletions. Reference only remote ids, so they are payload-independent.
+  removal,
+}
+
 // TODO: check if something really changed, not just added/removed.
 sealed class Diff {
+  DiffPhase get phase => switch (this) {
+    CourseAdded() ||
+    SectionAdded() ||
+    SectionUpdated() ||
+    LessonAdded() ||
+    LessonUpdated() ||
+    UnitAdded() ||
+    UnitUpdated() => .structure,
+    StepSourceAdded() || StepSourceUpdated() || CourseUpdated() => .content,
+    CourseDeleted() ||
+    SectionRemoved() ||
+    LessonRemoved() ||
+    UnitRemove() ||
+    StepSourceRemoved() => .removal,
+  };
+
   static Iterable<Diff> create(CourseEntity? entity, Course course) sync* {
     if ((course.id != null) != (entity != null)) {
       throw 'Inconsistent state';
@@ -78,6 +112,9 @@ sealed class Diff {
               yield StepSourceUpdated(
                 base: stepSourceBase,
                 stepSource: stepSource,
+                sectionIndex: sectionIndex,
+                unitIndex: unitIndex,
+                stepSourceIndex: stepSourceIndex,
               );
             }
           }
@@ -181,10 +218,16 @@ class StepSourceAdded extends Diff {
 class StepSourceUpdated extends Diff {
   final RawStepSourceDto base;
   final StepSource stepSource;
+  final int sectionIndex;
+  final int unitIndex;
+  final int stepSourceIndex;
 
   StepSourceUpdated({
     required this.base,
     required this.stepSource,
+    required this.sectionIndex,
+    required this.unitIndex,
+    required this.stepSourceIndex,
   });
 }
 

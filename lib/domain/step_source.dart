@@ -5,17 +5,28 @@ class StepSource {
   final int position;
   final StepBlock block;
 
-  StepSource({required this.id, required this.position, required this.block});
+  /// Stable name for `ref:` links, so a link survives the step being renumbered
+  /// or moved. Author-supplied and course-unique; see [LinkIndex].
+  final String? label;
+
+  StepSource({
+    required this.id,
+    required this.position,
+    required this.block,
+    this.label,
+  });
 
   StepSource copyWith({
     int? id,
     int? position,
     StepBlock? block,
+    String? label,
   }) {
     return StepSource(
       id: id ?? this.id,
       block: block ?? this.block,
       position: position ?? this.position,
+      label: label ?? this.label,
     );
   }
 
@@ -23,6 +34,7 @@ class StepSource {
     return {
       'id': id,
       'position': position,
+      if (label != null) 'label': label,
       'block': block.toJson(),
     };
   }

@@ -2,6 +2,7 @@ import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'package:pluto/domain/course.dart';
 import 'package:pluto/domain/html_whitelist.dart';
+import 'package:pluto/domain/link_index.dart';
 import 'package:pluto/domain/marker_scanner.dart';
 import 'package:pluto/domain/source_file.dart';
 
@@ -9,6 +10,8 @@ enum ViolationKind {
   disallowedTag,
   disallowedAttribute,
   disallowedUrlScheme,
+  unresolvedLink,
+  duplicateLabel,
 }
 
 class HtmlViolation {
@@ -28,6 +31,8 @@ class HtmlViolation {
       ViolationKind.disallowedTag => 'disallowed tag $detail',
       ViolationKind.disallowedAttribute => 'disallowed attribute $detail',
       ViolationKind.disallowedUrlScheme => 'disallowed URL scheme $detail',
+      ViolationKind.unresolvedLink => 'link to unknown step $detail',
+      ViolationKind.duplicateLabel => 'label $detail is used by several steps',
     };
     return '$location: $message';
   }
@@ -114,9 +119,24 @@ class ValidationRepository {
 
       if (rule.urlAttributes.contains(name)) {
         final scheme = Uri.tryParse(value)?.scheme;
-        if (scheme != null &&
-            scheme.isNotEmpty &&
-            !allowedUrlSchemes.contains(scheme.toLowerCase())) {
+        if (scheme == null || scheme.isEmpty) return;
+
+        // A surviving `ref:` means resolution failed — either the ref names no
+        // step, or the target had not been created on Stepik yet. Reported as
+        // itself rather than as a stray URL scheme, since the cause is a broken
+        // link and not a disallowed protocol.
+        if (scheme.toLowerCase() == refScheme) {
+          violations.add(
+            HtmlViolation(
+              kind: ViolationKind.unresolvedLink,
+              detail: value.substring(refScheme.length + 1),
+              location: location,
+            ),
+          );
+          return;
+        }
+
+        if (!allowedUrlSchemes.contains(scheme.toLowerCase())) {
           violations.add(
             HtmlViolation(
               kind: ViolationKind.disallowedUrlScheme,
@@ -135,12 +155,23 @@ class ValidationRepository {
   ValidationResult validate(
     Course course, {
     List<SourceFile> sources = const [],
+    LinkIndex? links,
   }) {
     final violations = <HtmlViolation>[];
 
     violations.addAll(
       validateHtml(course.summaryRendered, location: 'course summary'),
     );
+
+    for (final label in links?.duplicateLabels ?? const <String>[]) {
+      violations.add(
+        HtmlViolation(
+          kind: ViolationKind.duplicateLabel,
+          detail: '"$label"',
+          location: 'course',
+        ),
+      );
+    }
 
     final sections = course.sections;
     for (var i = 0; i < sections.length; ++i) {

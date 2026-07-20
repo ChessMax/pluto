@@ -214,13 +214,16 @@ class StepikRepository {
     for (final diff in diffs) {
       switch (diff) {
         case StepSourceAdded(
-          :final stepSource,
           :final sectionIndex,
           :final unitIndex,
           :final stepSourceIndex,
         ):
-          final lessonId = course.sections[sectionIndex].units[unitIndex].lesson.id!;
-          final stepSourceDto = stepSource.toDto(lessonId);
+          final lesson = course.sections[sectionIndex].units[unitIndex].lesson;
+          // Read the step back out of the course rather than using the one
+          // captured in the diff: the diff was built before rendering, so its
+          // copy has no rendered text.
+          final stepSource = lesson.steps[stepSourceIndex];
+          final stepSourceDto = stepSource.toDto(lesson.id!);
           final stepSourceId = (await _api.stepSource.create(stepSourceDto))!.id;
           course = course.copyWithStepSource(
             sectionIndex,
@@ -229,10 +232,22 @@ class StepikRepository {
             (stepSource) => stepSource.copyWith(id: stepSourceId),
           );
           break;
-        case StepSourceUpdated(:final base, :final stepSource):
-          final lessonId = base.id;
-          final stepSourceDto = stepSource.toDto(lessonId, base);
-          await _api.stepSource.update(lessonId, stepSourceDto);
+        case StepSourceUpdated(
+          :final base,
+          :final sectionIndex,
+          :final unitIndex,
+          :final stepSourceIndex,
+        ):
+          final stepSource = course
+              .sections[sectionIndex]
+              .units[unitIndex]
+              .lesson
+              .steps[stepSourceIndex];
+          // `base.id` is the step id, `base.lesson` the lesson it belongs to;
+          // `toDto` writes 'lesson' last, so passing the step id here would
+          // overwrite the step's lesson with its own id.
+          final stepSourceDto = stepSource.toDto(base.lesson, base);
+          await _api.stepSource.update(base.id, stepSourceDto);
           break;
         case StepSourceRemoved(:final stepSourceId):
           await _api.stepSource.delete(stepSourceId);
@@ -291,7 +306,9 @@ class StepikRepository {
           final courseId = (await _api.course.create(courseDto))!.id;
           course = course.copyWith(id: courseId);
           break;
-        case CourseUpdated(:final base, :final course):
+        case CourseUpdated(:final base):
+          // Deliberately the threaded course, not the one captured in the diff:
+          // the summary is rendered, and section ids are filled in by then.
           final courseDto = course.toDto(base);
           await _api.course.update(base.id, courseDto);
           break;
