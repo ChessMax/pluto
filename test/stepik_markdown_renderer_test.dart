@@ -16,7 +16,10 @@ void main() {
 
     test('inline strikethrough among surrounding text', () {
       final html = renderer.render('a ~~b~~ c');
-      expect(html, contains('<em>a</em> <strike><em>b</em></strike> <em>c</em>'));
+      expect(
+        html,
+        contains('<em>a</em> <strike><em>b</em></strike> <em>c</em>'),
+      );
     });
 
     test('nested emphasis inside strikethrough is preserved', () {
@@ -50,7 +53,10 @@ void main() {
     });
 
     test('punctuation breaks the phrase into separate ems', () {
-      expect(renderer.render('foo, bar'), contains('<em>foo</em>, <em>bar</em>'));
+      expect(
+        renderer.render('foo, bar'),
+        contains('<em>foo</em>, <em>bar</em>'),
+      );
     });
 
     test('versions and decimals stay as one unit', () {
@@ -82,7 +88,10 @@ void main() {
     test('html entities are not corrupted (quot/amp not wrapped)', () {
       expect(renderer.render('"Сюбор"'), contains('&quot;Сюбор&quot;'));
       expect(renderer.render('a & b'), contains('<em>a</em> &amp; <em>b</em>'));
-      expect(renderer.render('"foo bar"'), contains('&quot;<em>foo bar</em>&quot;'));
+      expect(
+        renderer.render('"foo bar"'),
+        contains('&quot;<em>foo bar</em>&quot;'),
+      );
     });
 
     test('raw inline html tag names are not wrapped', () {
@@ -141,6 +150,44 @@ void main() {
         location: 'test',
       );
       expect(violations, isEmpty);
+    });
+  });
+
+  group('centered headings', () {
+    test('leading heading is centered and followed by a spacer', () {
+      final html = renderer.render('# Title\n\ntext');
+      expect(
+        html,
+        startsWith(
+          '<h1 style="text-align:center"><em>Title</em></h1>\n<p>&nbsp;</p>',
+        ),
+      );
+    });
+
+    test('later top-level heading is preceded by a spacer', () {
+      final html = renderer.render('text\n\n## Later');
+      expect(html, contains('<p>&nbsp;</p>\n<h2><em>Later</em></h2>'));
+    });
+
+    test('heading inside a blockquote is left alone', () {
+      final html = renderer.render('> ## Quoted\n>\n> body');
+      expect(html, contains('<h2><em>Quoted</em></h2>'));
+      expect(html, isNot(contains('text-align:center')));
+      expect(html, isNot(contains('&nbsp;')));
+    });
+
+    test('heading inside a list item is left alone', () {
+      final html = renderer.render('- ### Nested\n- other');
+      expect(html, contains('<h3><em>Nested</em></h3>'));
+      expect(html, isNot(contains('text-align:center')));
+      expect(html, isNot(contains('&nbsp;')));
+    });
+
+    test('top-level headings are still styled alongside a quoted one', () {
+      final html = renderer.render('# Title\n\n> ## Quoted\n\n## Real');
+      expect(html, contains('<h1 style="text-align:center">'));
+      expect(html, contains('<h2><em>Quoted</em></h2>'));
+      expect(html, contains('<p>&nbsp;</p>\n<h2><em>Real</em></h2>'));
     });
   });
 

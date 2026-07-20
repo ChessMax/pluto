@@ -64,28 +64,44 @@ class StepikMarkdownRenderer {
     final document = Document(extensionSet: gitHubWeb);
     final nodes = document.parse(markdown);
 
-    List<Node> transform(Node node) => _transform(nodes, node, insideNoWrap: false);
-
-    final rewritten = nodes.expand(transform).toList();
+    final rewritten = <Node>[
+      for (final (index, node) in nodes.indexed)
+        ..._transform(
+          node,
+          isFirstNode: index == 0,
+          isTopLevel: true,
+          insideNoWrap: false,
+        ),
+    ];
     return '${renderToHtml(rewritten)}\n';
   }
 
-  List<Node> _transform(List<Node> nodes, Node node, {required bool insideNoWrap}) {
+  List<Node> _transform(
+    Node node, {
+    required bool isFirstNode,
+    required bool isTopLevel,
+    required bool insideNoWrap,
+  }) {
     if (node is Text) {
       if (insideNoWrap) return [node];
-      return _textTransformers.fold(<Node>[node], (acc, transformer) => [
-        for (final n in acc)
-          if (n is Text) ...transformer.apply(n) else n,
-      ]);
+      return _textTransformers.fold(
+        <Node>[node],
+        (acc, transformer) => [
+          for (final n in acc)
+            if (n is Text) ...transformer.apply(n) else n,
+        ],
+      );
     }
 
     if (node is! Element) return [node];
 
     final childInsideNoWrap = insideNoWrap || _noWrapTags.contains(node.tag);
-    List<Node> transform(Node node) =>
-        _transform(nodes, node, insideNoWrap: childInsideNoWrap);
-
-    final isFirstNode = nodes.firstOrNull == node;
+    List<Node> transform(Node node) => _transform(
+      node,
+      isFirstNode: false,
+      isTopLevel: false,
+      insideNoWrap: childInsideNoWrap,
+    );
 
     final children = node.children?.expand(transform).toList();
     final rebuilt = Element(node.tag, children)
@@ -96,7 +112,14 @@ class StepikMarkdownRenderer {
     for (final transformer in _transformers) {
       result = [
         for (final n in result)
-          if (n is Element) ...transformer.apply(n, isFirstNode: isFirstNode) else n,
+          if (n is Element)
+            ...transformer.apply(
+              n,
+              isFirstNode: isFirstNode,
+              isTopLevel: isTopLevel,
+            )
+          else
+            n,
       ];
     }
     return result;

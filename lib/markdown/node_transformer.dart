@@ -4,7 +4,12 @@ import 'package:markdown/markdown.dart';
 abstract class NodeTransformer {
   const NodeTransformer();
 
-  List<Node> apply(Element element, {required bool isFirstNode});
+  List<Node> apply(
+    Element element, {
+    required bool isFirstNode,
+    // is false for nodes nested in a container such as a blockquote or a list item.
+    required bool isTopLevel,
+  });
 }
 
 /// Transforms a single Markdown AST [Text] leaf into its replacement node(s),
@@ -23,7 +28,11 @@ class TagRewriteTransformer extends NodeTransformer {
   const TagRewriteTransformer(this.rewrites);
 
   @override
-  List<Node> apply(Element element, {required bool isFirstNode}) {
+  List<Node> apply(
+    Element element, {
+    required bool isFirstNode,
+    required bool isTopLevel,
+  }) {
     final tag = rewrites[element.tag];
     if (tag == null) return [element];
     return [
@@ -39,20 +48,33 @@ class TagRewriteTransformer extends NodeTransformer {
 ///
 /// Produces e.g. `<h1 style="text-align:center">Title</h1><p>&nbsp;</p>` for first h1 node.
 /// Produces `<p>&nbsp;</p><h1>Title</h1>` for other header nodes.
+///
+/// Nested headings — inside a blockquote or a list item — are left as written:
+/// they title a fragment, not the step, and centering them looks out of place.
 class CenteredHeadingTransformer extends NodeTransformer {
   final Set<String> tags;
 
   const CenteredHeadingTransformer({this.tags = const {'h1', 'h2', 'h3'}});
 
   @override
-  List<Node> apply(Element element, {required bool isFirstNode}) {
-    if (!tags.contains(element.tag)) return [element];
+  List<Node> apply(
+    Element element, {
+    required bool isFirstNode,
+    required bool isTopLevel,
+  }) {
+    if (!isTopLevel || !tags.contains(element.tag)) return [element];
 
     if (isFirstNode) {
       element.attributes['style'] = 'text-align:center';
-      return [element, Element('p', <Node>[Text('&nbsp;')])];
+      return [
+        element,
+        Element('p', <Node>[Text('&nbsp;')]),
+      ];
     }
 
-    return [Element('p', <Node>[Text('&nbsp;')]), element];
+    return [
+      Element('p', <Node>[Text('&nbsp;')]),
+      element,
+    ];
   }
 }

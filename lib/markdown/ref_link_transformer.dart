@@ -14,7 +14,11 @@ class RefLinkTransformer extends NodeTransformer {
   const RefLinkTransformer(this.links);
 
   @override
-  List<Node> apply(Element element, {required bool isFirstNode}) {
+  List<Node> apply(
+    Element element, {
+    required bool isFirstNode,
+    required bool isTopLevel,
+  }) {
     if (element.tag != 'a') return [element];
 
     final href = element.attributes['href'];
