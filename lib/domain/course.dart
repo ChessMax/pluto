@@ -1,7 +1,7 @@
 import 'package:pluto/data/json.dart';
 import 'package:pluto/domain/lesson.dart';
 import 'package:pluto/domain/section.dart';
-import 'package:pluto/domain/step_source.dart';
+import 'package:pluto/domain/step.dart';
 import 'package:pluto/domain/unit.dart';
 
 // TODO: additional class like CourseSource & Course or Course & RenderedCourse?
@@ -67,12 +67,12 @@ class Course {
     );
   }
 
+  /// Model for the `course.md` template, which reads scalars only.
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'title': title,
       'titleEn': titleEn,
-      'sections': sections.map((section) => section.toJson()).toList(),
       'summary': summary,
       'acquiredAssets': acquiredAssets,
       'description': description,
@@ -148,22 +148,22 @@ class Course {
     );
   }
 
-  Course copyWithStepSource(
+  Course copyWithStep(
     int sectionIndex,
     int unitIndex,
-    int stepSourceIndex,
-    StepSource Function(StepSource) update,
+    int stepIndex,
+    Step Function(Step) update,
   ) {
     final section = sections[sectionIndex];
     final unit = section.units[unitIndex];
     final lesson = unit.lesson;
-    final stepSource = lesson.steps[stepSourceIndex];
+    final step = lesson.steps[stepIndex];
 
     return copyWithLesson(
       sectionIndex,
       unitIndex,
       (lesson) => lesson.copyWith(
-        steps: lesson.steps.replace(stepSource, update),
+        steps: lesson.steps.replace(step, update),
       ),
     );
   }

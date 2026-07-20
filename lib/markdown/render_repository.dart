@@ -45,11 +45,9 @@ class RenderRepository {
         for (int k = 0; k < steps.length; ++k) {
           final step = steps[k];
 
-          final renderedText = renderMdText(step.block.text, links: links);
-          final renderedStep = step.copyWith(
-            block: step.block.copyWith(textRendered: renderedText),
+          steps[k] = step.copyWith(
+            renderedText: renderMdText(step.text, links: links),
           );
-          steps[k] = renderedStep;
         }
 
         final renderedUnit = unit.copyWith(
@@ -64,7 +62,9 @@ class RenderRepository {
 
     final summary = course.summary;
     final renderedCourse = course.copyWith(
-      summaryRendered: summary != null && summary.isNotEmpty ? renderMultiLineText(summary) : summary,
+      summaryRendered: summary != null && summary.isNotEmpty
+          ? renderMultiLineText(summary)
+          : summary,
       sections: sections,
     );
     return renderedCourse;

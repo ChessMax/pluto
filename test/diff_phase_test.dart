@@ -2,21 +2,14 @@ import 'package:pluto/domain/course.dart';
 import 'package:pluto/domain/diff.dart';
 import 'package:pluto/domain/lesson.dart';
 import 'package:pluto/domain/section.dart';
-import 'package:pluto/domain/step_source.dart';
+import 'package:pluto/domain/step.dart';
 import 'package:pluto/domain/unit.dart';
 import 'package:test/test.dart';
 
-StepSource _step(int position) => StepSource(
+Step _step(int position) => TextStep(
   id: null,
   position: position,
-  block: StepBlock(
-    name: .text,
-    text: 'step $position',
-    feedbackCorrect: null,
-    feedbackWrong: null,
-    options: const TextStepBlockOptions(),
-    source: const TextStepBlockSource(),
-  ),
+  text: 'step $position',
 );
 
 Course _newCourse() => Course(
@@ -58,8 +51,8 @@ void main() {
         ['CourseAdded', 'SectionAdded', 'LessonAdded', 'UnitAdded'],
       );
       expect(content.map((d) => d.runtimeType.toString()), [
-        'StepSourceAdded',
-        'StepSourceAdded',
+        'StepAdded',
+        'StepAdded',
       ]);
     });
 
@@ -68,7 +61,7 @@ void main() {
 
       expect(
         diffs.where((d) => d.phase == .structure),
-        everyElement(isNot(isA<StepSourceAdded>())),
+        everyElement(isNot(isA<StepAdded>())),
       );
     });
 

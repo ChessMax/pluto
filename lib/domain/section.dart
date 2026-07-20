@@ -32,11 +32,11 @@ class Section {
     );
   }
 
+  /// Model for the `section_NN.md` template, which reads scalars only.
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'title': title,
-      'units': units.map((unit) => unit.toJson()).toList(),
       'position': position,
       'description': description,
     };

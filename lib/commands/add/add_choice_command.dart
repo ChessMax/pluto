@@ -1,13 +1,9 @@
 import 'package:args/args.dart';
 import 'package:pluto/commands/add/add_step_command.dart';
-import 'package:pluto/domain/step_source.dart';
+import 'package:pluto/domain/step.dart';
 
 abstract class AddChoiceCommand extends AddStepCommand {
   bool get isMultipleChoice;
-
-  StepBlockType get blockType => isMultipleChoice
-      ? .multipleChoice
-      : .singleChoice;
 
   @override
   void registerExtraArgs(ArgParser parser) {
@@ -18,31 +14,26 @@ abstract class AddChoiceCommand extends AddStepCommand {
     );
   }
 
-  List<ChoiceStepBlockOption> _templateOptions() {
-    return [
-      ChoiceStepBlockOption(isCorrect: true, text: 'Option 1', feedback: ''),
-      ChoiceStepBlockOption(isCorrect: false, text: 'Option 2', feedback: ''),
-      ChoiceStepBlockOption(isCorrect: false, text: 'Option 3', feedback: ''),
+  List<ChoiceOption> _templateOptions() {
+    return const [
+      ChoiceOption(isCorrect: true, text: 'Option 1', feedback: ''),
+      ChoiceOption(isCorrect: false, text: 'Option 2', feedback: ''),
+      ChoiceOption(isCorrect: false, text: 'Option 3', feedback: ''),
     ];
   }
 
   @override
-  StepBlock buildBlock(String text) {
+  ChoiceStep buildStep(String text, int position) {
     final isAlwaysCorrect = argResults?.flag('is-always-correct') ?? false;
-    return StepBlock(
-      name: blockType,
+    return ChoiceStep(
+      id: null,
+      position: position,
       text: text,
-      textRendered: null,
-      feedbackCorrect: null,
-      feedbackWrong: null,
-      options: ChoiceStepBlockOptions(isMultipleChoice: isMultipleChoice),
-      source: ChoiceStepBlockSource(
-        isMultipleChoice: isMultipleChoice,
-        isAlwaysCorrect: isAlwaysCorrect,
-        preserveOrder: false,
-        isHtmlEnabled: false,
-        options: _templateOptions(),
-      ),
+      isMultipleChoice: isMultipleChoice,
+      isAlwaysCorrect: isAlwaysCorrect,
+      preserveOrder: false,
+      isHtmlEnabled: false,
+      options: _templateOptions(),
     );
   }
 }

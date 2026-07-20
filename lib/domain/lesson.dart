@@ -1,5 +1,5 @@
 import 'package:pluto/data/json.dart';
-import 'package:pluto/domain/step_source.dart';
+import 'package:pluto/domain/step.dart';
 
 // TODO: move somewhere and add check to validation process that it's correct
 const maxStepsPerLesson = 16;
@@ -7,14 +7,14 @@ const maxStepsPerLesson = 16;
 class Lesson {
   final int? id;
   final String title;
-  final List<StepSource> steps;
+  final List<Step> steps;
 
   Lesson({required this.id, required this.title, required this.steps});
 
   Lesson copyWith({
     int? id,
     String? title,
-    List<StepSource>? steps,
+    List<Step>? steps,
   }) {
     return Lesson(
       id: id ?? this.id,
@@ -23,11 +23,11 @@ class Lesson {
     );
   }
 
+  /// Model for the `lesson_NN.md` template, which reads scalars only.
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'title': title,
-      'steps': steps.map((step) => step.toJson()).toList(),
     };
   }
 

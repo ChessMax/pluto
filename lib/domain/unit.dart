@@ -22,10 +22,10 @@ class Unit {
     );
   }
 
+  /// Model for the `unit_NN.md` template, which reads scalars only.
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'lesson': lesson.toJson(),
       'position': position,
     };
   }

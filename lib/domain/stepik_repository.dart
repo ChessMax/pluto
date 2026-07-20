@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:pluto/data/step_mapper.dart';
 import 'package:pluto/domain/course.dart';
 import 'package:pluto/domain/diff.dart';
 import 'package:pluto/domain/remote_course.dart';
@@ -90,15 +91,15 @@ class StepikRepository {
         section.units[j] = unit.copyWith(lesson: lesson.copyWith(id: lessonId));
 
         for (var k = 0; k < lesson.steps.length; ++k) {
-          final stepSource = lesson.steps[k];
-          final stepSourceDto = stepSource.toDto(lessonId);
+          final step = lesson.steps[k];
+          final stepDto = stepToDto(step, lessonId);
 
-          final stepId = (await _api.stepSource.create(stepSourceDto))?.id;
+          final stepId = (await _api.stepSource.create(stepDto))?.id;
           if (stepId == null) {
-            throw 'Failed to create step source: $stepSourceDto}';
+            throw 'Failed to create step source: $stepDto}';
           }
 
-          lesson.steps[k] = stepSource.copyWith(id: stepId);
+          lesson.steps[k] = step.copyWith(id: stepId);
         }
 
         final unitDto = unit.toDto(sectionId, lessonId);
@@ -166,24 +167,25 @@ class StepikRepository {
         }
 
         for (var k = 0; k < lesson.steps.length; ++k) {
-          final stepSource = lesson.steps[k];
-          final stepSourceId = stepSource.id;
+          final step = lesson.steps[k];
+          final stepId = step.id;
 
-          if (stepSourceId == null) {
-            final stepSourceDto = stepSource.toDto(lessonId);
+          if (stepId == null) {
+            final stepDto = stepToDto(step, lessonId);
 
-            final stepId = (await _api.stepSource.create(stepSourceDto))?.id;
-            if (stepId == null) {
-              throw 'Failed to create step source: $stepSourceDto}';
+            final newStepId = (await _api.stepSource.create(stepDto))?.id;
+            if (newStepId == null) {
+              throw 'Failed to create step source: $stepDto}';
             }
 
-            lesson.steps[k] = stepSource.copyWith(id: stepId);
+            lesson.steps[k] = step.copyWith(id: newStepId);
           } else {
-            final stepSourceDto = stepSource.toDto(
+            final stepDto = stepToDto(
+              step,
               lessonId,
-              entity.getStepById(stepSourceId),
+              entity.getStepById(stepId),
             );
-            await _api.stepSource.update(stepSourceId, stepSourceDto);
+            await _api.stepSource.update(stepId, stepDto);
           }
         }
 
@@ -213,44 +215,44 @@ class StepikRepository {
   Future<Course> applyDiff(Course course, List<Diff> diffs) async {
     for (final diff in diffs) {
       switch (diff) {
-        case StepSourceAdded(
+        case StepAdded(
           :final sectionIndex,
           :final unitIndex,
-          :final stepSourceIndex,
+          :final stepIndex,
         ):
           final lesson = course.sections[sectionIndex].units[unitIndex].lesson;
           // Read the step back out of the course rather than using the one
           // captured in the diff: the diff was built before rendering, so its
           // copy has no rendered text.
-          final stepSource = lesson.steps[stepSourceIndex];
-          final stepSourceDto = stepSource.toDto(lesson.id!);
-          final stepSourceId = (await _api.stepSource.create(stepSourceDto))!.id;
-          course = course.copyWithStepSource(
+          final step = lesson.steps[stepIndex];
+          final stepDto = stepToDto(step, lesson.id!);
+          final stepId = (await _api.stepSource.create(stepDto))!.id;
+          course = course.copyWithStep(
             sectionIndex,
             unitIndex,
-            stepSourceIndex,
-            (stepSource) => stepSource.copyWith(id: stepSourceId),
+            stepIndex,
+            (step) => step.copyWith(id: stepId),
           );
           break;
-        case StepSourceUpdated(
+        case StepUpdated(
           :final base,
           :final sectionIndex,
           :final unitIndex,
-          :final stepSourceIndex,
+          :final stepIndex,
         ):
-          final stepSource = course
+          final step = course
               .sections[sectionIndex]
               .units[unitIndex]
               .lesson
-              .steps[stepSourceIndex];
+              .steps[stepIndex];
           // `base.id` is the step id, `base.lesson` the lesson it belongs to;
           // `toDto` writes 'lesson' last, so passing the step id here would
           // overwrite the step's lesson with its own id.
-          final stepSourceDto = stepSource.toDto(base.lesson, base);
-          await _api.stepSource.update(base.id, stepSourceDto);
+          final stepDto = stepToDto(step, base.lesson, base);
+          await _api.stepSource.update(base.id, stepDto);
           break;
-        case StepSourceRemoved(:final stepSourceId):
-          await _api.stepSource.delete(stepSourceId);
+        case StepRemoved(:final stepId):
+          await _api.stepSource.delete(stepId);
           break;
         case LessonAdded(:final lesson, :final sectionIndex, :final unitIndex):
           final lessonDto = lesson.toDto();
@@ -270,7 +272,8 @@ class StepikRepository {
           break;
         case UnitAdded(:final unit, :final sectionIndex, :final unitIndex):
           final sectionId = course.sections[sectionIndex].id!;
-          final lessonId = course.sections[sectionIndex].units[unitIndex].lesson.id!;
+          final lessonId =
+              course.sections[sectionIndex].units[unitIndex].lesson.id!;
           final unitDto = unit.toDto(sectionId, lessonId);
           final unitId = (await _api.unit.create(unitDto))!.id;
           course = course.copyWithUnit(
@@ -279,7 +282,7 @@ class StepikRepository {
             (unit) => unit.copyWith(id: unitId),
           );
           break;
-        case UnitUpdated(:final base, :final unit ):
+        case UnitUpdated(:final base, :final unit):
           final unitDto = unit.toDto(base.section, base.lesson, base);
           await _api.unit.update(base.id, unitDto);
           break;

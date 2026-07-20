@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:pluto/domain/link_index.dart';
 import 'package:pluto/domain/marker_scanner.dart';
-import 'package:pluto/domain/step_source.dart';
+import 'package:pluto/domain/step.dart';
 import 'package:pluto/domain/validation_repository.dart';
 import 'package:pluto/preview/preview_assets.dart';
 import 'package:pluto/preview/preview_index.dart';
@@ -159,7 +159,7 @@ class PreviewPage {
       buffer.write(
         '<a class="step${number == current ? ' current' : ''}" '
         'href="${lesson.urlOfStep(number)}">'
-        '<span class="icon">${_icon(lesson.steps[i].block.name)}</span>'
+        '<span class="icon">${_icon(lesson.steps[i])}</span>'
         '<span>$number</span></a>',
       );
     }
@@ -168,28 +168,27 @@ class PreviewPage {
     return buffer.toString();
   }
 
-  String _icon(StepBlockType type) => switch (type) {
-    .text => '&#8801;',
-    .code => '{}',
-    .singleChoice => '&#9673;',
-    .multipleChoice => '&#9745;',
-    .freeAnswer => '&#9998;',
+  String _icon(Step step) => switch (step) {
+    TextStep() => '&#8801;',
+    CodeStep() => '{}',
+    ChoiceStep(:final isMultipleChoice) =>
+      isMultipleChoice ? '&#9745;' : '&#9673;',
+    FreeAnswerStep() => '&#9998;',
   };
 
-  String _stepBody(StepSource step) {
-    final block = step.block;
-    final text = block.textRendered ?? '';
+  String _stepBody(Step step) {
+    final text = step.renderedText ?? '';
 
-    return switch (block.source) {
-      TextStepBlockSource() => text,
-      CodeStepBlockSource(:final code) =>
+    return switch (step) {
+      TextStep() => text,
+      CodeStep(:final code) =>
         '$text<div class="quiz">'
             '<div class="quiz-title">Code template</div>'
             '<pre><code>${_escape(code)}</code></pre>'
             '</div>',
-      ChoiceStepBlockSource(:final options, :final isMultipleChoice) =>
+      ChoiceStep(:final options, :final isMultipleChoice) =>
         '$text${_choices(options, isMultipleChoice)}',
-      FreeAnswerStepBlockSource() =>
+      FreeAnswerStep() =>
         '$text<div class="quiz">'
             '<div class="quiz-title">Free answer</div>'
             '<textarea disabled placeholder="Student answer"></textarea>'
@@ -197,7 +196,7 @@ class PreviewPage {
     };
   }
 
-  String _choices(List<ChoiceStepBlockOption> options, bool isMultiple) {
+  String _choices(List<ChoiceOption> options, bool isMultiple) {
     final buffer = StringBuffer('<div class="quiz">')
       ..write(
         '<div class="quiz-title">'
@@ -228,11 +227,11 @@ class PreviewPage {
 
   /// HTML violations and reminder markers for this step, surfaced inline so
   /// they are caught while authoring rather than at push time.
-  String _diagnostics(StepSource step) {
+  String _diagnostics(Step step) {
     final buffer = StringBuffer();
 
     final violations = _validation.validateHtml(
-      step.block.textRendered,
+      step.renderedText,
       location: 'step ${step.position}',
     );
 
@@ -270,7 +269,7 @@ class PreviewPage {
 
     // Scanned from this step's own raw text, which sidesteps needing a
     // step-to-source-file mapping the domain model does not carry.
-    final markers = _markers.scanText(step.block.text, 'step');
+    final markers = _markers.scanText(step.text, 'step');
     if (markers.isNotEmpty) {
       buffer.write(
         _banner(

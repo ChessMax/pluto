@@ -205,10 +205,10 @@ class ValidationRepository {
               'section "${section.title}" > unit ${j + 1} > step ${step.position}';
 
           violations.addAll(
-            validateHtml(step.block.textRendered, location: location),
+            validateHtml(step.renderedText, location: location),
           );
           warnings.addAll(
-            _unpushedLinks(step.block.text, location: location, links: links),
+            _unpushedLinks(step.text, location: location, links: links),
           );
 
           // TODO: choice option text/feedback and step feedbackCorrect/Wrong

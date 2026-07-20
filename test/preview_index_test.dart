@@ -1,23 +1,16 @@
 import 'package:pluto/domain/course.dart';
 import 'package:pluto/domain/lesson.dart';
 import 'package:pluto/domain/section.dart';
-import 'package:pluto/domain/step_source.dart';
+import 'package:pluto/domain/step.dart';
 import 'package:pluto/domain/unit.dart';
 import 'package:pluto/preview/preview_index.dart';
 import 'package:test/test.dart';
 
-StepSource _step(int position) => StepSource(
+Step _step(int position) => TextStep(
   id: null,
   position: position,
-  block: StepBlock(
-    name: .text,
-    text: 'step $position',
-    textRendered: '<p>step $position</p>',
-    feedbackCorrect: null,
-    feedbackWrong: null,
-    options: const TextStepBlockOptions(),
-    source: const TextStepBlockSource(),
-  ),
+  text: 'step $position',
+  renderedText: '<p>step $position</p>',
 );
 
 Unit _unit({

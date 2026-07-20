@@ -2,7 +2,7 @@ import 'package:pluto/domain/course.dart';
 import 'package:pluto/domain/lesson.dart';
 import 'package:pluto/domain/remote_course.dart';
 import 'package:pluto/domain/section.dart';
-import 'package:pluto/domain/step_source.dart';
+import 'package:pluto/domain/step.dart';
 import 'package:pluto/domain/unit.dart';
 import 'package:pluto/stepik_api/raw_stepik_api.dart';
 
@@ -34,12 +34,12 @@ sealed class Diff {
     LessonUpdated() ||
     UnitAdded() ||
     UnitUpdated() => .structure,
-    StepSourceAdded() || StepSourceUpdated() || CourseUpdated() => .content,
+    StepAdded() || StepUpdated() || CourseUpdated() => .content,
     CourseDeleted() ||
     SectionRemoved() ||
     LessonRemoved() ||
     UnitRemove() ||
-    StepSourceRemoved() => .removal,
+    StepRemoved() => .removal,
   };
 
   static Iterable<Diff> create(CourseEntity? entity, Course course) sync* {
@@ -51,7 +51,7 @@ sealed class Diff {
     if (entity != null) {
       final sectionsToRemove = entity.sections.toList();
       final lessonsToRemove = entity.lessons.toList();
-      final stepSourcesToRemove = entity.steps.toList();
+      final stepsToRemove = entity.steps.toList();
       final unitsToRemove = entity.units.toList();
 
       for (
@@ -91,30 +91,30 @@ sealed class Diff {
           }
 
           for (
-            var stepSourceIndex = 0;
-            stepSourceIndex < lesson.steps.length;
-            ++stepSourceIndex
+            var stepIndex = 0;
+            stepIndex < lesson.steps.length;
+            ++stepIndex
           ) {
-            final stepSource = lesson.steps[stepSourceIndex];
-            final stepSourceId = stepSource.id;
+            final step = lesson.steps[stepIndex];
+            final stepId = step.id;
 
-            if (stepSourceId == null) {
-              yield StepSourceAdded(
-                stepSource: stepSource,
+            if (stepId == null) {
+              yield StepAdded(
+                step: step,
                 sectionIndex: sectionIndex,
                 unitIndex: unitIndex,
-                stepSourceIndex: stepSourceIndex,
+                stepIndex: stepIndex,
               );
             } else {
-              final stepSourceBase = stepSourcesToRemove.removeFirstWhere(
-                (stepSource) => stepSource.id == stepSourceId,
+              final stepBase = stepsToRemove.removeFirstWhere(
+                (step) => step.id == stepId,
               );
-              yield StepSourceUpdated(
-                base: stepSourceBase,
-                stepSource: stepSource,
+              yield StepUpdated(
+                base: stepBase,
+                step: step,
                 sectionIndex: sectionIndex,
                 unitIndex: unitIndex,
-                stepSourceIndex: stepSourceIndex,
+                stepIndex: stepIndex,
               );
             }
           }
@@ -134,8 +134,8 @@ sealed class Diff {
         }
       }
 
-      for (final stepSourceToRemove in stepSourcesToRemove) {
-        yield StepSourceRemoved(stepSourceId: stepSourceToRemove.id);
+      for (final stepToRemove in stepsToRemove) {
+        yield StepRemoved(stepId: stepToRemove.id);
       }
 
       for (final lessonToRemove in lessonsToRemove) {
@@ -176,18 +176,14 @@ sealed class Diff {
           unitIndex: unitIndex,
         );
 
-        for (
-          var stepSourceIndex = 0;
-          stepSourceIndex < lesson.steps.length;
-          ++stepSourceIndex
-        ) {
-          final stepSource = lesson.steps[stepSourceIndex];
+        for (var stepIndex = 0; stepIndex < lesson.steps.length; ++stepIndex) {
+          final step = lesson.steps[stepIndex];
 
-          yield StepSourceAdded(
-            stepSource: stepSource,
+          yield StepAdded(
+            step: step,
             sectionIndex: sectionIndex,
             unitIndex: unitIndex,
-            stepSourceIndex: stepSourceIndex,
+            stepIndex: stepIndex,
           );
         }
 
@@ -201,40 +197,40 @@ sealed class Diff {
   }
 }
 
-class StepSourceAdded extends Diff {
-  final StepSource stepSource;
+class StepAdded extends Diff {
+  final Step step;
   final int sectionIndex;
   final int unitIndex;
-  final int stepSourceIndex;
+  final int stepIndex;
 
-  StepSourceAdded({
-    required this.stepSource,
+  StepAdded({
+    required this.step,
     required this.sectionIndex,
     required this.unitIndex,
-    required this.stepSourceIndex,
+    required this.stepIndex,
   });
 }
 
-class StepSourceUpdated extends Diff {
+class StepUpdated extends Diff {
   final RawStepSourceDto base;
-  final StepSource stepSource;
+  final Step step;
   final int sectionIndex;
   final int unitIndex;
-  final int stepSourceIndex;
+  final int stepIndex;
 
-  StepSourceUpdated({
+  StepUpdated({
     required this.base,
-    required this.stepSource,
+    required this.step,
     required this.sectionIndex,
     required this.unitIndex,
-    required this.stepSourceIndex,
+    required this.stepIndex,
   });
 }
 
-class StepSourceRemoved extends Diff {
-  final int stepSourceId;
+class StepRemoved extends Diff {
+  final int stepId;
 
-  StepSourceRemoved({required this.stepSourceId});
+  StepRemoved({required this.stepId});
 }
 
 class LessonAdded extends Diff {
@@ -335,16 +331,16 @@ extension DiffListExt on List<Diff> {
 
     for (final diff in this) {
       switch (diff) {
-        case StepSourceAdded(:final stepSource):
-          sb.writeln('Step source added: ${stepSource.block.text}');
+        case StepAdded(:final step):
+          sb.writeln('Step added: ${step.text}');
           break;
-        case StepSourceUpdated(:final base, :final stepSource):
+        case StepUpdated(:final base, :final step):
           sb.writeln(
-            'Step source updated: ${base.block.text} -> ${stepSource.block.text}',
+            'Step updated: ${base.block.text} -> ${step.text}',
           );
           break;
-        case StepSourceRemoved(:final stepSourceId):
-          sb.writeln('Step source removed: $stepSourceId');
+        case StepRemoved(:final stepId):
+          sb.writeln('Step source removed: $stepId');
           break;
         case LessonAdded(:final lesson):
           sb.writeln('Lesson added: ${lesson.title}');

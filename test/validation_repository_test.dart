@@ -3,7 +3,7 @@ import 'package:pluto/domain/lesson.dart';
 import 'package:pluto/domain/marker_scanner.dart';
 import 'package:pluto/domain/section.dart';
 import 'package:pluto/domain/source_file.dart';
-import 'package:pluto/domain/step_source.dart';
+import 'package:pluto/domain/step.dart';
 import 'package:pluto/domain/unit.dart';
 import 'package:pluto/domain/validation_repository.dart';
 import 'package:test/test.dart';
@@ -186,18 +186,11 @@ Course _course({
   String stepText = '',
   String? stepHtml,
 }) {
-  final step = StepSource(
+  final step = TextStep(
     id: null,
     position: 1,
-    block: StepBlock(
-      name: StepBlockType.text,
-      text: stepText,
-      textRendered: stepHtml,
-      feedbackCorrect: null,
-      feedbackWrong: null,
-      options: const TextStepBlockOptions(),
-      source: const TextStepBlockSource(),
-    ),
+    text: stepText,
+    renderedText: stepHtml,
   );
 
   final unit = Unit(

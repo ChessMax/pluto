@@ -2,7 +2,7 @@ import 'package:pluto/domain/course.dart';
 import 'package:pluto/domain/course_ids.dart';
 import 'package:pluto/domain/lesson.dart';
 import 'package:pluto/domain/section.dart';
-import 'package:pluto/domain/step_source.dart';
+import 'package:pluto/domain/step.dart';
 import 'package:pluto/domain/unit.dart';
 
 /// One lesson, addressable the way Stepik addresses it: `/lesson/{lessonId}/
@@ -31,7 +31,7 @@ class PreviewLesson {
 
   Lesson get lesson => unit.lesson;
 
-  List<StepSource> get steps => lesson.steps;
+  List<Step> get steps => lesson.steps;
 
   /// Whether the ids are real Stepik ids rather than preview-local ones, which
   /// decides if the URL can be opened against stepik.org.

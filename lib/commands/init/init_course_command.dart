@@ -6,7 +6,7 @@ import 'package:pluto/data/source_repository.dart';
 import 'package:pluto/domain/course.dart';
 import 'package:pluto/domain/lesson.dart';
 import 'package:pluto/domain/section.dart';
-import 'package:pluto/domain/step_source.dart';
+import 'package:pluto/domain/step.dart';
 import 'package:pluto/domain/unit.dart';
 
 class InitCourseCommand extends Command<void> {
@@ -52,17 +52,10 @@ class InitCourseCommand extends Command<void> {
 
     print('Creating course.md ...');
 
-    final step1 = StepSource(
+    final step1 = TextStep(
       id: null,
       position: 1,
-      block: StepBlock(
-        name: .text,
-        text: 'Source of your first step',
-        options: const TextStepBlockOptions(),
-        source: const TextStepBlockSource(),
-        feedbackCorrect: null,
-        feedbackWrong: null,
-      ),
+      text: 'Source of your first step',
     );
     final lesson1 = Lesson(id: null, title: 'My lesson', steps: [step1]);
     final unit1 = Unit(id: null, position: 1, lesson: lesson1);

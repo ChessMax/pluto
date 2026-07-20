@@ -2,32 +2,25 @@ import 'package:pluto/domain/course.dart';
 import 'package:pluto/domain/lesson.dart';
 import 'package:pluto/domain/link_index.dart';
 import 'package:pluto/domain/section.dart';
-import 'package:pluto/domain/step_source.dart';
+import 'package:pluto/domain/step.dart';
 import 'package:pluto/domain/unit.dart';
 import 'package:pluto/domain/validation_repository.dart';
 import 'package:pluto/markdown/render_repository.dart';
 import 'package:pluto/preview/preview_index.dart';
 import 'package:test/test.dart';
 
-StepSource _step(int position, {String? label}) => StepSource(
+Step _step(int position, {String? label}) => TextStep(
   id: null,
   position: position,
   label: label,
-  block: StepBlock(
-    name: .text,
-    text: 'step $position',
-    feedbackCorrect: null,
-    feedbackWrong: null,
-    options: const TextStepBlockOptions(),
-    source: const TextStepBlockSource(),
-  ),
+  text: 'step $position',
 );
 
 Unit _unit({
   required int position,
   int? unitId,
   int? lessonId,
-  List<StepSource>? steps,
+  List<Step>? steps,
 }) => Unit(
   id: unitId,
   position: position,
@@ -292,8 +285,11 @@ Course _courseLinking(Course course, String ref) {
   final section = course.sections.first;
   final unit = section.units.first;
   final steps = unit.lesson.steps.toList();
-  steps[0] = steps[0].copyWith(
-    block: steps[0].block.copyWith(text: 'see [there](ref:$ref)'),
+  steps[0] = TextStep(
+    id: steps[0].id,
+    position: steps[0].position,
+    label: steps[0].label,
+    text: 'see [there](ref:$ref)',
   );
 
   return course.copyWith(

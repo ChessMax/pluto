@@ -6,8 +6,8 @@ import 'package:pluto/domain/course.dart';
 import 'package:pluto/domain/lesson.dart';
 import 'package:pluto/domain/section.dart';
 import 'package:pluto/domain/source_file.dart';
-import 'package:pluto/domain/step_source.dart';
-import 'package:pluto/domain/step_source_codec.dart';
+import 'package:pluto/domain/step.dart';
+import 'package:pluto/domain/step_codec.dart';
 import 'package:pluto/domain/unit.dart';
 import 'package:pluto/extensions/string_extensions.dart';
 import 'package:pluto/md/md_file.dart';
@@ -121,7 +121,7 @@ class SourceRepository {
     return entities;
   }
 
-  Future<StepSource> readStepSource(
+  Future<Step> readStep(
     String filePath,
     int position,
     List<SourceFile> sources,
@@ -130,37 +130,16 @@ class SourceRepository {
     final md = _parseMd(filePath, raw);
     final fm = md.frontMatter;
 
-    StepBlockType parseBlockType() {
-      return switch (fm['type']) {
-        'text' => .text,
-        'code' => .code,
-        'single_choice' => .singleChoice,
-        'multiple_choice' => .multipleChoice,
-        'free_answer' => .freeAnswer,
-        _ => throw 'Unexpected step source type: ${fm['type']}',
-      };
-    }
-
-    final blockName = parseBlockType();
-
-    List<CodeTestCase> parseTestCases(String tests) {
+    List<TestCase> parseTestCases(String tests) {
       final lines = tests.splitByLines();
       if (lines.length % 2 != 0) throw 'Unbalanced input output tests';
-      final result = <CodeTestCase>[];
+      final result = <TestCase>[];
       for (var i = 0; i < lines.length; i += 2) {
         final input = lines[i];
         final output = lines[i + 1];
-        result.add(CodeTestCase(input: input, output: output));
+        result.add(TestCase(input: input, output: output));
       }
       return result;
-    }
-
-    bool parseIsMultipleChoice() {
-      return switch (fm['type']) {
-        'single_choice' => false,
-        'multiple_choice' => true,
-        _ => throw 'Unexpected step source type: ${fm['type']}',
-      };
     }
 
     bool parseIsAlwaysCorrect() {
@@ -213,16 +192,16 @@ class SourceRepository {
       };
     }
 
-    List<ChoiceStepBlockOption> parseChoiceOptions(String options) {
+    List<ChoiceOption> parseChoiceOptions(String options) {
       final lines = options.splitByLines();
       if (lines.length % 3 != 0) throw 'Unbalanced step source choice options';
-      final result = <ChoiceStepBlockOption>[];
+      final result = <ChoiceOption>[];
       for (var i = 0; i < lines.length; i += 3) {
         final isCorrect = bool.parse(lines[i + 0]);
         final text = lines[i + 1];
         final feedback = lines[i + 2];
         result.add(
-          ChoiceStepBlockOption(
+          ChoiceOption(
             text: text,
             feedback: feedback,
             isCorrect: isCorrect,
@@ -232,49 +211,49 @@ class SourceRepository {
       return result;
     }
 
-    final step = StepSource(
-      id: fm['id'] as int?,
-      position: position,
-      label: fm['label'] as String?,
-      block: StepBlock(
-        name: blockName,
-        text: md.content,
-        options: switch (blockName) {
-          .text => const TextStepBlockOptions(),
-          .singleChoice || .multipleChoice => ChoiceStepBlockOptions(
-            isMultipleChoice: blockName == .multipleChoice,
-          ),
-          .code => CodeStepBlockOptions(
-            samples: parseTestCases(md.getCodeContent('samples') ?? ''),
-          ),
-          .freeAnswer => const FreeAnswerStepBlockOptions(),
-        },
-        source: switch (blockName) {
-          .text => const TextStepBlockSource(),
-          .singleChoice || .multipleChoice => ChoiceStepBlockSource(
-            isMultipleChoice: parseIsMultipleChoice(),
-            isAlwaysCorrect: parseIsAlwaysCorrect(),
-            preserveOrder: parsePreserveOrder(),
-            isHtmlEnabled: parseIsHtmlEnabled(),
-            options: parseChoiceOptions(md.getCodeContent('options') ?? ''),
-          ),
-          .code => CodeStepBlockSource(
-            code: md.getCodeContent('dart') ?? '',
-            testCases: parseTestCases(md.getCodeContent('tests') ?? ''),
-            samplesCount: 1, // TODO:
-          ),
-          .freeAnswer => FreeAnswerStepBlockSource(
-            manualScoring: parseManualScoring(),
-            isAttachmentsEnabled: parseIsAttachmentsEnabled(),
-            isHtmlEnabled: parseIsHtmlEnabled(),
-          ),
-        },
-        feedbackWrong: null,
-        feedbackCorrect: null,
-      ),
-    );
+    final id = fm['id'] as int?;
+    final label = fm['label'] as String?;
+    final text = md.content;
 
-    return step;
+    return switch (fm['type']) {
+      'text' => TextStep(
+        id: id,
+        position: position,
+        text: text,
+        label: label,
+      ),
+      'single_choice' || 'multiple_choice' => ChoiceStep(
+        id: id,
+        position: position,
+        text: text,
+        label: label,
+        isMultipleChoice: fm['type'] == 'multiple_choice',
+        isAlwaysCorrect: parseIsAlwaysCorrect(),
+        preserveOrder: parsePreserveOrder(),
+        isHtmlEnabled: parseIsHtmlEnabled(),
+        options: parseChoiceOptions(md.getCodeContent('options') ?? ''),
+      ),
+      'code' => CodeStep(
+        id: id,
+        position: position,
+        text: text,
+        label: label,
+        code: md.getCodeContent('dart') ?? '',
+        tests: parseTestCases(md.getCodeContent('tests') ?? ''),
+        samples: parseTestCases(md.getCodeContent('samples') ?? ''),
+        samplesCount: 1, // TODO:
+      ),
+      'free_answer' => FreeAnswerStep(
+        id: id,
+        position: position,
+        text: text,
+        label: label,
+        manualScoring: parseManualScoring(),
+        isAttachmentsEnabled: parseIsAttachmentsEnabled(),
+        isHtmlEnabled: parseIsHtmlEnabled(),
+      ),
+      _ => throw 'Unexpected step source type: ${fm['type']}',
+    };
   }
 
   Future<Lesson> readLesson(
@@ -286,7 +265,7 @@ class SourceRepository {
         await _readEntities(
             dirPath,
             _stepFileRegExp,
-            (path, pos) => readStepSource(path, pos, sources),
+            (path, pos) => readStep(path, pos, sources),
           )
           ..sort((a, b) => a.position.compareTo(b.position));
 
@@ -412,10 +391,10 @@ class SourceRepository {
     }
   }
 
-  Future<void> writeStepSource(StepSource step, String dirPath) async {
+  Future<void> writeStep(Step step, String dirPath) async {
     final stepName = 'step_${step.position.toString().padLeft(2, '0')}';
     final stepPath = join(dirPath, '$stepName.md');
-    final md = const StepSourceCodec().write(step);
+    final md = const StepCodec().write(step);
     final dir = dirname(stepPath);
     Directory(dir).createSync(recursive: true);
     await File(stepPath).writeAsString(md);
@@ -429,7 +408,7 @@ class SourceRepository {
   }
 
   Future<void> writeLesson(Lesson lesson, String dirPath, int position) async {
-    await _writeEntities(dirPath, lesson.steps, writeStepSource);
+    await _writeEntities(dirPath, lesson.steps, writeStep);
 
     await renderToFile(
       join(dirPath, 'lesson_${position.toString().padLeft(2, '0')}.md'),

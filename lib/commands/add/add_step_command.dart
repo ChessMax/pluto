@@ -4,9 +4,9 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:pluto/data/source_repository.dart';
 import 'package:pluto/domain/lesson.dart';
-import 'package:pluto/domain/step_source.dart';
+import 'package:pluto/domain/step.dart';
 
-/// Base class for commands that append a single [StepSource] to a lesson.
+/// Base class for commands that append a single [Step] to a lesson.
 abstract class AddStepCommand extends Command<void> {
   AddStepCommand() {
     argParser
@@ -20,8 +20,8 @@ abstract class AddStepCommand extends Command<void> {
   /// Registers step-specific options/flags if needed.
   void registerExtraArgs(ArgParser parser) {}
 
-  /// Builds the block to append. Subclasses can read their own flags via [argResults].
-  StepBlock buildBlock(String text);
+  /// Builds the step to append. Subclasses can read their own flags via [argResults].
+  Step buildStep(String text, int position);
 
   int _requirePosition(String option) {
     final raw = argResults?.option(option);
@@ -73,11 +73,7 @@ abstract class AddStepCommand extends Command<void> {
       );
     }
 
-    final step = StepSource(
-      id: null,
-      position: lesson.steps.length + 1,
-      block: buildBlock(text),
-    );
+    final step = buildStep(text, lesson.steps.length + 1);
 
     final updatedLesson = lesson.copyWith(steps: [...lesson.steps, step]);
     final updatedUnit = unit.copyWith(lesson: updatedLesson);
