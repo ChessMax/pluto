@@ -336,6 +336,17 @@ a:hover { text-decoration: underline; }
 (function () {
   var source = new EventSource('/__reload');
   source.addEventListener('rebuild', function () { location.reload(); });
+
+  // A page kept alive in the back/forward cache holds its EventSource socket
+  // open, and Chrome allows only ~6 connections per origin: without this, a few
+  // navigations leave the next one with no socket left and it stalls.
+  window.addEventListener('pagehide', function () { source.close(); });
+
+  // Restoring from the bfcache brings back a page whose stream is now closed,
+  // so reload to get both fresh content and a fresh subscription.
+  window.addEventListener('pageshow', function (event) {
+    if (event.persisted) location.reload();
+  });
 })();
 ''';
 }
