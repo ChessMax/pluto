@@ -32,6 +32,13 @@ class Course {
   /// source; never pushed to Stepik.
   final Abbreviations abbreviations;
 
+  /// Whether the course is published on Stepik. A read-only mirror of the
+  /// remote flag, filled in per run from the fetched course and used only to
+  /// report state — it is deliberately absent from [toDto] and from the
+  /// `course.md` template, so publication stays Stepik's to own and no local
+  /// value can drift out of sync with it.
+  final bool isPublic;
+
   Course({
     required this.id,
     required this.title,
@@ -39,6 +46,7 @@ class Course {
     this.sections = const [],
     this.config = CourseConfig.empty,
     this.abbreviations = Abbreviations.empty,
+    this.isPublic = false,
     this.summary,
     this.summaryRendered,
     this.acquiredAssets,
@@ -64,6 +72,7 @@ class Course {
     String? acquiredSkills,
     CourseConfig? config,
     Abbreviations? abbreviations,
+    bool? isPublic,
   }) {
     return Course(
       id: id ?? this.id,
@@ -80,6 +89,7 @@ class Course {
       acquiredSkills: acquiredSkills ?? this.acquiredSkills,
       config: config ?? this.config,
       abbreviations: abbreviations ?? this.abbreviations,
+      isPublic: isPublic ?? this.isPublic,
     );
   }
 
@@ -105,8 +115,12 @@ class Course {
     return {
       ...?base,
       if (id != null) 'id': id,
-      'is_public': false,
-      'is_enabled': false,
+      // Omitting these publishes the course — Stepik reads an absent flag as
+      // true. Always sent, always mirroring the remote value: pluto never
+      // changes publication state, and an unknown state falls back to
+      // unpublished rather than going live by accident.
+      'is_public': base?['is_public'] ?? false,
+      'is_enabled': base?['is_enabled'] ?? false,
 
       'title': title,
       if (titleEn != null) 'title_en': titleEn,
@@ -118,14 +132,20 @@ class Course {
         ],
       // TODO: use markdown to eliminate extra line breaks?
       'summary': summaryRendered ?? '',
-      if (acquiredAssets != null) 'acquired_assets': acquiredAssets,
+      if (acquiredAssets != null) 'acquired_assets': _toLines(acquiredAssets),
       if (description != null) 'description': description,
       if (targetAudience != null) 'target_audience': targetAudience,
       if (requirements != null) 'requirements': requirements,
       if (learningFormat != null) 'learning_format': learningFormat,
-      if (acquiredSkills != null) 'acquired_skills': acquiredSkills,
+      if (acquiredSkills != null) 'acquired_skills': _toLines(acquiredSkills),
     };
   }
+
+  /// Stepik stores these fields as a list of bullet points, one per line.
+  static List<String> _toLines(String? value) => [
+    for (final line in (value ?? '').split('\n'))
+      if (line.trim().isNotEmpty) line.trim(),
+  ];
 
   Course copyWithSection(Section section, Section Function(Section) update) {
     return copyWith(

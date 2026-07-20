@@ -39,6 +39,12 @@ class StatusCommand extends Command<void> {
         ? await stepikRepository.readCourse(courseId)
         : null;
 
+    print(switch (remoteCourse?.course) {
+      null => 'Publication: not on Stepik yet',
+      final course when course.isPublic => 'Publication: PUBLISHED',
+      _ => 'Publication: not published',
+    });
+
     final diffs = Diff.create(remoteCourse, localCourse).toList();
 
     print('Course diff: ');

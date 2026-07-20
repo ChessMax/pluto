@@ -16,17 +16,26 @@ class PushCourseCommand extends Command<void> {
   @override
   String get description => 'Pushes course to server';
 
-  PushCourseCommand();
+  PushCourseCommand() {
+    argParser.addFlag(
+      'force',
+      abbr: 'f',
+      negatable: false,
+      help:
+          'Push despite blocking markers (FIXME). Content still has to pass '
+          'validation.',
+    );
+  }
 
   @override
   Future<void> run() async {
     // TODO: use current dir by default?
     final courseDir = argResults!.rest[0];
+    final force = argResults!.flag('force');
     const sourceRepository = SourceRepository();
 
     final source = await sourceRepository.readCourseSource(courseDir);
-    final localCourseSource = source.course;
-    final courseId = localCourseSource.id;
+    final courseId = source.course.id;
 
     final rawApi = (await initializeStepikClient()).rawApi;
     final stepikRepository = StepikRepository(rawApi);
@@ -34,6 +43,11 @@ class PushCourseCommand extends Command<void> {
     final remoteCourse = courseId != null
         ? await stepikRepository.readCourse(courseId)
         : null;
+
+    // Publication state comes from the remote course only — see
+    // [Course.isPublic]. Used here to decide how loudly `--force` warns.
+    final isPublic = remoteCourse?.course.isPublic ?? false;
+    final localCourseSource = source.course.copyWith(isPublic: isPublic);
 
     // Duplicate ids are checked ahead of the diff rather than with the rest of
     // validation below: the diff consumes a remote entity per local id, so a
@@ -59,7 +73,9 @@ class PushCourseCommand extends Command<void> {
 
     // Markers (TODO/FIXME) with precise file:line:column locations, scanned
     // from the raw source, so they can abort before anything is sent. Warnings
-    // (TODO) are reported but don't block; errors (FIXME) abort the push.
+    // (TODO) are reported but don't block; errors (FIXME) abort the push unless
+    // --force says to accept unfinished content. Every marker is reported
+    // either way, so a forced push never reads as a clean one.
     final markers = const ValidationRepository()
         .validate(localCourseSource, sources: source.files)
         .markers;
@@ -68,9 +84,25 @@ class PushCourseCommand extends Command<void> {
       for (final marker in markers) {
         stderr.writeln('  $marker');
       }
-      if (markers.any((marker) => marker.severity == .error)) {
-        stderr.writeln('Push aborted: unresolved marker(s) must be resolved.');
-        exit(1);
+
+      final blocking = markers
+          .where((marker) => marker.severity == .error)
+          .length;
+      if (blocking > 0) {
+        if (!force) {
+          stderr.writeln(
+            'Push aborted: unresolved marker(s) must be resolved. '
+            'Use --force to push anyway.',
+          );
+          exit(1);
+        }
+
+        stderr.writeln(
+          isPublic
+              ? '--force: pushing $blocking unresolved marker(s) into a '
+                    'PUBLISHED course — students will see this content.'
+              : '--force: pushing past $blocking unresolved marker(s).',
+        );
       }
     }
 

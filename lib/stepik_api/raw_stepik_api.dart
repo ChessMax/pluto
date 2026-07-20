@@ -59,6 +59,7 @@ extension type RawCourseDto(JsonObject value) implements JsonObject {
   String get requirements => value['requirements'] as String;
   String get workload => value['workload'] as String;
   bool get isPublic => value['is_public'] as bool;
+  bool get isEnabled => value['is_enabled'] as bool;
   String get description => value['description'] as String;
   String get certificate => value['certificate'] as String;
   String get targetAudience => value['target_audience'] as String;
