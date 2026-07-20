@@ -95,8 +95,8 @@ class SourceRepository {
   }
 
   /// The course's long-form fields. Each is prose, so each gets its own
-  /// markdown file under `source/course/` — editors preview it, and it needs
-  /// no escaping.
+  /// markdown file beside `course.md` — editors preview it, and it needs no
+  /// escaping.
   static const _courseFields = <String>[
     'summary',
     'acquired_assets',
@@ -107,7 +107,7 @@ class SourceRepository {
     'acquired_skills',
   ];
 
-  /// Reads the course's prose fields, preferring `source/course/<field>.md` and
+  /// Reads the course's prose fields, preferring `source/<field>.md` and
   /// falling back to the legacy fenced block of the same name in `course.md`.
   Future<Map<String, String?>> _readCourseFields(
     String dirPath,
@@ -118,7 +118,7 @@ class SourceRepository {
     final fields = <String, String?>{};
 
     for (final field in _courseFields) {
-      final path = join(dirPath, 'course', '$field.md');
+      final path = join(dirPath, '$field.md');
       if (File(path).existsSync()) {
         fields[field] = (await _readAndRecord(path, sources)).trim();
       } else {
