@@ -4,6 +4,7 @@ import 'package:pluto/domain/link_index.dart';
 import 'package:pluto/domain/section.dart';
 import 'package:pluto/domain/step_source.dart';
 import 'package:pluto/domain/unit.dart';
+import 'package:pluto/domain/validation_repository.dart';
 import 'package:pluto/markdown/render_repository.dart';
 import 'package:pluto/preview/preview_index.dart';
 import 'package:test/test.dart';
@@ -212,4 +213,98 @@ void main() {
       expect(html, contains('href="https://stepik.org/course/1"'));
     });
   });
+
+  group('ref link validation', () {
+    const validation = ValidationRepository();
+
+    List<HtmlViolation> violationsOf(String markdown) =>
+        validation.validateHtml(
+          const RenderRepository().renderMdText(
+            markdown,
+            links: LinkIndex.build(_remoteCourse()),
+          ),
+          location: 'step 1',
+        );
+
+    test('a ref that names a real step raises nothing', () {
+      expect(
+        violationsOf('[узнаете](ref:section_02/unit_01/step_02)'),
+        isEmpty,
+      );
+    });
+
+    test('a ref that names no step is reported as a broken link', () {
+      final violations = violationsOf(
+        '[узнаете](ref:section_03/unit_01/step_01)',
+      );
+
+      expect(violations, hasLength(1));
+      // Not the shorthand: `expect` takes `dynamic`, so there is no context
+      // type for it to resolve against.
+      expect(violations.single.kind, ViolationKind.unresolvedLink);
+      expect(violations.single.detail, 'section_03/unit_01/step_01');
+    });
+  });
+
+  group('unpushed ref links', () {
+    const validation = ValidationRepository();
+
+    /// A course carrying a ref in step text, rendered the way status does.
+    ValidationResult validateWithRef(Course course, String ref) {
+      final withRef = _courseLinking(course, ref);
+      final links = LinkIndex.build(withRef, allowSynthetic: true);
+      return validation.validate(
+        const RenderRepository().render(withRef, links: links),
+        links: links,
+      );
+    }
+
+    test('a ref to a never-pushed step warns without failing validation', () {
+      final result = validateWithRef(
+        _course([
+          _section(position: 1, units: [_unit(position: 1)]),
+        ]),
+        'section_01/unit_01/step_02',
+      );
+
+      // The push-blocking predicate must stay clean: this is a warning.
+      expect(result.isValid, isTrue);
+      expect(result.violations, isEmpty);
+      expect(result.warnings, hasLength(1));
+      expect(result.warnings.single.kind, ViolationKind.unpushedLink);
+      expect(result.warnings.single.detail, 'section_01/unit_01/step_02');
+    });
+
+    test('a ref to an already-pushed step warns about nothing', () {
+      final result = validateWithRef(
+        _remoteCourse(),
+        'section_02/unit_01/step_02',
+      );
+
+      expect(result.isValid, isTrue);
+      expect(result.warnings, isEmpty);
+    });
+  });
+}
+
+/// [course] with a `ref:` link to [ref] planted in its first step.
+Course _courseLinking(Course course, String ref) {
+  final section = course.sections.first;
+  final unit = section.units.first;
+  final steps = unit.lesson.steps.toList();
+  steps[0] = steps[0].copyWith(
+    block: steps[0].block.copyWith(text: 'see [there](ref:$ref)'),
+  );
+
+  return course.copyWith(
+    sections: [
+      section.copyWith(
+        units: [
+          unit.copyWith(lesson: unit.lesson.copyWith(steps: steps)),
+          ...section.units.skip(1),
+        ],
+      ),
+      ...course.sections.skip(1),
+    ],
+  );
 }

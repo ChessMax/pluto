@@ -12,6 +12,11 @@ enum ViolationKind {
   disallowedUrlScheme,
   unresolvedLink,
   duplicateLabel,
+
+  /// A ref whose target step exists in the source but has never been pushed, so
+  /// it currently resolves only to a synthetic id. Warning-only — see
+  /// [ValidationResult.warnings].
+  unpushedLink,
 }
 
 class HtmlViolation {
@@ -33,6 +38,8 @@ class HtmlViolation {
       ViolationKind.disallowedUrlScheme => 'disallowed URL scheme $detail',
       ViolationKind.unresolvedLink => 'link to unknown step $detail',
       ViolationKind.duplicateLabel => 'label $detail is used by several steps',
+      ViolationKind.unpushedLink =>
+        'link to $detail, a step that has not been pushed yet',
     };
     return '$location: $message';
   }
@@ -41,16 +48,25 @@ class HtmlViolation {
 class ValidationResult {
   final List<HtmlViolation> violations;
 
+  /// Problems worth reporting that must not block a push — see
+  /// [ViolationKind.unpushedLink], the only one so far.
+  final List<HtmlViolation> warnings;
+
   /// Reminder markers (TODO/FIXME) found in the source, with exact locations.
   final List<MarkerFinding> markers;
 
-  const ValidationResult(this.violations, {this.markers = const []});
+  const ValidationResult(
+    this.violations, {
+    this.warnings = const [],
+    this.markers = const [],
+  });
 
+  /// Warnings are deliberately excluded: they describe work still to do, not
+  /// content Stepik would reject.
   bool get isValid => violations.isEmpty;
 
   /// Whether any error-severity marker (e.g. FIXME) should abort a push.
-  bool get hasBlockingMarkers =>
-      markers.any((m) => m.severity == .error);
+  bool get hasBlockingMarkers => markers.any((m) => m.severity == .error);
 }
 
 class ValidationRepository {
@@ -158,6 +174,7 @@ class ValidationRepository {
     LinkIndex? links,
   }) {
     final violations = <HtmlViolation>[];
+    final warnings = <HtmlViolation>[];
 
     violations.addAll(
       validateHtml(course.summaryRendered, location: 'course summary'),
@@ -190,6 +207,9 @@ class ValidationRepository {
           violations.addAll(
             validateHtml(step.block.textRendered, location: location),
           );
+          warnings.addAll(
+            _unpushedLinks(step.block.text, location: location, links: links),
+          );
 
           // TODO: choice option text/feedback and step feedbackCorrect/Wrong
           // are not rendered to HTML yet — validate them once they are.
@@ -203,6 +223,38 @@ class ValidationRepository {
         ...scanner.scanText(source.content, source.path),
     ];
 
-    return ValidationResult(violations, markers: markers);
+    return ValidationResult(violations, warnings: warnings, markers: markers);
   }
+
+  /// Refs pointing at a step that exists in the source but carries no Stepik id
+  /// yet, so it resolved only to a synthetic stand-in.
+  ///
+  /// Read from the raw Markdown rather than the rendered HTML: rendering has
+  /// already turned such a ref into an ordinary-looking URL, and nothing in the
+  /// output distinguishes a synthetic id from a real one.
+  ///
+  /// Only reachable when the index was built with `allowSynthetic` — push
+  /// refuses those, so there the same ref surfaces as an
+  /// [ViolationKind.unresolvedLink] error instead.
+  List<HtmlViolation> _unpushedLinks(
+    String markdown, {
+    required String location,
+    required LinkIndex? links,
+  }) {
+    if (links == null) return const [];
+
+    return [
+      for (final match in _refLinkRegExp.allMatches(markdown))
+        if (links.resolve(match.group(1)!) case final target?)
+          if (!target.isRemote)
+            HtmlViolation(
+              kind: ViolationKind.unpushedLink,
+              detail: match.group(1)!,
+              location: location,
+            ),
+    ];
+  }
+
+  /// The destination of an inline Markdown link using the [refScheme].
+  static final RegExp _refLinkRegExp = RegExp(r'\]\(\s*ref:([^)\s]+)');
 }

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:pluto/domain/link_index.dart';
 import 'package:pluto/domain/marker_scanner.dart';
 import 'package:pluto/domain/step_source.dart';
 import 'package:pluto/domain/validation_repository.dart';
@@ -234,12 +235,35 @@ class PreviewPage {
       step.block.textRendered,
       location: 'step ${step.position}',
     );
-    if (violations.isNotEmpty) {
+
+    // A `ref:` that survived rendering names no step, which is an authoring
+    // mistake rather than bad HTML — reported apart so the fix is obvious.
+    final brokenLinks = violations
+        .where((v) => v.kind == .unresolvedLink)
+        .toList();
+    if (brokenLinks.isNotEmpty) {
+      buffer.write(
+        _banner(
+          'error',
+          'Broken links',
+          brokenLinks.map(
+            (v) =>
+                '<code>${_escape('$refScheme:${v.detail}')}</code> '
+                'matches no step in this course',
+          ),
+        ),
+      );
+    }
+
+    final htmlViolations = violations
+        .where((v) => v.kind != .unresolvedLink)
+        .toList();
+    if (htmlViolations.isNotEmpty) {
       buffer.write(
         _banner(
           'error',
           'Stepik will reject this HTML',
-          violations.map((v) => _escape(v.toString())),
+          htmlViolations.map((v) => _escape(v.toString())),
         ),
       );
     }

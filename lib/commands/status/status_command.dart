@@ -4,6 +4,7 @@ import 'package:args/command_runner.dart';
 import 'package:pluto/data/initialize_stepik_client.dart';
 import 'package:pluto/data/source_repository.dart';
 import 'package:pluto/domain/diff.dart';
+import 'package:pluto/domain/link_index.dart';
 import 'package:pluto/markdown/render_repository.dart';
 import 'package:pluto/domain/stepik_repository.dart';
 import 'package:pluto/domain/validation_repository.dart';
@@ -44,10 +45,20 @@ class StatusCommand extends Command<void> {
     diffs.dump();
 
     // report validation
-    final renderedCourse = const RenderRepository().render(localCourse);
+    //
+    // Synthetic ids are allowed: status answers "does this ref name a step that
+    // exists", which holds before the course has ever been pushed. Whether the
+    // target exists *remotely* is push's concern, and push rebuilds the index
+    // without them.
+    final links = LinkIndex.build(localCourse, allowSynthetic: true);
+    final renderedCourse = const RenderRepository().render(
+      localCourse,
+      links: links,
+    );
     final validation = const ValidationRepository().validate(
       renderedCourse,
       sources: courseSource.files,
+      links: links,
     );
     if (validation.isValid) {
       print('HTML validation: OK');
@@ -55,6 +66,17 @@ class StatusCommand extends Command<void> {
       print('HTML validation: ${validation.violations.length} issue(s):');
       for (final violation in validation.violations) {
         print('  - $violation');
+      }
+    }
+
+    // Links that only resolve because status allows synthetic ids: they work in
+    // preview but would fail the next push, so they are worth knowing about
+    // ahead of it without being errors here.
+    final warnings = validation.warnings;
+    if (warnings.isNotEmpty) {
+      print('Warnings: ${warnings.length}:');
+      for (final warning in warnings) {
+        print('  - $warning');
       }
     }
 
