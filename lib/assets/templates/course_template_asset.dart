@@ -4,7 +4,7 @@ id: @model.id
 # title max 64 chars
 title: @model.title
 title_en: @model.titleEn
----
+@(model.configBlock ?? '')---
 
 <!-- Краткое описание (от 100 до 512 символов) -->
 ```summary

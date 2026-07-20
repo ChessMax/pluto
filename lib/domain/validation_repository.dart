@@ -1,6 +1,7 @@
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'package:pluto/domain/course.dart';
+import 'package:pluto/domain/course_config.dart';
 import 'package:pluto/domain/html_whitelist.dart';
 import 'package:pluto/domain/link_index.dart';
 import 'package:pluto/domain/marker_scanner.dart';
@@ -17,6 +18,9 @@ enum ViolationKind {
   /// it currently resolves only to a synthetic id. Warning-only — see
   /// [ValidationResult.warnings].
   unpushedLink,
+
+  /// A `{{config.<key>}}` reference naming a key `course.md` does not declare.
+  unknownConfigVar,
 }
 
 class HtmlViolation {
@@ -40,6 +44,8 @@ class HtmlViolation {
       ViolationKind.duplicateLabel => 'label $detail is used by several steps',
       ViolationKind.unpushedLink =>
         'link to $detail, a step that has not been pushed yet',
+      ViolationKind.unknownConfigVar =>
+        'reference to undeclared config variable $detail',
     };
     return '$location: $message';
   }
@@ -210,6 +216,13 @@ class ValidationRepository {
           warnings.addAll(
             _unpushedLinks(step.text, location: location, links: links),
           );
+          violations.addAll(
+            _unknownConfigVars(
+              step.text,
+              location: location,
+              config: course.config,
+            ),
+          );
 
           // TODO: choice option text/feedback and step feedbackCorrect/Wrong
           // are not rendered to HTML yet — validate them once they are.
@@ -257,4 +270,41 @@ class ValidationRepository {
 
   /// The destination of an inline Markdown link using the [refScheme].
   static final RegExp _refLinkRegExp = RegExp(r'\]\(\s*ref:([^)\s]+)');
+
+  /// `{{config.<key>}}` references the course does not declare.
+  ///
+  /// Read from the raw Markdown, since rendering leaves an unknown reference as
+  /// ordinary text indistinguishable from an author writing the braces on
+  /// purpose. Code is blanked out first: rendering never expands references
+  /// there, and a course about programming is full of `{{ }}` in Vue, Jinja and
+  /// Handlebars samples that must not be reported.
+  List<HtmlViolation> _unknownConfigVars(
+    String markdown, {
+    required String location,
+    required CourseConfig config,
+  }) {
+    return [
+      for (final key in unknownConfigKeys(_blankCode(markdown), config))
+        HtmlViolation(
+          kind: ViolationKind.unknownConfigVar,
+          detail: '`{{$configNamespace.$key}}`',
+          location: location,
+        ),
+    ];
+  }
+
+  /// Replaces fenced blocks and inline code spans with spaces, preserving every
+  /// other character's offset.
+  static String _blankCode(String markdown) {
+    return markdown.replaceAllMapped(
+      _codeRegExp,
+      (match) => ' ' * match.group(0)!.length,
+    );
+  }
+
+  /// A fenced code block, or an inline code span of any backtick run length.
+  static final RegExp _codeRegExp = RegExp(
+    r'^```[\s\S]*?^```|(`+)[\s\S]*?\1',
+    multiLine: true,
+  );
 }

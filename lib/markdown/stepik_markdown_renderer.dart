@@ -1,7 +1,10 @@
 import 'package:markdown/markdown.dart';
+import 'package:pluto/domain/course_config.dart';
 import 'package:pluto/domain/html_whitelist.dart';
 import 'package:pluto/domain/link_index.dart';
 import 'package:pluto/markdown/auto_emphasize_transformer.dart';
+import 'package:pluto/markdown/config_link_transformer.dart';
+import 'package:pluto/markdown/config_syntax.dart';
 import 'package:pluto/markdown/node_transformer.dart';
 import 'package:pluto/markdown/marker_syntax.dart';
 import 'package:pluto/markdown/ref_link_transformer.dart';
@@ -14,12 +17,18 @@ class StepikMarkdownRenderer {
   /// written, for validation to report.
   final LinkIndex? links;
 
-  const StepikMarkdownRenderer({this.links});
+  /// Expands `{{config.<key>}}` references. Without it they are left as written.
+  final CourseConfig? config;
+
+  const StepikMarkdownRenderer({this.links, this.config});
 
   /// Ordered styling rules applied to the parsed AST before rendering.
   List<NodeTransformer> get _transformers => [
     const TagRewriteTransformer(tagRewrites),
     const CenteredHeadingTransformer(),
+    // Before [RefLinkTransformer], so a config value may supply part of a `ref:`
+    // target and still resolve.
+    ConfigLinkTransformer(config),
     RefLinkTransformer(links),
   ];
 
@@ -39,7 +48,9 @@ class StepikMarkdownRenderer {
     'b',
   };
 
-  static final gitHubWeb = ExtensionSet(
+  /// Built per render rather than shared: [ConfigInlineSyntax] carries the
+  /// course's own [config].
+  ExtensionSet get _extensionSet => ExtensionSet(
     List<BlockSyntax>.unmodifiable(<BlockSyntax>[
       const FencedCodeBlockSyntax(),
       // const HeaderWithIdSyntax(),
@@ -51,6 +62,7 @@ class StepikMarkdownRenderer {
       const AlertBlockSyntax(),
     ]),
     List<InlineSyntax>.unmodifiable(<InlineSyntax>[
+      ConfigInlineSyntax(config),
       MarkerInlineSyntax(),
       InlineHtmlSyntax(),
       StrikethroughSyntax(),
@@ -61,7 +73,7 @@ class StepikMarkdownRenderer {
   );
 
   String render(String markdown) {
-    final document = Document(extensionSet: gitHubWeb);
+    final document = Document(extensionSet: _extensionSet);
     final nodes = document.parse(markdown);
 
     final rewritten = <Node>[

@@ -1,4 +1,5 @@
 import 'package:pluto/data/json.dart';
+import 'package:pluto/domain/course_config.dart';
 import 'package:pluto/domain/lesson.dart';
 import 'package:pluto/domain/section.dart';
 import 'package:pluto/domain/step.dart';
@@ -22,11 +23,16 @@ class Course {
   final String? learningFormat;
   final String? acquiredSkills;
 
+  /// Author-defined values referenced from step Markdown as
+  /// `{{config.<key>}}`. Local to the source; never pushed to Stepik.
+  final CourseConfig config;
+
   Course({
     required this.id,
     required this.title,
     this.titleEn,
     this.sections = const [],
+    this.config = CourseConfig.empty,
     this.summary,
     this.summaryRendered,
     this.acquiredAssets,
@@ -50,6 +56,7 @@ class Course {
     String? requirements,
     String? learningFormat,
     String? acquiredSkills,
+    CourseConfig? config,
   }) {
     return Course(
       id: id ?? this.id,
@@ -64,6 +71,7 @@ class Course {
       requirements: requirements ?? this.requirements,
       learningFormat: learningFormat ?? this.learningFormat,
       acquiredSkills: acquiredSkills ?? this.acquiredSkills,
+      config: config ?? this.config,
     );
   }
 
@@ -80,6 +88,8 @@ class Course {
       'requirements': requirements,
       'learningFormat': learningFormat,
       'acquiredSkills': acquiredSkills,
+      // The template engine has no loops, so the block arrives pre-formatted.
+      'configBlock': config.toFrontMatterBlock(),
     };
   }
 

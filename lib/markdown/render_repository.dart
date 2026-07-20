@@ -1,4 +1,5 @@
 import 'package:pluto/domain/course.dart';
+import 'package:pluto/domain/course_config.dart';
 import 'package:pluto/domain/link_index.dart';
 import 'package:pluto/markdown/stepik_markdown_renderer.dart';
 
@@ -23,8 +24,8 @@ class RenderRepository {
     return replaceLineBreaks(text);
   }
 
-  String renderMdText(String text, {LinkIndex? links}) {
-    return StepikMarkdownRenderer(links: links).render(text);
+  String renderMdText(String text, {LinkIndex? links, CourseConfig? config}) {
+    return StepikMarkdownRenderer(links: links, config: config).render(text);
   }
 
   /// Renders every step's Markdown to HTML.
@@ -46,7 +47,11 @@ class RenderRepository {
           final step = steps[k];
 
           steps[k] = step.copyWith(
-            renderedText: renderMdText(step.text, links: links),
+            renderedText: renderMdText(
+              step.text,
+              links: links,
+              config: course.config,
+            ),
           );
         }
 

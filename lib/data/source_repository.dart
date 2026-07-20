@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart';
 import 'package:pluto/assets/templates/asset_templates.dart';
 import 'package:pluto/domain/course.dart';
+import 'package:pluto/domain/course_config.dart';
 import 'package:pluto/domain/lesson.dart';
 import 'package:pluto/domain/section.dart';
 import 'package:pluto/domain/source_file.dart';
@@ -374,6 +375,7 @@ class SourceRepository {
       requirements: blockFields['requirements'],
       learningFormat: blockFields['learning_format'],
       acquiredSkills: blockFields['acquired_skills'],
+      config: CourseConfig.fromYaml(frontMatter['config']),
     );
 
     // TODO: validate? check position and other things
