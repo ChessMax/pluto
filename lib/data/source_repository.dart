@@ -325,9 +325,8 @@ class SourceRepository {
           )
           ..sort((a, b) => a.position.compareTo(b.position));
 
-    final position = _unitDirRegExp.validateAndParsePosition(dirPath);
     final raw = await _readAndRecord(
-      join(dirPath, 'lesson_$position.md'),
+      join(dirPath, 'lesson_${position.toString().padLeft(2, '0')}.md'),
       sources,
     );
     final (frontMatter, _) = _splitFrontMatter(raw);
