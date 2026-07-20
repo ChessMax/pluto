@@ -11,6 +11,7 @@ import 'package:pluto/commands/copy_command.dart';
 import 'package:pluto/commands/export_course_command.dart';
 import 'package:pluto/commands/init/init_command.dart';
 import 'package:pluto/commands/init/init_course_command.dart';
+import 'package:pluto/commands/preview/preview_command.dart';
 import 'package:pluto/commands/push/push_command.dart';
 import 'package:pluto/commands/status/status_command.dart';
 import 'package:pluto/commands/stepik/stepik_command.dart';
@@ -45,7 +46,8 @@ void main(List<String> arguments) async {
     ..addCommand(StepikCommand())
     ..addCommand(AddCommand())
     ..addCommand(PushCommand())
-    ..addCommand(StatusCommand());
+    ..addCommand(StatusCommand())
+    ..addCommand(PreviewCommand());
   try {
     await runner.run(arguments);
   } on args.UsageException catch (e) {
