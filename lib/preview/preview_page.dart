@@ -133,7 +133,9 @@ class PreviewPage {
       buffer.write(
         '<a class="unit${isCurrent ? ' current' : ''}" '
         'href="${lesson.urlOfStep(1)}">'
-        '<span class="num">${lesson.unitIndex + 1}</span>'
+        '<span class="num">'
+        '${lesson.sectionIndex + 1}.${lesson.unitIndex + 1}'
+        '</span>'
         '<span>${_escape(lesson.lesson.title)}'
         '<span class="steps"> · $stepCount step${stepCount == 1 ? '' : 's'}</span>'
         '</span></a>',

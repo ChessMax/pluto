@@ -129,7 +129,12 @@ a:hover { text-decoration: underline; }
   font-weight: 600;
 }
 
-.sidebar .unit .num { color: var(--muted); font-variant-numeric: tabular-nums; }
+.sidebar .unit .num {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex: none;
+}
 .sidebar .unit .steps { color: var(--muted); font-size: 12px; }
 
 /* content */
