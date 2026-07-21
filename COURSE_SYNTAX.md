@@ -243,6 +243,11 @@ thead tr ul`. Anything else — and any attribute not allowed on its tag — is
 reported by `pluto status` and blocks a push. `<del>` is rewritten to
 `<strike>` automatically.
 
+A fenced code block renders as `<pre><code class="language-dart">`, matching
+what Stepik's own lesson editor produces — see
+[HTML_TAG_ATTRIBUTE_WHITE_LIST.md](HTML_TAG_ATTRIBUTE_WHITE_LIST.md), which
+records the editor output the whitelist is checked against.
+
 ## 5. Marks — TODO / FIXME / NOTE
 
 Inline reminders written as `[[KEYWORD: message]]`. They are scanned from the

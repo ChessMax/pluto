@@ -34,7 +34,11 @@ const Map<String, TagRule> allowedTags = {
   'b': TagRule(),
   'blockquote': TagRule(),
   'br': TagRule(),
-  'code': TagRule(),
+  // `class` departs from Stepik's documented whitelist, but its own lesson
+  // editor emits `<pre><code class="language-dart">` for a code block — and the
+  // markdown package renders a fenced block the same way, so rejecting it would
+  // block every step containing code.
+  'code': TagRule(attributes: {'class'}),
   'pre': TagRule(),
   'em': TagRule(),
   'h1': TagRule(attributes: {'style'}),

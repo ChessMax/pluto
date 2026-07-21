@@ -2,9 +2,9 @@ import 'package:pluto/domain/step.dart';
 import 'package:pluto/extensions/string_extensions.dart';
 import 'package:pluto/md/front_matter.dart';
 import 'package:pluto/md/md_document.dart';
+import 'package:pluto/md/md_file.dart';
 import 'package:pluto/md/md_parser.dart';
 import 'package:pluto/md/options_parser.dart';
-import 'package:pluto/template/lexer/source_view.dart';
 
 /// The `step_NN.md` format: front matter, the author's markdown, and — by step
 /// type — a `## options` section or `samples`/`tests`/`dart` fences.
@@ -26,7 +26,7 @@ class StepFormat {
   };
 
   Step read(String source, {required int position}) {
-    final md = const MdParser().parse(SourceView(source));
+    final md = const MdParser().parse(source);
     final fm = md.frontMatter;
 
     final id = fm['id'] as int?;
@@ -54,19 +54,7 @@ class StepFormat {
         isHtmlEnabled: _bool(fm, 'is_html_enabled', or: true),
         options: choice.options?.map(_toChoiceOption).toList() ?? const [],
       ),
-      'code' => CodeStep(
-        id: id,
-        position: position,
-        text: md.content.trim(),
-        label: label,
-        // The newline before the closing backticks belongs to the fence, not to
-        // the code; keeping it would make the model differ from what a write of
-        // that same model produces.
-        code: (md.getCodeContent('dart') ?? '').trimRight(),
-        tests: _readTestCases(md.getCodeContent('tests') ?? ''),
-        samples: _readTestCases(md.getCodeContent('samples') ?? ''),
-        samplesCount: 1, // TODO:
-      ),
+      'code' => _readCodeStep(md, id: id, position: position, label: label),
       'free_answer' => FreeAnswerStep(
         id: id,
         position: position,
@@ -78,6 +66,34 @@ class StepFormat {
       ),
       _ => throw 'Unexpected step source type: ${fm['type']}',
     };
+  }
+
+  /// Only the three fences a code step is configured by are taken out of its
+  /// text — an illustrative fence in the prose is part of the question, and
+  /// cutting it would drop it on the next write.
+  CodeStep _readCodeStep(
+    MdFile md, {
+    required int? id,
+    required int position,
+    required String? label,
+  }) {
+    final samples = md.getCode('samples');
+    final tests = md.getCode('tests');
+    final dart = md.getCode('dart');
+
+    return CodeStep(
+      id: id,
+      position: position,
+      text: md.contentWithout([samples, tests, dart].nonNulls).trim(),
+      label: label,
+      // The newline before the closing backticks belongs to the fence, not to
+      // the code; keeping it would make the model differ from what a write of
+      // that same model produces.
+      code: (dart?.content ?? '').trimRight(),
+      tests: _readTestCases(tests?.content ?? ''),
+      samples: _readTestCases(samples?.content ?? ''),
+      samplesCount: 1, // TODO:
+    );
   }
 
   String write(Step step, {MdDocument base = MdDocument.empty}) {

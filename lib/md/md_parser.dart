@@ -1,127 +1,104 @@
 import 'package:pluto/md/md_file.dart';
-import 'package:pluto/template/lexer/source_view.dart';
 import 'package:yaml/yaml.dart';
 
+/// A source line, with the offsets that bound it. [end] is the start of the
+/// next line, so a span built from two lines includes the newline between them.
+typedef _Line = ({String text, int start, int end});
+
+/// Parses a course `.md` file into front matter, body and fenced code blocks.
+///
+/// Both delimiters are line-anchored: `---` and ` ``` ` mark structure only at
+/// the start of a line. An author writing `---` mid-sentence, as a thematic
+/// break's neighbour or in a table separator is writing prose, and a fence
+/// indented under a list item belongs to that item rather than to the file.
 class MdParser {
+  static final RegExp _frontMatterFence = RegExp(r'^---[ \t]*\r?$');
+  static final RegExp _openFence = RegExp(r'^```([A-Za-z0-9_+-]*)[ \t]*\r?$');
+  static final RegExp _closeFence = RegExp(r'^```[ \t]*\r?$');
+
   const MdParser();
 
-  MdFile parse(SourceView source) {
-    if (source.isEmpty) {
-      return const MdFile(
-        frontMatter: <String, dynamic>{},
-        blocks: [],
-        content: '',
+  MdFile parse(String source) {
+    final lines = _split(source);
+
+    var index = 0;
+    dynamic frontMatter = <String, dynamic>{};
+
+    if (lines.isNotEmpty && _frontMatterFence.hasMatch(lines.first.text)) {
+      final end = lines.indexWhere(
+        (line) => _frontMatterFence.hasMatch(line.text),
+        1,
       );
+      if (end == -1) throw 'Expected front matter end not found';
+
+      frontMatter =
+          loadYaml(source.substring(lines[1].start, lines[end].start)) ??
+          <String, dynamic>{};
+      index = end + 1;
     }
 
-    String? readText() {
-      final start = source.position;
-      if (source.readUntilAny(const ['---', '```']) != null) {
-        final end = source.position;
-        if (start < end) {
-          final text = source.substring(-end + start, 0);
-          return text;
-        }
-      } else {
-        return source.consumeRest();
-      }
+    // The body keeps its own offsets, so a block's span can be applied to it
+    // without the caller knowing where the front matter ended.
+    final contentStart = index < lines.length
+        ? lines[index].start
+        : source.length;
 
-      return null;
-    }
-
-    dynamic readFrontMatter() {
-      if (source.readString('---\n') != null) {
-        final text = readText();
-        if (text == null) {
-          throw 'Expected front matter not found';
-        }
-        if (source.readString('---\n') == null) {
-          throw 'Expected front matter end not found';
-        }
-        return loadYaml(text);
-      }
-
-      return null;
-    }
-
-    MdCodeBlock? tryReadCodeBlock() {
-      if (source.readString('```') != null) {
-        final lang = source.readIdentifier();
-        source.readChar('\n');
-
-        final content = readText();
-
-        if (content == null) {
-          throw 'Expected code content not found';
-        }
-        if (source.readString('```') == null) {
-          throw 'Expected front matter end not found';
-        }
-        source.readChar('\n'); // TODO: consume all ws?
-        return MdCodeBlock(lang, content);
-      }
-      return null;
-    }
-
-    final tags = <Tag>[];
-    final blocks = <Tag>[];
     final codes = <MdCodeBlock>[];
-    final frontMatter = readFrontMatter();
+    for (var i = index; i < lines.length; i++) {
+      final open = _openFence.firstMatch(lines[i].text);
+      if (open == null) continue;
 
-    final content = readText();
+      final close = lines.indexWhere(
+        (line) => _closeFence.hasMatch(line.text),
+        i + 1,
+      );
+      if (close == -1) throw 'Expected code fence end not found';
 
-    loop:
-    do {
-      // Blocks may be separated by blank lines, which is how a fence is kept
-      // from gluing itself to whatever precedes it.
-      source.readWhiteSpaces();
-      if (source.isEmpty) break loop;
+      final lang = open.group(1);
+      codes.add(
+        MdCodeBlock(
+          lang: lang == null || lang.isEmpty ? null : lang,
+          content: source.substring(lines[i].end, lines[close].start),
+          start: lines[i].start - contentStart,
+          end: lines[close].end - contentStart,
+        ),
+      );
 
-      final codeBlock = tryReadCodeBlock();
-      if (codeBlock != null) {
-        codes.add(codeBlock);
-        continue;
-      }
+      i = close;
+    }
 
-      // TODO: could tags parsing be reused?
-      final str = source.readChar('<');
-      switch (str) {
-        case '<':
-          final tag = source.readTag();
-          if (tag != null) {
-            blocks.add(tag);
-            if (tag.type == .opening) {
-              tags.add(tag);
-            } else if (tag.type == .closing) {
-              if (tags.isEmpty) throw 'Unexpected closing tag: ${tag.name}';
-              if (tags.last.name != tag.name) {
-                throw 'Unbalanced tags closing: ${tags.last.name} and ${tag.name}';
-              } else {
-                tags.removeLast();
-                // if (!topLevel) {
-                //   break loop;
-                // } else {
-                continue loop;
-                // }
-              }
-            }
-            continue loop;
-          }
-          break;
-        case null:
-          break loop;
-        default:
-          throw 'Unexpected branch ($str)';
-      }
-    } while (source.isNotEmpty);
-
-    // final content = source.isEmpty ? '' : source2.substring(0);
-    if (source.isNotEmpty) throw 'Content is not empty: ${source.toString()}';
     return MdFile(
-      frontMatter: frontMatter ?? <String, dynamic>{},
+      frontMatter: frontMatter,
+      content: source.substring(contentStart),
       codes: codes,
-      blocks: blocks,
-      content: content ?? '',
     );
+  }
+
+  static List<_Line> _split(String source) {
+    final lines = <_Line>[];
+
+    var start = 0;
+    while (start <= source.length) {
+      final br = source.indexOf('\n', start);
+      if (br == -1) {
+        if (start < source.length) {
+          lines.add((
+            text: source.substring(start),
+            start: start,
+            end: source.length,
+          ));
+        }
+        break;
+      }
+
+      lines.add((
+        text: source.substring(start, br),
+        start: start,
+        end: br + 1,
+      ));
+      start = br + 1;
+    }
+
+    return lines;
   }
 }

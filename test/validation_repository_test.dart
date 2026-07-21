@@ -38,6 +38,15 @@ void main() {
       );
     });
 
+    test('a fenced code block passes', () {
+      // What Stepik's own editor emits for a code block, and what the markdown
+      // package renders a fence as — see HTML_TAG_ATTRIBUTE_WHITE_LIST.md.
+      expect(
+        check('<pre><code class="language-dart">var x = 1;</code></pre>'),
+        isEmpty,
+      );
+    });
+
     test('allowed URL schemes pass', () {
       expect(check('<a href="http://x.com">x</a>'), isEmpty);
       expect(check('<a href="https://x.com">x</a>'), isEmpty);
