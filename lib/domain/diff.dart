@@ -142,12 +142,14 @@ sealed class Diff {
         yield StepRemoved(stepId: stepToRemove.id);
       }
 
-      for (final lessonToRemove in lessonsToRemove) {
-        yield LessonRemoved(lessonId: lessonToRemove.id);
-      }
-
+      // Units before lessons: deleting a lesson cascades on Stepik's side and
+      // takes its units with it, so the reverse order 404s on the unit.
       for (final unitToRemove in unitsToRemove) {
         yield UnitRemove(unitId: unitToRemove.id);
+      }
+
+      for (final lessonToRemove in lessonsToRemove) {
+        yield LessonRemoved(lessonId: lessonToRemove.id);
       }
 
       for (final sectionToRemove in sectionsToRemove) {

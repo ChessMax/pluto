@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:pluto/data/dio_extensions.dart';
 import 'package:pluto/data/json.dart';
 import 'package:pluto/stepik_api/raw_stepik_api.dart';
@@ -62,12 +63,20 @@ class RawStepikEntity<T> {
     return result.toNullable();
   }
 
+  /// Deleting is idempotent: Stepik cascades deletions (removing a lesson also
+  /// removes its units), so an entity may already be gone by the time we get
+  /// to it. A 404 means the desired end state already holds.
   Future<void> delete(int entityId) async {
-    final result = await _api.client.deleteRequest<void>(
-      '/api/$_pluralName/$entityId',
-      (value) => value,
-    );
-    return result.toNullable();
+    try {
+      final result = await _api.client.deleteRequest<void>(
+        '/api/$_pluralName/$entityId',
+        (value) => value,
+      );
+      return result.toNullable();
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return;
+      rethrow;
+    }
   }
 
   GStepikListResponse<T> _parseListResponse(
