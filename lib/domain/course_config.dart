@@ -62,18 +62,6 @@ class CourseConfig {
     return CourseConfig(values);
   }
 
-  /// The `config:` front-matter block, or an empty string when there is nothing
-  /// to write. Used to regenerate `course.md`, whose template engine has no
-  /// loops and so cannot iterate the map itself.
-  String toFrontMatterBlock() {
-    if (values.isEmpty) return '';
-    final lines = [
-      'config:',
-      for (final entry in values.entries) '  ${entry.key}: ${entry.value}',
-    ];
-    return '${lines.join('\n')}\n';
-  }
-
   static final RegExp _keyPattern = RegExp(r'^[A-Za-z_][A-Za-z0-9_]*$');
 }
 

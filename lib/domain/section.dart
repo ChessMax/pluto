@@ -32,18 +32,6 @@ class Section {
     );
   }
 
-  /// Model for the `section_NN.md` template, which reads scalars only.
-  ///
-  /// [position] is deliberately absent: it is derived from the `section_NN`
-  /// directory name when read back, so writing it would let the two disagree.
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'description': description,
-    };
-  }
-
   Map<String, dynamic> toDto(int courseId, [JsonObject? base]) {
     assert(position > 0);
 

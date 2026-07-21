@@ -1,23 +1,20 @@
 import 'dart:io';
 
 import 'package:path/path.dart';
-import 'package:pluto/assets/templates/asset_templates.dart';
 import 'package:pluto/domain/abbreviations.dart';
 import 'package:pluto/domain/course.dart';
-import 'package:pluto/domain/course_config.dart';
 import 'package:pluto/domain/lesson.dart';
 import 'package:pluto/domain/section.dart';
 import 'package:pluto/domain/source_file.dart';
 import 'package:pluto/domain/step.dart';
-import 'package:pluto/domain/step_codec.dart';
 import 'package:pluto/domain/unit.dart';
-import 'package:pluto/extensions/string_extensions.dart';
-import 'package:pluto/md/md_file.dart';
-import 'package:pluto/md/md_parser.dart';
-import 'package:pluto/md/options_parser.dart';
-import 'package:pluto/template/lexer/source_view.dart';
-import 'package:pluto/template/template.dart';
-import 'package:yaml/yaml.dart';
+import 'package:pluto/md/abbreviations_format.dart';
+import 'package:pluto/md/course_format.dart';
+import 'package:pluto/md/lesson_format.dart';
+import 'package:pluto/md/md_document.dart';
+import 'package:pluto/md/section_format.dart';
+import 'package:pluto/md/step_format.dart';
+import 'package:pluto/md/unit_format.dart';
 
 /// A course together with the source files it was read from.
 class CourseSource {
@@ -27,6 +24,12 @@ class CourseSource {
   const CourseSource({required this.course, required this.files});
 }
 
+/// Reads and writes a course as a directory tree.
+///
+/// This layer owns only the tree: which file holds what, how entities are
+/// ordered, and when a file should not exist. What goes *inside* a file belongs
+/// to the formats in `lib/md/`, so a rewrite preserves whatever an author put
+/// there that the model does not describe.
 class SourceRepository {
   static final _sectionDirRegExp = RegExp(r'^section_(\d+)$');
   static final _unitDirRegExp = RegExp(r'^unit_(\d+)$');
@@ -47,80 +50,32 @@ class SourceRepository {
     return content;
   }
 
-  (dynamic frontMatter, String content) _splitFrontMatter(String raw) {
-    if (raw.startsWith('---')) {
-      final end = raw.indexOf('---', 3);
-      if (end != -1) {
-        return (loadYaml(raw.substring(3, end)), raw.substring(end + 3));
-      }
-    }
-    return (null, raw);
-  }
-
-  MdFile _parseMd(String path, String raw) {
-    try {
-      return const MdParser().parse(SourceView(raw));
-    } catch (e) {
-      print('Failed to parse file `$path` with error: \n$e');
-      rethrow;
-    }
-  }
-
-  /// The course's long-form fields. Each is prose, so each gets its own
-  /// markdown file beside `course.md` — editors preview it, and it needs no
-  /// escaping.
-  static const _courseFields = <String>[
-    'summary',
-    'acquired_assets',
-    'description',
-    'target_audience',
-    'requirements',
-    'learning_format',
-    'acquired_skills',
-  ];
-
-  /// The value [field] names, so a single list drives both reading and writing
-  /// and the two cannot drift apart.
-  static String? _courseField(Course course, String field) => switch (field) {
-    'summary' => course.summary,
-    'acquired_assets' => course.acquiredAssets,
-    'description' => course.description,
-    'target_audience' => course.targetAudience,
-    'requirements' => course.requirements,
-    'learning_format' => course.learningFormat,
-    'acquired_skills' => course.acquiredSkills,
-    _ => throw 'Unknown course field `$field`',
-  };
-
-  /// Reads the course's prose fields from `source/<field>.md`.
-  Future<Map<String, String?>> _readCourseFields(
-    String dirPath,
+  Future<MdDocument> _readDocument(
+    String path,
     List<SourceFile> sources,
   ) async {
-    final fields = <String, String?>{};
-
-    for (final field in _courseFields) {
-      final path = join(dirPath, '$field.md');
-      if (File(path).existsSync()) {
-        fields[field] = (await _readAndRecord(path, sources)).trim();
-      }
-    }
-
-    return fields;
+    return MdDocument.parse(await _readAndRecord(path, sources));
   }
 
-  /// Reads `source/abbreviations.md`, a file of front matter only. It is
-  /// optional: a course that declares no acronyms simply has no such file.
-  Future<Abbreviations> _readAbbreviations(
-    String dirPath,
-    List<SourceFile> sources,
-  ) async {
-    final path = join(dirPath, 'abbreviations.md');
-    if (!File(path).existsSync()) return Abbreviations.empty;
+  /// The file as it stands, so a write can put back what it does not change.
+  /// A file that does not exist yet contributes nothing to preserve.
+  Future<MdDocument> _base(String path) async {
+    final file = File(path);
+    if (!file.existsSync()) return MdDocument.empty;
+    return MdDocument.parse(await file.readAsString());
+  }
 
-    final raw = await _readAndRecord(path, sources);
-    final (frontMatter, _) = _splitFrontMatter(raw);
-    return Abbreviations.fromYaml(frontMatter);
+  Future<void> _write(String path, String content) async {
+    print('Creating `$path` ...');
+    Directory(dirname(path)).createSync(recursive: true);
+    await File(path).writeAsString(content);
+  }
+
+  /// Removes [path] if it exists. An empty value leaves no file rather than an
+  /// empty one, which is what the reader treats as absent anyway.
+  void _deleteIfExists(String path) {
+    final file = File(path);
+    if (file.existsSync()) file.deleteSync();
   }
 
   Future<List<T>> _readEntities<T>(
@@ -158,152 +113,12 @@ class SourceRepository {
     List<SourceFile> sources,
   ) async {
     final raw = await _readAndRecord(filePath, sources);
-    final md = _parseMd(filePath, raw);
-    final fm = md.frontMatter;
-
-    List<TestCase> parseTestCases(String tests) {
-      final lines = tests.splitByLines();
-      if (lines.length % 2 != 0) throw 'Unbalanced input output tests';
-      final result = <TestCase>[];
-      for (var i = 0; i < lines.length; i += 2) {
-        final input = lines[i];
-        final output = lines[i + 1];
-        result.add(TestCase(input: input, output: output));
-      }
-      return result;
+    try {
+      return const StepFormat().read(raw, position: position);
+    } catch (e) {
+      print('Failed to parse file `$filePath` with error: \n$e');
+      rethrow;
     }
-
-    bool parseIsAlwaysCorrect() {
-      return switch (fm['is_always_correct']) {
-        true => true,
-        false => false,
-        null => false,
-        _ =>
-          throw 'Unexpected step source is always correct value: ${fm['is_always_correct']}',
-      };
-    }
-
-    bool parsePreserveOrder() {
-      return switch (fm['preserve_order']) {
-        true => true,
-        false => false,
-        null => false,
-        _ =>
-          throw 'Unexpected step source preserve order value: ${fm['preserve_order']}',
-      };
-    }
-
-    bool parseIsHtmlEnabled() {
-      return switch (fm['is_html_enabled']) {
-        true => true,
-        false => false,
-        null => true,
-        _ =>
-          throw 'Unexpected step source is html enabled value: ${fm['is_html_enabled']}',
-      };
-    }
-
-    bool parseManualScoring() {
-      return switch (fm['manual_scoring']) {
-        true => true,
-        false => false,
-        null => false,
-        _ =>
-          throw 'Unexpected step source manual scoring value: ${fm['manual_scoring']}',
-      };
-    }
-
-    bool parseIsAttachmentsEnabled() {
-      return switch (fm['is_attachments_enabled']) {
-        true => true,
-        false => false,
-        null => false,
-        _ =>
-          throw 'Unexpected step source is attachments enabled value: ${fm['is_attachments_enabled']}',
-      };
-    }
-
-    /// Legacy ```` ```options ```` fence: three positional lines per option.
-    /// Kept so courses authored before the `## options` section still read;
-    /// new courses should use the section.
-    List<ChoiceOption> parseChoiceOptions(String options) {
-      final lines = options.splitByLines();
-      if (lines.length % 3 != 0) throw 'Unbalanced step source choice options';
-      final result = <ChoiceOption>[];
-      for (var i = 0; i < lines.length; i += 3) {
-        final isCorrect = bool.parse(lines[i + 0]);
-        final text = lines[i + 1];
-        final feedback = lines[i + 2];
-        result.add(
-          ChoiceOption(
-            text: text,
-            feedback: feedback,
-            isCorrect: isCorrect,
-          ),
-        );
-      }
-      return result;
-    }
-
-    final id = fm['id'] as int?;
-    final label = fm['label'] as String?;
-    final text = md.content;
-
-    /// The `## options` section, lifted out of [text] so the answers are not
-    /// rendered as part of the question.
-    final choice = const OptionsParser().parse(text);
-    final parsed = choice.options;
-
-    final choiceOptions = parsed == null
-        ? parseChoiceOptions(md.getCodeContent('options') ?? '')
-        : [
-            for (final option in parsed)
-              ChoiceOption(
-                text: option.text,
-                feedback: option.feedback,
-                isCorrect: option.isCorrect,
-              ),
-          ];
-
-    return switch (fm['type']) {
-      'text' => TextStep(
-        id: id,
-        position: position,
-        text: text,
-        label: label,
-      ),
-      'single_choice' || 'multiple_choice' => ChoiceStep(
-        id: id,
-        position: position,
-        text: choice.content,
-        label: label,
-        isMultipleChoice: fm['type'] == 'multiple_choice',
-        isAlwaysCorrect: parseIsAlwaysCorrect(),
-        preserveOrder: parsePreserveOrder(),
-        isHtmlEnabled: parseIsHtmlEnabled(),
-        options: choiceOptions,
-      ),
-      'code' => CodeStep(
-        id: id,
-        position: position,
-        text: text,
-        label: label,
-        code: md.getCodeContent('dart') ?? '',
-        tests: parseTestCases(md.getCodeContent('tests') ?? ''),
-        samples: parseTestCases(md.getCodeContent('samples') ?? ''),
-        samplesCount: 1, // TODO:
-      ),
-      'free_answer' => FreeAnswerStep(
-        id: id,
-        position: position,
-        text: text,
-        label: label,
-        manualScoring: parseManualScoring(),
-        isAttachmentsEnabled: parseIsAttachmentsEnabled(),
-        isHtmlEnabled: parseIsHtmlEnabled(),
-      ),
-      _ => throw 'Unexpected step source type: ${fm['type']}',
-    };
   }
 
   Future<Lesson> readLesson(
@@ -319,19 +134,12 @@ class SourceRepository {
           )
           ..sort((a, b) => a.position.compareTo(b.position));
 
-    final raw = await _readAndRecord(
+    final document = await _readDocument(
       join(dirPath, 'lesson_${position.toString().padLeft(2, '0')}.md'),
       sources,
     );
-    final (frontMatter, _) = _splitFrontMatter(raw);
 
-    final lesson = Lesson(
-      steps: steps,
-      id: frontMatter['id'] as int?,
-      title: frontMatter['title'] as String,
-    );
-
-    return lesson;
+    return const LessonFormat().read(document, steps: steps);
   }
 
   Future<Unit> readUnit(
@@ -340,19 +148,16 @@ class SourceRepository {
     List<SourceFile> sources,
   ) async {
     final lesson = await readLesson(dirPath, position, sources);
-
-    final raw = await _readAndRecord(
+    final document = await _readDocument(
       join(dirPath, '${basename(dirPath)}.md'),
       sources,
     );
-    final (frontMatter, _) = _splitFrontMatter(raw);
 
-    final unit = Unit(
-      id: frontMatter['id'] as int?,
+    return const UnitFormat().read(
+      document,
       position: position,
       lesson: lesson,
     );
-    return unit;
   }
 
   Future<Section> readSection(
@@ -368,20 +173,16 @@ class SourceRepository {
           )
           ..sort((a, b) => a.position.compareTo(b.position));
 
-    final raw = await _readAndRecord(
+    final document = await _readDocument(
       join(dirPath, '${basename(dirPath)}.md'),
       sources,
     );
-    final (frontMatter, _) = _splitFrontMatter(raw);
 
-    final section = Section(
-      id: frontMatter['id'] as int?,
-      units: units,
+    return const SectionFormat().read(
+      document,
       position: position,
-      title: frontMatter['title'] as String,
-      description: frontMatter['description'] as String? ?? '',
+      units: units,
     );
-    return section;
   }
 
   /// Reads a course and the raw source files it was read from.
@@ -406,91 +207,94 @@ class SourceRepository {
           )
           ..sort((a, b) => a.position.compareTo(b.position));
 
-    final raw = await _readAndRecord(join(dirPath, 'course.md'), sources);
-    final (frontMatter, _) = _splitFrontMatter(raw);
-
-    final blockFields = await _readCourseFields(dirPath, sources);
-
-    final course = Course(
-      id: frontMatter['id'] as int?,
-      title: frontMatter['title'] as String,
-      titleEn: frontMatter['title_en'] as String?,
-      sections: sections,
-      summary: blockFields['summary'],
-      acquiredAssets: blockFields['acquired_assets'],
-      description: blockFields['description'],
-      targetAudience: blockFields['target_audience'],
-      requirements: blockFields['requirements'],
-      learningFormat: blockFields['learning_format'],
-      acquiredSkills: blockFields['acquired_skills'],
-      config: CourseConfig.fromYaml(frontMatter['config']),
-      abbreviations: await _readAbbreviations(dirPath, sources),
-    );
+    final document = await _readDocument(join(dirPath, 'course.md'), sources);
 
     // TODO: validate? check position and other things
-
-    return course;
+    return const CourseFormat().read(
+      document,
+      sections: sections,
+      prose: await _readProse(dirPath, sources),
+      abbreviations: await _readAbbreviations(dirPath, sources),
+    );
   }
 
-  Future<void> _writeEntities<T>(
+  /// Reads the course's prose fields from `source/<field>.md`.
+  Future<Map<String, String?>> _readProse(
     String dirPath,
-    List<T> entities,
-    Future<void> Function(T entity, String dirPath) writeEntity,
+    List<SourceFile> sources,
   ) async {
-    for (final entity in entities) {
-      await writeEntity(entity, dirPath);
+    final fields = <String, String?>{};
+
+    for (final field in CourseFormat.proseFields) {
+      final path = join(dirPath, '$field.md');
+      if (File(path).existsSync()) {
+        fields[field] = (await _readAndRecord(path, sources)).trim();
+      }
     }
+
+    return fields;
+  }
+
+  /// Reads `source/abbreviations.md`, a file of front matter only. It is
+  /// optional: a course that declares no acronyms simply has no such file.
+  Future<Abbreviations> _readAbbreviations(
+    String dirPath,
+    List<SourceFile> sources,
+  ) async {
+    final path = join(dirPath, 'abbreviations.md');
+    if (!File(path).existsSync()) return Abbreviations.empty;
+
+    return const AbbreviationsFormat().read(
+      await _readDocument(path, sources),
+    );
   }
 
   Future<void> writeStep(Step step, String dirPath) async {
     final stepName = 'step_${step.position.toString().padLeft(2, '0')}';
-    final stepPath = join(dirPath, '$stepName.md');
-    final md = const StepCodec().write(step);
-    final dir = dirname(stepPath);
-    Directory(dir).createSync(recursive: true);
-    await File(stepPath).writeAsString(md);
-    // final model = step.toJson();
-    //
-    // await renderToFile(
-    //   stepPath,
-    //   AssetTemplates.step,
-    //   model,
-    // );
+    final path = join(dirPath, '$stepName.md');
+
+    await _write(path, const StepFormat().write(step, base: await _base(path)));
   }
 
   Future<void> writeLesson(Lesson lesson, String dirPath, int position) async {
-    await _writeEntities(dirPath, lesson.steps, writeStep);
+    for (final step in lesson.steps) {
+      await writeStep(step, dirPath);
+    }
 
-    await renderToFile(
-      join(dirPath, 'lesson_${position.toString().padLeft(2, '0')}.md'),
-      AssetTemplates.lesson,
-      lesson.toJson(),
+    final path = join(
+      dirPath,
+      'lesson_${position.toString().padLeft(2, '0')}.md',
+    );
+
+    await _write(
+      path,
+      const LessonFormat().write(lesson, base: await _base(path)),
     );
   }
 
   Future<void> writeUnit(Unit unit, String sectionDirPath) async {
     final unitName = 'unit_${unit.position.toString().padLeft(2, '0')}';
-
     final unitDirPath = join(sectionDirPath, unitName);
+
     await writeLesson(unit.lesson, unitDirPath, unit.position);
 
-    await renderToFile(
-      join(unitDirPath, '$unitName.md'),
-      AssetTemplates.unit,
-      unit.toJson(),
-    );
+    final path = join(unitDirPath, '$unitName.md');
+    await _write(path, const UnitFormat().write(unit, base: await _base(path)));
   }
 
   Future<void> writeSection(Section section, String dirPath) async {
     final sectionName =
         'section_${section.position.toString().padLeft(2, '0')}';
     final sectionDirPath = join(dirPath, sectionName);
-    await _writeEntities(sectionDirPath, section.units, writeUnit);
 
-    await renderToFile(
-      join(sectionDirPath, '$sectionName.md'),
-      AssetTemplates.section,
-      section.toJson(),
+    for (final unit in section.units) {
+      await writeUnit(unit, sectionDirPath);
+    }
+
+    final path = join(sectionDirPath, '$sectionName.md');
+    await _write(
+      path,
+      const SectionFormat().write(section, base: await _base(path)),
     );
   }
 
@@ -506,14 +310,17 @@ class SourceRepository {
   Future<void> writeCourse(Course course, String dirPath) async {
     final sourceDirPath = join(dirPath, 'source');
 
-    await _writeEntities(sourceDirPath, course.sections, writeSection);
+    for (final section in course.sections) {
+      await writeSection(section, sourceDirPath);
+    }
 
-    final coursePath = join(sourceDirPath, 'course.md');
-    final model = course.toJson();
+    final path = join(sourceDirPath, 'course.md');
+    await _write(
+      path,
+      const CourseFormat().write(course, base: await _base(path)),
+    );
 
-    await renderToFile(coursePath, AssetTemplates.course, model);
-
-    await _writeCourseFields(course, sourceDirPath);
+    await _writeProse(course, sourceDirPath);
     await _writeAbbreviations(course, sourceDirPath);
   }
 
@@ -522,45 +329,33 @@ class SourceRepository {
   /// The value is written alone, with no heading or hint comment around it: a
   /// hint an author keeps lives *inside* the file and so comes back as part of
   /// the value, and re-decorating on write would duplicate it on every push.
-  Future<void> _writeCourseFields(Course course, String sourceDirPath) async {
-    for (final field in _courseFields) {
+  Future<void> _writeProse(Course course, String sourceDirPath) async {
+    for (final field in CourseFormat.proseFields) {
       final path = join(sourceDirPath, '$field.md');
-      final value = _courseField(course, field);
+      final value = CourseFormat.prose(course, field);
 
       if (value == null || value.isEmpty) {
-        // Nothing to say: leave no file rather than an empty one, which is what
-        // the reader treats as absent anyway.
-        final file = File(path);
-        if (file.existsSync()) file.deleteSync();
+        _deleteIfExists(path);
         continue;
       }
 
-      print('Creating `$path` ...');
-      await File(path).writeAsString('$value\n');
+      await _write(path, '$value\n');
     }
   }
 
   Future<void> _writeAbbreviations(Course course, String sourceDirPath) async {
     final path = join(sourceDirPath, 'abbreviations.md');
-    final content = course.abbreviations.toFrontMatter();
+    final content = const AbbreviationsFormat().write(
+      course.abbreviations,
+      base: await _base(path),
+    );
 
     if (content.isEmpty) {
-      final file = File(path);
-      if (file.existsSync()) file.deleteSync();
+      _deleteIfExists(path);
       return;
     }
 
-    print('Creating `$path` ...');
-    await File(path).writeAsString(content);
-  }
-
-  Future<void> renderToFile(
-    String path,
-    Future<Template> template,
-    dynamic model,
-  ) async {
-    print('Creating `$path` ...');
-    await template.renderToFile(path, model);
+    await _write(path, content);
   }
 }
 

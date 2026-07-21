@@ -1,3 +1,4 @@
+import 'package:pluto/domain/abbreviations.dart';
 import 'package:pluto/domain/course.dart';
 import 'package:pluto/domain/course_config.dart';
 import 'package:pluto/domain/lesson.dart';
@@ -7,6 +8,8 @@ import 'package:pluto/domain/unit.dart';
 import 'package:pluto/domain/validation_repository.dart';
 import 'package:pluto/markdown/diagnostic_styles.dart';
 import 'package:pluto/markdown/stepik_markdown_renderer.dart';
+import 'package:pluto/md/course_format.dart';
+import 'package:pluto/md/md_document.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -64,14 +67,27 @@ void main() {
   });
 
   group('front matter round-trip', () {
+    Course read(String courseMd) => const CourseFormat().read(
+      MdDocument.parse(courseMd),
+      sections: const [],
+      prose: const {},
+      abbreviations: Abbreviations.empty,
+    );
+
     test('block is re-readable as the same config', () {
-      final block = config.toFrontMatterBlock();
-      final reparsed = CourseConfig.fromYaml(loadYaml(block)['config']);
-      expect(reparsed.values, config.values);
+      final written = const CourseFormat().write(
+        Course(id: 1, title: 'Test', config: config),
+      );
+
+      expect(read(written).config.values, config.values);
     });
 
     test('an empty config writes nothing', () {
-      expect(CourseConfig.empty.toFrontMatterBlock(), isEmpty);
+      final written = const CourseFormat().write(
+        Course(id: 1, title: 'Test'),
+      );
+
+      expect(written, isNot(contains('config')));
     });
   });
 

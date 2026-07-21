@@ -22,16 +22,6 @@ class Unit {
     );
   }
 
-  /// Model for the `unit_NN.md` template, which reads scalars only.
-  ///
-  /// [position] is deliberately absent: it is derived from the `unit_NN`
-  /// directory name when read back, so writing it would let the two disagree.
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-    };
-  }
-
   Map<String, dynamic> toDto(int sectionId, int? lessonId, [JsonObject? base]) {
     assert(position > 0);
 

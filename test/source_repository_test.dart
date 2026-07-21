@@ -6,7 +6,7 @@ import 'package:pluto/domain/abbreviations.dart';
 import 'package:pluto/domain/course.dart';
 import 'package:pluto/domain/source_file.dart';
 import 'package:pluto/domain/step.dart';
-import 'package:pluto/domain/step_codec.dart';
+import 'package:pluto/md/step_format.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -276,7 +276,7 @@ Lyon
       );
 
       final step =
-          await readStep(const StepCodec().write(original)) as ChoiceStep;
+          await readStep(const StepFormat().write(original)) as ChoiceStep;
 
       expect(step.text, original.text);
       expect(step.options.length, original.options.length);

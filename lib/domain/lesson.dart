@@ -23,14 +23,6 @@ class Lesson {
     );
   }
 
-  /// Model for the `lesson_NN.md` template, which reads scalars only.
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-    };
-  }
-
   Map<String, dynamic> toDto([JsonObject? base]) {
     return {
       ...?base,

@@ -72,6 +72,11 @@ class MdParser {
 
     loop:
     do {
+      // Blocks may be separated by blank lines, which is how a fence is kept
+      // from gluing itself to whatever precedes it.
+      source.readWhiteSpaces();
+      if (source.isEmpty) break loop;
+
       final codeBlock = tryReadCodeBlock();
       if (codeBlock != null) {
         codes.add(codeBlock);
