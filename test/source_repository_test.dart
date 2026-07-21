@@ -230,32 +230,6 @@ Which is the capital?
       expect(step.text, 'Which is the capital?');
     });
 
-    test('Should still read the legacy options fence', () async {
-      final step =
-          await readStep('''
----
-id: null
-type: single_choice
----
-
-Which is the capital?
-
-```options
-true
-Paris
-Capital since 987.
-false
-Lyon
-
-```
-''')
-              as ChoiceStep;
-
-      expect(step.options.map((o) => o.isCorrect), [true, false]);
-      expect(step.options.first.text, 'Paris');
-      expect(step.options.first.feedback, 'Capital since 987.');
-    });
-
     test('Should survive a codec round-trip', () async {
       const original = ChoiceStep(
         id: null,
@@ -287,27 +261,5 @@ Lyon
       }
     });
 
-    test('Should prefer the section when a file has both', () async {
-      final step =
-          await readStep('''
----
-id: null
-type: single_choice
----
-
-## options
-
-- [x] From the section
-
-```options
-true
-From the fence
-
-```
-''')
-              as ChoiceStep;
-
-      expect(step.options.single.text, 'From the section');
-    });
   });
 }

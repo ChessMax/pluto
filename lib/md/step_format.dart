@@ -52,9 +52,7 @@ class StepFormat {
         isAlwaysCorrect: _bool(fm, 'is_always_correct', or: false),
         preserveOrder: _bool(fm, 'preserve_order', or: false),
         isHtmlEnabled: _bool(fm, 'is_html_enabled', or: true),
-        options:
-            choice.options?.map(_toChoiceOption).toList() ??
-            _readLegacyOptions(md.getCodeContent('options') ?? ''),
+        options: choice.options?.map(_toChoiceOption).toList() ?? const [],
       ),
       'code' => CodeStep(
         id: id,
@@ -197,22 +195,6 @@ class StepFormat {
     return [
       for (var i = 0; i < lines.length; i += 2)
         TestCase(input: lines[i], output: lines[i + 1]),
-    ];
-  }
-
-  /// Legacy ```` ```options ```` fence: three positional lines per option.
-  /// Kept so courses authored before the `## options` section still read; new
-  /// courses should use the section.
-  static List<ChoiceOption> _readLegacyOptions(String options) {
-    final lines = options.splitByLines();
-    if (lines.length % 3 != 0) throw 'Unbalanced step source choice options';
-    return [
-      for (var i = 0; i < lines.length; i += 3)
-        ChoiceOption(
-          isCorrect: bool.parse(lines[i]),
-          text: lines[i + 1],
-          feedback: lines[i + 2],
-        ),
     ];
   }
 }
