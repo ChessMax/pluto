@@ -356,10 +356,10 @@ class ValidationRepository {
   ///
   /// Read from the raw Markdown rather than the rendered HTML: recovering the
   /// references from the badges rendering wraps them in would mean parsing HTML
-  /// to learn what the source already says plainly. Code is blanked out first,
-  /// matching the renderer, which never expands references there — a course
-  /// about programming is full of `{{ }}` in Vue, Jinja and Handlebars samples
-  /// that must not be reported.
+  /// to learn what the source already says plainly. Code is scanned along with
+  /// prose, matching the renderer, which expands references there too — and a
+  /// typo inside a code span is the one the renderer cannot badge, so this is
+  /// the only report an author gets for it.
   ///
   /// One violation per distinct key, not per occurrence: a key repeated through
   /// a step is a single typo to fix, and listing it a dozen times buries the
@@ -369,7 +369,7 @@ class ValidationRepository {
     required String location,
     required CourseConfig config,
   }) {
-    final keys = unknownConfigKeys(_blankCode(markdown), config).toSet();
+    final keys = unknownConfigKeys(markdown, config).toSet();
     return [
       for (final key in keys)
         HtmlViolation(

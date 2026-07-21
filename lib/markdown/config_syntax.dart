@@ -3,21 +3,20 @@ import 'dart:convert';
 import 'package:markdown/markdown.dart';
 import 'package:pluto/domain/course_config.dart';
 import 'package:pluto/markdown/diagnostic_styles.dart';
+import 'package:pluto/markdown/node_transformer.dart';
 
 // The markdown renderer writes Text content verbatim; inline syntaxes are
 // expected to pre-escape (see MarkerInlineSyntax).
 const HtmlEscape _escape = HtmlEscape(HtmlEscapeMode.element);
 
-/// Expands `{{config.<key>}}` in step Markdown.
+/// Expands `{{config.<key>}}` in step prose.
 ///
-/// Deliberately an [InlineSyntax] rather than a replace over the raw source: by
-/// the time inline syntaxes run, the parser has already decided what is a code
-/// span or fenced block, and never runs them there. A course about programming
-/// is full of `{{ }}` in Vue/Jinja/Handlebars samples, and those must survive
-/// verbatim without authors escaping anything.
+/// An [InlineSyntax] rather than a replace over the raw source, so a value is
+/// inserted as text and cannot bring markup or Markdown of its own with it.
 ///
-/// Link destinations are not [Text] and so are invisible here — they are handled
-/// by [ConfigLinkTransformer].
+/// Two contexts are invisible here and are covered elsewhere: link destinations
+/// are parsed into attributes rather than [Text] ([ConfigLinkTransformer]), and
+/// code is resolved before inline syntaxes run ([ConfigCodeTransformer]).
 class ConfigInlineSyntax extends InlineSyntax {
   final CourseConfig? config;
 
@@ -45,4 +44,37 @@ class ConfigInlineSyntax extends InlineSyntax {
     );
     return true;
   }
+}
+
+/// Expands `{{config.<key>}}` inside code spans and fenced blocks.
+///
+/// The parser resolves code before inline syntaxes run, so [ConfigInlineSyntax]
+/// never reaches it. Applies only where the renderer knows it is inside code:
+/// the text there is already HTML-escaped, so a substituted value has to be
+/// escaped to match.
+///
+/// An unknown key is left exactly as written rather than badged the way prose
+/// badges it — an element inside `<code>` renders as literal tag text to the
+/// student. Validation reports it, and that report aborts a push.
+class ConfigCodeTransformer extends TextTransformer {
+  final CourseConfig? config;
+
+  const ConfigCodeTransformer(this.config);
+
+  @override
+  List<Node> apply(Text text) {
+    final config = this.config;
+    if (config == null || config.isEmpty) return [text];
+
+    return [
+      Text(
+        text.text.replaceAllMapped(_reference, (match) {
+          final value = config.resolve(match.group(1)!);
+          return value == null ? match.group(0)! : _escape.convert(value);
+        }),
+      ),
+    ];
+  }
+
+  static final RegExp _reference = RegExp(configPattern);
 }

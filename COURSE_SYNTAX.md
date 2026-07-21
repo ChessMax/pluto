@@ -330,13 +330,14 @@ Rules:
 - Values must be scalars — `year: 2026` needs no quotes, but maps and lists are
   rejected, since a reference expands to inline text.
 - A null value is dropped rather than rendered as the text "null".
-- **References inside code are never expanded.** A course about programming is
-  full of `{{ }}` in Vue, Jinja and Handlebars samples, and those stay verbatim
-  in both fenced blocks and inline code spans — no escaping needed.
+- **References expand everywhere**, including fenced blocks and inline code
+  spans — so a version in a path like `` `dart-sdk-{{config.dart_version}}\bin` ``
+  stays in step with the prose around it.
 - References work in link destinations (`href`, `src`), including `mailto:`.
 - An **unknown key is left visible** as `{{config.whatever}}` and reported,
   rather than blanked — a visible typo is fixable, a silently empty support
-  address is not.
+  address is not. In prose it is also badged in red; inside code it is not,
+  since a badge there would render to the student as literal tag text.
 - Spaces inside a link destination break Markdown's link parsing, so write
   `[x]({{config.url}})`, never `[x]({{ config.url }})`.
 

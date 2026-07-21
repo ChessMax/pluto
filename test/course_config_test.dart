@@ -164,17 +164,45 @@ void main() {
     });
   });
 
-  group('code is never substituted', () {
-    test('inline code span survives verbatim', () {
+  group('code is substituted too', () {
+    test('expands inside an inline code span', () {
       final html = renderer.render('use `{{config.team}}` here');
-      expect(html, contains('{{config.team}}'));
-      expect(html, isNot(contains('Pluto Team')));
+      expect(html, contains('<code>Pluto Team</code>'));
+      expect(html, isNot(contains('{{')));
     });
 
-    test('fenced block survives verbatim', () {
-      final html = renderer.render('```html\n<p>{{ config.team }}</p>\n```');
-      expect(html, contains('config.team'));
-      expect(html, isNot(contains('Pluto Team')));
+    test('expands inside a fenced block', () {
+      final html = renderer.render('```\nprint("{{config.team}}");\n```');
+      expect(html, contains('Pluto Team'));
+      expect(html, isNot(contains('{{')));
+    });
+
+    test('tolerates surrounding whitespace in code', () {
+      expect(renderer.render('`{{ config.team }}`'), contains('Pluto Team'));
+    });
+
+    /// The value lands in text the parser has already escaped, so it has to be
+    /// escaped to match — otherwise it would reach the student as live markup.
+    test('a value is HTML-escaped inside code', () {
+      const injected = StepikMarkdownRenderer(
+        config: CourseConfig({'x': '<script>alert(1)</script>'}),
+      );
+      final html = injected.render('`{{config.x}}`');
+      expect(html, isNot(contains('<script>')));
+      expect(html, contains('&lt;script&gt;'));
+    });
+
+    /// Prose badges an unknown key, but an element inside `<code>` would render
+    /// as literal tag text, so code leaves it alone and validation reports it.
+    test('an unknown key in code is left as written, unbadged', () {
+      final html = renderer.render('`{{config.tema}}`');
+      expect(html, contains('{{config.tema}}'));
+      expect(html, isNot(contains(errorStyle)));
+    });
+
+    test('without a config, code is left as written', () {
+      const bare = StepikMarkdownRenderer();
+      expect(bare.render('`{{config.team}}`'), contains('{{config.team}}'));
     });
   });
 
@@ -229,20 +257,22 @@ void main() {
       );
     });
 
-    test('a reference inside code is not reported', () {
-      expect(unknowns('`{{config.nope}}`'), isEmpty);
-      expect(unknowns('```\n{{config.nope}}\n```'), isEmpty);
-      expect(unknowns('```vue\n{{ config.nope }}\n```'), isEmpty);
+    /// The renderer cannot badge an unknown key inside code, so this report is
+    /// the only signal an author gets for one.
+    test('a reference inside code is reported', () {
+      expect(unknowns('`{{config.nope}}`'), hasLength(1));
+      expect(unknowns('```\n{{config.nope}}\n```'), hasLength(1));
     });
 
-    test(
-      'a real reference outside code is still found beside a code block',
-      () {
-        expect(
-          unknowns('```\n{{config.ok}}\n```\n\ntext {{config.nope}}'),
-          hasLength(1),
-        );
-      },
-    );
+    test('a declared key inside code produces no violation', () {
+      expect(unknowns('`{{config.support_email}}`'), isEmpty);
+    });
+
+    test('the same key in code and prose is reported once', () {
+      expect(
+        unknowns('```\n{{config.nope}}\n```\n\ntext {{config.nope}}'),
+        hasLength(1),
+      );
+    });
   });
 }

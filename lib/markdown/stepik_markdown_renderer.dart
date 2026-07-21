@@ -63,6 +63,11 @@ class StepikMarkdownRenderer {
     'b',
   };
 
+  /// Tags the parser fills with literal text, never running inline syntaxes
+  /// inside. Config references there are expanded by [ConfigCodeTransformer]
+  /// instead; nothing else rewrites them.
+  static const Set<String> _codeTags = {'code', 'pre'};
+
   /// Built per render rather than shared: [ConfigInlineSyntax] carries the
   /// course's own [config].
   ExtensionSet get _extensionSet => ExtensionSet(
@@ -99,6 +104,7 @@ class StepikMarkdownRenderer {
           isFirstNode: index == 0,
           isTopLevel: true,
           insideNoWrap: false,
+          insideCode: false,
           textTransformers: textTransformers,
         ),
     ];
@@ -110,9 +116,11 @@ class StepikMarkdownRenderer {
     required bool isFirstNode,
     required bool isTopLevel,
     required bool insideNoWrap,
+    required bool insideCode,
     required List<TextTransformer> textTransformers,
   }) {
     if (node is Text) {
+      if (insideCode) return ConfigCodeTransformer(config).apply(node);
       if (insideNoWrap) return [node];
       return textTransformers.fold(
         <Node>[node],
@@ -126,11 +134,13 @@ class StepikMarkdownRenderer {
     if (node is! Element) return [node];
 
     final childInsideNoWrap = insideNoWrap || _noWrapTags.contains(node.tag);
+    final childInsideCode = insideCode || _codeTags.contains(node.tag);
     List<Node> transform(Node node) => _transform(
       node,
       isFirstNode: false,
       isTopLevel: false,
       insideNoWrap: childInsideNoWrap,
+      insideCode: childInsideCode,
       textTransformers: textTransformers,
     );
 
