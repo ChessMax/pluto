@@ -1,0 +1,3 @@
+- How a course source tree is laid out on disk
+- What each of the four step types looks like in Markdown
+- How to link between steps without hardcoding Stepik ids
