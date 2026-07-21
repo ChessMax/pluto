@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:path/path.dart';
 import 'package:pluto/data/source_repository.dart';
+import 'package:pluto/domain/abbreviations.dart';
 import 'package:pluto/domain/course.dart';
 import 'package:pluto/domain/source_file.dart';
 import 'package:pluto/domain/step.dart';
@@ -56,19 +57,132 @@ void main() {
       expect(course.requirements, isNull);
     });
 
-    test('Should still read legacy fenced fields', () async {
+    test('Should ignore a fenced field left in course.md', () async {
       final course = await readCourse(
         courseMd: '$frontMatter\n```summary\nFrom the fence.\n```\n',
       );
-      expect(course.summary, 'From the fence.\n');
+      expect(course.summary, isNull);
     });
 
-    test('Should prefer the file when a course has both', () async {
+    test('Should read the file when a course has both', () async {
       final course = await readCourse(
         courseMd: '$frontMatter\n```summary\nFrom the fence.\n```\n',
         fields: {'summary': 'From the file.\n'},
       );
       expect(course.summary, 'From the file.');
+    });
+  });
+
+  group('Course round trip', () {
+    Future<Course> writeThenRead(Course course) async {
+      await const SourceRepository().writeCourse(course, dir.path);
+      return const SourceRepository().readCourse(dir.path);
+    }
+
+    String sourceFile(String name) =>
+        File(join(dir.path, 'source', name)).readAsStringSync();
+
+    test('Should keep prose fields across a write', () async {
+      final course = Course(
+        id: 1,
+        title: 'Test',
+        summary: 'A *summary*.',
+        description: 'A description.',
+        acquiredSkills: 'One\nTwo',
+      );
+
+      final read = await writeThenRead(course);
+
+      expect(read.summary, 'A *summary*.');
+      expect(read.description, 'A description.');
+      expect(read.acquiredSkills, 'One\nTwo');
+    });
+
+    test('Should write prose to its own file, not into course.md', () async {
+      await writeThenRead(Course(id: 1, title: 'Test', summary: 'A summary.'));
+
+      expect(sourceFile('summary.md'), 'A summary.\n');
+      expect(sourceFile('course.md'), isNot(contains('```')));
+      expect(sourceFile('course.md'), isNot(contains('A summary.')));
+    });
+
+    test('Should not duplicate a hint comment kept in the value', () async {
+      final course = Course(
+        id: 1,
+        title: 'Test',
+        summary: '<!-- keep me -->\nA summary.',
+      );
+
+      final read = await writeThenRead(course);
+      final again = await writeThenRead(read);
+
+      expect(again.summary, '<!-- keep me -->\nA summary.');
+      expect('\n'.allMatches(sourceFile('summary.md')).length, 2);
+    });
+
+    test('Should be idempotent', () async {
+      final course = Course(
+        id: 1,
+        title: 'Test',
+        summary: 'A summary.',
+        requirements: 'Some requirements.',
+        abbreviations: const Abbreviations({'PL': 'Programming Language'}),
+      );
+
+      final first = await writeThenRead(course);
+      final firstCourseMd = sourceFile('course.md');
+      final firstSummary = sourceFile('summary.md');
+
+      await writeThenRead(first);
+
+      expect(sourceFile('course.md'), firstCourseMd);
+      expect(sourceFile('summary.md'), firstSummary);
+    });
+
+    test('Should leave no file for an absent field', () async {
+      await writeThenRead(Course(id: 1, title: 'Test', summary: 'A summary.'));
+
+      expect(
+        File(join(dir.path, 'source', 'description.md')).existsSync(),
+        isFalse,
+      );
+    });
+
+    test('Should write and read back abbreviations', () async {
+      final course = Course(
+        id: 1,
+        title: 'Test',
+        abbreviations: const Abbreviations({
+          'PL': 'Programming Language',
+          'ЯП': 'Язык программирования',
+        }),
+      );
+
+      final read = await writeThenRead(course);
+
+      expect(read.abbreviations.resolve('PL'), 'Programming Language');
+      expect(read.abbreviations.resolve('ЯП'), 'Язык программирования');
+    });
+
+    test('Should quote an expansion YAML would misread', () async {
+      final course = Course(
+        id: 1,
+        title: 'Test',
+        abbreviations: const Abbreviations({'RTFM': 'Read: the manual'}),
+      );
+
+      final read = await writeThenRead(course);
+
+      expect(read.abbreviations.resolve('RTFM'), 'Read: the manual');
+    });
+
+    test('Should leave no abbreviations file when none are declared', () async {
+      await writeThenRead(Course(id: 1, title: 'Test'));
+
+      expect(
+        File(join(dir.path, 'source', 'abbreviations.md')).existsSync(),
+        isFalse,
+      );
     });
   });
 
@@ -161,8 +275,8 @@ Lyon
         ],
       );
 
-      final step = await readStep(const StepCodec().write(original))
-          as ChoiceStep;
+      final step =
+          await readStep(const StepCodec().write(original)) as ChoiceStep;
 
       expect(step.text, original.text);
       expect(step.options.length, original.options.length);

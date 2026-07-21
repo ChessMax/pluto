@@ -59,6 +59,39 @@ class Abbreviations {
     return Abbreviations(values);
   }
 
+  /// The whole of `abbreviations.md`, or an empty string when nothing is
+  /// declared — a course without acronyms gets no file at all.
+  ///
+  /// An expansion is quoted only when writing it bare would change what YAML
+  /// reads back, so a hand-written file keeps its plain style across a rewrite.
+  String toFrontMatter() {
+    if (values.isEmpty) return '';
+    final lines = [
+      '---',
+      for (final entry in values.entries)
+        '${entry.key}: ${_quoteIfNeeded(entry.value)}',
+      '---',
+    ];
+    return '${lines.join('\n')}\n';
+  }
+
+  /// A plain scalar cannot start with an indicator character, contain `: ` or
+  /// ` #`, or carry outer spaces; single quotes make any of those literal, with
+  /// `''` escaping a quote of its own.
+  static String _quoteIfNeeded(String value) {
+    final needsQuotes =
+        value.isEmpty ||
+        value.trim() != value ||
+        value.contains(': ') ||
+        value.contains(' #') ||
+        value.endsWith(':') ||
+        _indicators.hasMatch(value);
+    if (!needsQuotes) return value;
+    return "'${value.replaceAll("'", "''")}'";
+  }
+
+  static final RegExp _indicators = RegExp(r'''^[-?:,\[\]{}#&*!|>'"%@`]''');
+
   /// Matches any declared term as a whole word, or null when nothing is
   /// declared.
   ///

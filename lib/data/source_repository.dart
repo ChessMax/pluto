@@ -18,7 +18,6 @@ import 'package:pluto/md/options_parser.dart';
 import 'package:pluto/template/lexer/source_view.dart';
 import 'package:pluto/template/template.dart';
 import 'package:yaml/yaml.dart';
-import 'package:markdown/markdown.dart' as md;
 
 /// A course together with the source files it was read from.
 class CourseSource {
@@ -67,34 +66,6 @@ class SourceRepository {
     }
   }
 
-  Map<String, String?> _readFields(String content) {
-    final result = <String, String?>{};
-
-    final document = md.Document();
-    final blocks = document.parse(content);
-
-    for (final element in blocks) {
-      if (element is md.Element && element.tag == 'pre') {
-        final codeElement = element.children?.firstOrNull as md.Element?;
-        if (codeElement != null && codeElement.tag == 'code') {
-          final classAttribute = codeElement.attributes['class'];
-          if (classAttribute != null &&
-              classAttribute.startsWith('language-')) {
-            final field = classAttribute.substring(
-              classAttribute.indexOf('language-') + 9,
-            );
-            final textElement = codeElement.children?.firstOrNull as md.Text;
-            if (field.isNotEmpty) {
-              result[field] = textElement.text;
-            }
-          }
-        }
-      }
-    }
-
-    return result;
-  }
-
   /// The course's long-form fields. Each is prose, so each gets its own
   /// markdown file beside `course.md` — editors preview it, and it needs no
   /// escaping.
@@ -108,22 +79,30 @@ class SourceRepository {
     'acquired_skills',
   ];
 
-  /// Reads the course's prose fields, preferring `source/<field>.md` and
-  /// falling back to the legacy fenced block of the same name in `course.md`.
+  /// The value [field] names, so a single list drives both reading and writing
+  /// and the two cannot drift apart.
+  static String? _courseField(Course course, String field) => switch (field) {
+    'summary' => course.summary,
+    'acquired_assets' => course.acquiredAssets,
+    'description' => course.description,
+    'target_audience' => course.targetAudience,
+    'requirements' => course.requirements,
+    'learning_format' => course.learningFormat,
+    'acquired_skills' => course.acquiredSkills,
+    _ => throw 'Unknown course field `$field`',
+  };
+
+  /// Reads the course's prose fields from `source/<field>.md`.
   Future<Map<String, String?>> _readCourseFields(
     String dirPath,
-    String content,
     List<SourceFile> sources,
   ) async {
-    final fenced = _readFields(content);
     final fields = <String, String?>{};
 
     for (final field in _courseFields) {
       final path = join(dirPath, '$field.md');
       if (File(path).existsSync()) {
         fields[field] = (await _readAndRecord(path, sources)).trim();
-      } else {
-        fields[field] = fenced[field];
       }
     }
 
@@ -428,9 +407,9 @@ class SourceRepository {
           ..sort((a, b) => a.position.compareTo(b.position));
 
     final raw = await _readAndRecord(join(dirPath, 'course.md'), sources);
-    final (frontMatter, content) = _splitFrontMatter(raw);
+    final (frontMatter, _) = _splitFrontMatter(raw);
 
-    final blockFields = await _readCourseFields(dirPath, content, sources);
+    final blockFields = await _readCourseFields(dirPath, sources);
 
     final course = Course(
       id: frontMatter['id'] as int?,
@@ -533,6 +512,46 @@ class SourceRepository {
     final model = course.toJson();
 
     await renderToFile(coursePath, AssetTemplates.course, model);
+
+    await _writeCourseFields(course, sourceDirPath);
+    await _writeAbbreviations(course, sourceDirPath);
+  }
+
+  /// Writes each prose field to its own `source/<field>.md`.
+  ///
+  /// The value is written alone, with no heading or hint comment around it: a
+  /// hint an author keeps lives *inside* the file and so comes back as part of
+  /// the value, and re-decorating on write would duplicate it on every push.
+  Future<void> _writeCourseFields(Course course, String sourceDirPath) async {
+    for (final field in _courseFields) {
+      final path = join(sourceDirPath, '$field.md');
+      final value = _courseField(course, field);
+
+      if (value == null || value.isEmpty) {
+        // Nothing to say: leave no file rather than an empty one, which is what
+        // the reader treats as absent anyway.
+        final file = File(path);
+        if (file.existsSync()) file.deleteSync();
+        continue;
+      }
+
+      print('Creating `$path` ...');
+      await File(path).writeAsString('$value\n');
+    }
+  }
+
+  Future<void> _writeAbbreviations(Course course, String sourceDirPath) async {
+    final path = join(sourceDirPath, 'abbreviations.md');
+    final content = course.abbreviations.toFrontMatter();
+
+    if (content.isEmpty) {
+      final file = File(path);
+      if (file.existsSync()) file.deleteSync();
+      return;
+    }
+
+    print('Creating `$path` ...');
+    await File(path).writeAsString(content);
   }
 
   Future<void> renderToFile(

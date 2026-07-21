@@ -94,18 +94,14 @@ class Course {
   }
 
   /// Model for the `course.md` template, which reads scalars only.
+  ///
+  /// Front matter only: the prose fields each live in their own
+  /// `source/<field>.md`, written by `SourceRepository`.
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'title': title,
       'titleEn': titleEn,
-      'summary': summary,
-      'acquiredAssets': acquiredAssets,
-      'description': description,
-      'targetAudience': targetAudience,
-      'requirements': requirements,
-      'learningFormat': learningFormat,
-      'acquiredSkills': acquiredSkills,
       // The template engine has no loops, so the block arrives pre-formatted.
       'configBlock': config.toFrontMatterBlock(),
     };
