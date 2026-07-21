@@ -209,7 +209,12 @@ void main() {
           'width:4px">&nbsp;</td>',
         ),
       );
-      expect(html, contains('<td style="width:12px">&nbsp;</td>'));
+      expect(
+        html,
+        contains(
+          '<td style="background-color:#fff8c5; width:12px">&nbsp;</td>',
+        ),
+      );
       expect(html, contains('<td style="background-color:#fff8c5">'));
       expect(html, isNot(contains('<div')));
       expect(html, isNot(contains('markdown-alert')));

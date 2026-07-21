@@ -70,18 +70,21 @@ const List<AlertKind> alertKinds = [
 /// CSS for them, so the alert has to carry its own appearance. Of the CSS
 /// properties tried against the real editor only `background-color` and `width`
 /// are kept — `border-left` and `padding` are dropped — so the accent bar is a
-/// narrow tinted cell rather than a border, and the gutter is a cell rather than
-/// padding:
+/// narrow tinted cell rather than a border, and the left padding is a cell
+/// rather than `padding`:
 ///
 /// ```html
 /// <table border="0" cellpadding="0" cellspacing="0" style="width:100%">
 ///   <tbody><tr>
 ///     <td style="background-color:#d4a72c; width:4px">&nbsp;</td>
-///     <td style="width:12px">&nbsp;</td>
+///     <td style="background-color:#fff8c5; width:12px">&nbsp;</td>
 ///     <td style="background-color:#fff8c5"> ... </td>
 ///   </tr></tbody>
 /// </table>
 /// ```
+///
+/// The gutter carries the body tint on purpose: left untinted it renders as a
+/// white gap that reads as a break between two boxes, not as padding inside one.
 ///
 /// Declaration order matches what the editor writes back on save (properties
 /// alphabetised, `; ` separated, no trailing `;`), so a step round-tripped
@@ -120,7 +123,11 @@ class AlertTransformer extends NodeTransformer {
                 'background-color:${kind.barColor}; width:$_barWidth',
                 [Text('&nbsp;')],
               ),
-              _cell('width:$_gutterWidth', [Text('&nbsp;')]),
+              _cell(
+                'background-color:${kind.backgroundColor}; '
+                'width:$_gutterWidth',
+                [Text('&nbsp;')],
+              ),
               _cell('background-color:${kind.backgroundColor}', [
                 Element('p', [
                   Element('strong', [Text('${kind.emoji} ${kind.label}')]),
