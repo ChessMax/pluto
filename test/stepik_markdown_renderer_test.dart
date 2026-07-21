@@ -1,4 +1,5 @@
 import 'package:markdown/markdown.dart';
+import 'package:pluto/markdown/alert_transformer.dart';
 import 'package:pluto/markdown/stepik_markdown_renderer.dart';
 import 'package:pluto/domain/validation_repository.dart';
 import 'package:test/test.dart';
@@ -191,8 +192,86 @@ void main() {
     });
   });
 
+  group('github alerts', () {
+    test('renders as a three-cell table, not a div', () {
+      final html = renderer.render('> [!WARNING]\n> Careful.');
+      expect(
+        html,
+        contains(
+          '<table border="0" cellpadding="0" '
+          'cellspacing="0" style="width:100%">',
+        ),
+      );
+      expect(
+        html,
+        contains(
+          '<td style="background-color:#d4a72c; '
+          'width:4px">&nbsp;</td>',
+        ),
+      );
+      expect(html, contains('<td style="width:12px">&nbsp;</td>'));
+      expect(html, contains('<td style="background-color:#fff8c5">'));
+      expect(html, isNot(contains('<div')));
+      expect(html, isNot(contains('markdown-alert')));
+    });
+
+    test('title is replaced by the localized label, not the english one', () {
+      final html = renderer.render('> [!TIP]\n> Быстрее так.');
+      expect(html, contains('<p><strong>💡 Совет</strong></p>'));
+      expect(html, isNot(contains('Tip')));
+    });
+
+    test('body keeps block content', () {
+      final html = renderer.render('> [!NOTE]\n> text\n>\n> - one\n> - two');
+      expect(html, contains('<ul>'));
+      expect(html, contains('<li><em>one</em></li>'));
+    });
+
+    test('every kind renders with its own colours', () {
+      for (final kind in alertKinds) {
+        final html = renderer.render(
+          '> [!${kind.type.toUpperCase()}]\n> body',
+        );
+        expect(html, contains('background-color:${kind.barColor}; width:4px'));
+        expect(html, contains('background-color:${kind.backgroundColor}'));
+        expect(html, contains('${kind.emoji} ${kind.label}'));
+      }
+    });
+
+    test('a plain blockquote is left alone', () {
+      final html = renderer.render('> just a quote');
+      expect(html, contains('<blockquote>'));
+      expect(html, isNot(contains('<table')));
+    });
+  });
+
   group('validator cross-check', () {
     const validator = ValidationRepository();
+
+    test('every alert kind passes the whitelist validator', () {
+      for (final kind in alertKinds) {
+        final html = renderer.render(
+          '> [!${kind.type.toUpperCase()}]\n> body\n>\n> - item',
+        );
+        expect(
+          validator.validateHtml(html, location: 'test'),
+          isEmpty,
+          reason: 'alert kind ${kind.type} must survive the whitelist',
+        );
+      }
+    });
+
+    test('plain markdown alert output would fail — proves the check bites', () {
+      final rawAlert = markdownToHtml(
+        '> [!NOTE]\n> body',
+        extensionSet: ExtensionSet.gitHubWeb,
+      );
+      final violations = validator.validateHtml(rawAlert, location: 'test');
+      expect(
+        violations.map((v) => v.kind),
+        contains(ViolationKind.disallowedTag),
+      );
+    });
 
     test('rendered strikethrough passes the whitelist validator', () {
       final html = renderer.render('a ~~struck~~ b');

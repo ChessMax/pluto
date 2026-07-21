@@ -4,6 +4,7 @@ import 'package:pluto/domain/course_config.dart';
 import 'package:pluto/domain/html_whitelist.dart';
 import 'package:pluto/domain/link_index.dart';
 import 'package:pluto/markdown/abbreviation_transformer.dart';
+import 'package:pluto/markdown/alert_transformer.dart';
 import 'package:pluto/markdown/auto_emphasize_transformer.dart';
 import 'package:pluto/markdown/config_link_transformer.dart';
 import 'package:pluto/markdown/config_syntax.dart';
@@ -32,6 +33,7 @@ class StepikMarkdownRenderer {
   List<NodeTransformer> get _transformers => [
     const TagRewriteTransformer(tagRewrites),
     const CenteredHeadingTransformer(),
+    const AlertTransformer(),
     // Before [RefLinkTransformer], so a config value may supply part of a `ref:`
     // target and still resolve.
     ConfigLinkTransformer(config),
