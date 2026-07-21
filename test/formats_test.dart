@@ -297,6 +297,32 @@ void main() {
       expect(const AbbreviationsFormat().write(Abbreviations.empty), isEmpty);
     });
 
+    test(
+      'Should rewrite a non-ASCII term in place rather than duplicate it',
+      () {
+        const abbreviations = Abbreviations({
+          'PL': 'Programming Language',
+          'HTTP/2': 'the second version of the HTTP protocol',
+          'ЯП': 'язык программирования',
+        });
+        final base = MdDocument.parse(
+          const AbbreviationsFormat().write(abbreviations),
+        );
+
+        final written = const AbbreviationsFormat().write(
+          abbreviations,
+          base: base,
+        );
+
+        expect(
+          const AbbreviationsFormat().read(MdDocument.parse(written)).values,
+          abbreviations.values,
+        );
+        expect('ЯП:'.allMatches(written), hasLength(1));
+        expect('HTTP/2:'.allMatches(written), hasLength(1));
+      },
+    );
+
     test('Should drop a term that is no longer declared', () {
       final base = MdDocument.parse(
         '---\nPL: Programming Language\nOS: System\n---\n',

@@ -148,32 +148,34 @@ void main() {
       );
     });
 
-    test('Should write and read back abbreviations', () async {
-      final course = Course(
-        id: 1,
-        title: 'Test',
-        abbreviations: const Abbreviations({
-          'PL': 'Programming Language',
-          'ЯП': 'Язык программирования',
-        }),
+    test('Should read abbreviations of any script', () async {
+      final course = await readCourse(
+        courseMd: '---\nid: 1\ntitle: Test\n---\n',
+        fields: {
+          'abbreviations':
+              "---\nPL: Programming Language\nЯП: Язык программирования\n"
+              "RTFM: 'Read: the manual'\n---\n",
+        },
       );
 
-      final read = await writeThenRead(course);
-
-      expect(read.abbreviations.resolve('PL'), 'Programming Language');
-      expect(read.abbreviations.resolve('ЯП'), 'Язык программирования');
+      expect(course.abbreviations.resolve('PL'), 'Programming Language');
+      expect(course.abbreviations.resolve('ЯП'), 'Язык программирования');
+      expect(course.abbreviations.resolve('RTFM'), 'Read: the manual');
     });
 
-    test('Should quote an expansion YAML would misread', () async {
-      final course = Course(
-        id: 1,
-        title: 'Test',
-        abbreviations: const Abbreviations({'RTFM': 'Read: the manual'}),
+    /// Acronyms are local-only, so no command can change them and the file is
+    /// never rewritten — a `push` that touched it could only ever damage it.
+    test('Should leave abbreviations.md untouched on write', () async {
+      const written =
+          '---\n# hand-written\nЯП: Язык программирования\nHTTP/2: v2\n---\n';
+      final course = await readCourse(
+        courseMd: '---\nid: 1\ntitle: Test\n---\n',
+        fields: {'abbreviations': written},
       );
 
-      final read = await writeThenRead(course);
+      await const SourceRepository().writeCourse(course, dir.path);
 
-      expect(read.abbreviations.resolve('RTFM'), 'Read: the manual');
+      expect(sourceFile('abbreviations.md'), written);
     });
 
     test('Should leave no abbreviations file when none are declared', () async {
@@ -260,6 +262,5 @@ Which is the capital?
         expect(option.isCorrect, original.options[i].isCorrect);
       }
     });
-
   });
 }

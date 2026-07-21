@@ -136,7 +136,15 @@ class FrontMatter {
     };
   }
 
-  static final RegExp _keyPattern = RegExp(r'^([A-Za-z_][A-Za-z0-9_]*)\s*:');
+  /// A key is anything YAML accepts as a plain scalar before its `:`, not just
+  /// an ASCII identifier: `abbreviations.md` names its keys after the author's
+  /// terms, which may be of any script and may join words with `.`, `/`, `-` or
+  /// `_` (see `Abbreviations`). A key this misses is kept as a [_Raw] line and
+  /// so can no longer be replaced or removed — it would be duplicated instead.
+  static final RegExp _keyPattern = RegExp(
+    r'^([\p{L}\p{N}_][\p{L}\p{N}./\-_]*)\s*:',
+    unicode: true,
+  );
 }
 
 /// Quotes [value] only when writing it bare would change what YAML reads back,

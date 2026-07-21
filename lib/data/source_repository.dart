@@ -321,7 +321,11 @@ class SourceRepository {
     );
 
     await _writeProse(course, sourceDirPath);
-    await _writeAbbreviations(course, sourceDirPath);
+
+    // `abbreviations.md` is deliberately not written back. Acronyms are a local
+    // render-time concern with no counterpart on Stepik, so nothing a command
+    // does can change them: rewriting the file could only ever reproduce what
+    // is already on disk, or damage it.
   }
 
   /// Writes each prose field to its own `source/<field>.md`.
@@ -341,21 +345,6 @@ class SourceRepository {
 
       await _write(path, '$value\n');
     }
-  }
-
-  Future<void> _writeAbbreviations(Course course, String sourceDirPath) async {
-    final path = join(sourceDirPath, 'abbreviations.md');
-    final content = const AbbreviationsFormat().write(
-      course.abbreviations,
-      base: await _base(path),
-    );
-
-    if (content.isEmpty) {
-      _deleteIfExists(path);
-      return;
-    }
-
-    await _write(path, content);
   }
 }
 
